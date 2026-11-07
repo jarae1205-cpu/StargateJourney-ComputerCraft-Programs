@@ -26,6 +26,14 @@
  ![Stargate Monitor image](./imgs/StargateMonitor.png)
  ![Stargate Monitor terminal image](./imgs/StargateMonitorTerminal.png)
 
+## [Stargate Network](./StargateNetwork/)
+ - Links every gate in your world over rednet (wireless/ender modem)
+ - Finds gates automatically, with live status, and remembers them so you can still dial unloaded gates
+ - Dial from a list or type an address, with caller ID on incoming wormholes
+ - Optional auto-iris that only opens for gates from your network
+ - Remote control from a pocket computer, protected by a network key
+ - Works with basic, crystal and advanced crystal interfaces (1.20.1)
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program
