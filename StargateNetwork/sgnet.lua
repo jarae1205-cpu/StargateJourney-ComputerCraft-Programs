@@ -262,6 +262,9 @@ local DEFAULT_CONFIG = {
         { name = "Abydos", address = { 26, 6, 14, 31, 11, 29 } },
         { name = "Chulak", address = { 8, 1, 22, 14, 36, 19 } },
         { name = "Lantea", address = { 18, 20, 1, 15, 14, 7, 19 } },
+        { name = "Nether", address = { 27, 23, 4, 34, 12, 28 } },
+        { name = "Cavum Tenebrae", address = { 18, 7, 3, 36, 25, 15 } },
+        { name = "The End", address = { 13, 24, 2, 19, 3, 30 } },
     },
 }
 
