@@ -222,15 +222,46 @@ local TIER_LABEL = {
   basic_interface = "Basic",
 }
 
+-- Gate colour styles.
+--   ring/rim: gate body and its edges     track/glyph: the symbol track
+--   chevOff/chevOn: chevron housing/light  chevCore: centre of a lit chevron
+--   horizon/horizon2: event horizon        sparkle: share of glittering pixels
+-- sgcraft, network and jsg take their colours from the 1.12.2 era mods
+-- (SGCraft, Stargate Network, JSG / Just Stargate Mod).
 local THEMES = {
-  sg1      = { name = "SG-1",     ring = colors.gray,      chevOff = colors.brown, chevOn = colors.orange,    horizon = colors.blue,      accent = colors.orange },
-  atlantis = { name = "Atlantis", ring = colors.gray,      chevOff = colors.blue,  chevOn = colors.lightBlue, horizon = colors.cyan,      accent = colors.lightBlue },
-  universe = { name = "Universe", ring = colors.lightGray, chevOff = colors.gray,  chevOn = colors.white,     horizon = colors.lightBlue, accent = colors.white },
-  movie    = { name = "Movie",    ring = colors.lightGray, chevOff = colors.brown, chevOn = colors.red,       horizon = colors.blue,      accent = colors.red },
-  tollan   = { name = "Tollan",   ring = colors.lightGray, chevOff = colors.gray,  chevOn = colors.lightBlue, horizon = colors.lightBlue, accent = colors.cyan },
-  infinity = { name = "Infinity", ring = colors.purple,    chevOff = colors.gray,  chevOn = colors.magenta,   horizon = colors.pink,      accent = colors.magenta },
+  sg1      = { name = "SG-1",       ring = colors.gray,      rim = colors.lightGray, track = colors.gray,      glyph = colors.lightGray, glyphLit = colors.orange,
+               chevOff = colors.brown, chevOn = colors.orange,    chevCore = colors.yellow, horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.03, accent = colors.orange },
+  atlantis = { name = "Atlantis",   ring = colors.gray,      rim = colors.lightGray, track = colors.black,     glyph = colors.blue,      glyphLit = colors.lightBlue,
+               chevOff = colors.blue,  chevOn = colors.lightBlue, chevCore = colors.white,  horizon = colors.cyan,      horizon2 = colors.lightBlue, sparkle = 0.03, accent = colors.lightBlue },
+  universe = { name = "Universe",   ring = colors.lightGray, rim = colors.gray,      track = colors.lightGray, glyph = colors.gray,      glyphLit = colors.white,
+               chevOff = colors.gray,  chevOn = colors.white,     chevCore = colors.white,  horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.05, accent = colors.white },
+  movie    = { name = "Movie",      ring = colors.gray,      rim = colors.brown,     track = colors.brown,     glyph = colors.gray,      glyphLit = colors.red,
+               chevOff = colors.brown, chevOn = colors.red,       chevCore = colors.orange, horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.02, accent = colors.red },
+  tollan   = { name = "Tollan",     ring = colors.lightGray, rim = colors.white,     track = colors.lightGray, glyph = colors.gray,      glyphLit = colors.lightBlue,
+               chevOff = colors.gray,  chevOn = colors.cyan,      chevCore = colors.white,  horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.03, accent = colors.cyan },
+  infinity = { name = "Infinity",   ring = colors.purple,    rim = colors.magenta,   track = colors.purple,    glyph = colors.pink,      glyphLit = colors.white,
+               chevOff = colors.gray,  chevOn = colors.magenta,   chevCore = colors.pink,   horizon = colors.pink,      horizon2 = colors.white,     sparkle = 0.05, accent = colors.magenta },
+  sgcraft  = { name = "SGCraft",    ring = colors.gray,      rim = colors.cyan,      track = colors.gray,      glyph = colors.lightGray, glyphLit = colors.yellow,
+               chevOff = colors.brown, chevOn = colors.red,       chevCore = colors.yellow, horizon = colors.blue,      horizon2 = colors.blue,      sparkle = 0.06, accent = colors.red },
+  network  = { name = "SG Network", ring = colors.gray,      rim = colors.black,     track = colors.black,     glyph = colors.cyan,      glyphLit = colors.white,
+               chevOff = colors.blue,  chevOn = colors.lightBlue, chevCore = colors.white,  horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.04, accent = colors.cyan },
+  jsg      = { name = "JSG",        ring = colors.lightGray, rim = colors.gray,      track = colors.lightGray, glyph = colors.gray,      glyphLit = colors.orange,
+               chevOff = colors.brown, chevOn = colors.orange,    chevCore = colors.yellow, horizon = colors.blue,      horizon2 = colors.lightBlue, sparkle = 0.08, accent = colors.orange },
 }
-local THEME_ORDER = { "auto", "sg1", "atlantis", "universe", "movie", "tollan", "infinity" }
+local THEME_ORDER = { "auto", "sg1", "atlantis", "universe", "movie", "tollan", "infinity", "sgcraft", "network", "jsg" }
+
+-- Gate shapes, as fractions of the outer radius.
+--   inner: edge of the aperture        trackIn/trackOut: the symbol track
+--   glyphs: symbols drawn on the track chevron: "v" (housing + light) or "light"
+--   stopMotion: the symbols light up in turn instead of the ring spinning
+local GATE_SHAPE = {
+  milky_way = { inner = 0.70, trackIn = 0.75, trackOut = 0.90, glyphs = 39, chevron = "v" },
+  classic   = { inner = 0.68, trackIn = 0.74, trackOut = 0.88, glyphs = 39, chevron = "v", bigChevrons = true },
+  pegasus   = { inner = 0.72, trackIn = 0.77, trackOut = 0.91, glyphs = 36, chevron = "v", stopMotion = true },
+  andromeda = { inner = 0.72, trackIn = 0.77, trackOut = 0.91, glyphs = 42, chevron = "v", stopMotion = true },
+  universe  = { inner = 0.74, trackIn = 0.77, trackOut = 0.97, glyphs = 36, chevron = "light", segments = true },
+  tollan    = { inner = 0.86, glyphs = 0, chevron = "light", lightSize = 0.1 },
+}
 
 -- Stargate Journey feedback codes (StargateInfo.Feedback)
 local FEEDBACK = {
@@ -390,7 +421,7 @@ local state = {
   hasIris = false, irisName = nil, irisPct = 0, irisClosed = false,
   hasFilter = false, filterType = nil,
   localAddress = nil, remoteAddress = nil, dialedAddress = nil,
-  target = nil, chevrons = 0, lit = {},
+  target = nil, chevrons = 0, lit = {}, rotation = 0,
   openSeconds = 0, energy = nil,
   feedbackCode = nil, feedbackText = "-",
   host = nil,
@@ -495,9 +526,24 @@ local function findInterface()
   return nil
 end
 
+-- Ring angle in degrees, so the symbol track on screen turns with the gate.
+function Gate.readRotation()
+  if has("getRotationDegrees") then
+    local deg = call("getRotationDegrees")
+    if type(deg) == "number" then return deg end
+  end
+  if has("getCurrentSymbol") then
+    local s = call("getCurrentSymbol")
+    local info = GATE_INFO[state.gateKind or ""]
+    if type(s) == "number" and info then return s * 360 / info.symbols end
+  end
+  return 0
+end
+
 function Gate.poll()
   if not has("getChevronsEngaged") then return end
   local prev = state.status
+  state.rotation = Gate.readRotation()
   local connected = call("isStargateConnected") and true or false
   local chevrons = call("getChevronsEngaged") or 0
   local wormhole = call("isWormholeOpen")
@@ -977,11 +1023,20 @@ end
 
 local function gateLoop()
   local timer = os.startTimer(0)
+  local spinTimer = nil
   local lastDetect = -100
   while true do
+    -- follow the ring closely while it may be turning
+    if not spinTimer and Gate.p and (Dial.active or state.status == "dialing")
+      and (has("getRotationDegrees") or has("getCurrentSymbol")) then
+      spinTimer = os.startTimer(0.2)
+    end
     local ev = { os.pullEvent() }
     local e = ev[1]
-    if e == "timer" and ev[2] == timer then
+    if e == "timer" and ev[2] == spinTimer then
+      spinTimer = nil
+      if Gate.p then state.rotation = Gate.readRotation() end
+    elseif e == "timer" and ev[2] == timer then
       if state.status == "offline" or not Gate.p then
         if os.clock() - lastDetect >= 3 then
           lastDetect = os.clock()
@@ -1212,6 +1267,9 @@ local UI = {
   buttons = {},
   monButtons = {},
   cursor = nil,
+  -- animation
+  frame = 0, animTimer = nil, lastStatus = nil,
+  kawooshStart = nil, kawooshPhase = nil,
 }
 
 local BLIT = {}
@@ -1294,62 +1352,221 @@ local function statusLong()
   return "Offline"
 end
 
-local CHEVRON_ANGLE = {}
-for k = 0, 8 do CHEVRON_ANGLE[k] = math.rad(k * 40) end
-local atan2 = math.atan2 or math.atan
+-- ---------------------------------------------------------------------
+-- Gate renderer
+-- ComputerCraft's drawing characters 128-159 split a cell into 2 x 3
+-- square sub-pixels, so the gate is drawn at three times the detail of
+-- plain cells. A cell can still only show two colours.
+-- ---------------------------------------------------------------------
 
--- Draws the gate ring, its chevrons and the event horizon or iris.
-local function drawRing(t, x0, y0, w, h, st, th)
-  local open = st.status == "open_out" or st.status == "open_in"
-  local inner = nil
-  if st.hasIris and st.irisName and (st.irisPct or 0) >= 50 then
-    inner = "iris"
-  elseif open then
-    inner = "horizon"
+local atan2 = math.atan2 or math.atan
+local TWO_PI = 2 * math.pi
+local CHEVRON_STEP = TWO_PI / 9
+
+-- Rough brightness of each colour. A third colour in a cell is merged into
+-- whichever of the cell's two colours is closest.
+local LUMA = {
+  [colors.white] = 240, [colors.orange] = 183, [colors.magenta] = 168, [colors.lightBlue] = 178,
+  [colors.yellow] = 209, [colors.lime] = 161, [colors.pink] = 200, [colors.gray] = 76,
+  [colors.lightGray] = 153, [colors.cyan] = 133, [colors.purple] = 139, [colors.blue] = 98,
+  [colors.brown] = 107, [colors.green] = 132, [colors.red] = 114, [colors.black] = 17,
+}
+
+local PIXEL_CHARS = {}
+for code = 128, 159 do PIXEL_CHARS[code] = string.char(code) end
+
+local function nearest(c, c1, c2)
+  if c == c1 or c == c2 then return c end
+  local l = LUMA[c] or 128
+  if math.abs(l - (LUMA[c1] or 128)) <= math.abs(l - (LUMA[c2] or 128)) then return c1 end
+  return c2
+end
+
+-- Packs six sub-pixels (top-left, top-right, middle-left, middle-right,
+-- bottom-left, bottom-right) into one drawing character. The two colours
+-- that matter most win; `prio` adds weight to colours that must not
+-- vanish, such as lit chevrons.
+local function packCell(p1, p2, p3, p4, p5, p6, prio)
+  if p1 == p2 and p1 == p3 and p1 == p4 and p1 == p5 and p1 == p6 then
+    return " ", p1, p1
   end
-  local cx, cy = (w + 1) / 2, (h + 1) / 2
-  local rx, ry = w / 2, h / 2
-  local band = clamp(1.25 / ry, 0.15, 0.35)
-  local rows = {}
-  for row = 1, h do
-    local tx, fx, bx = {}, {}, {}
-    for col = 1, w do
-      local dx, dy = (col - cx) / rx, (row - cy) / ry
-      local d = math.sqrt(dx * dx + dy * dy)
-      local bg = colors.black
-      if d <= 1.0 then
-        if d >= 1 - band then
-          bg = th.ring
-        elseif inner == "iris" then
-          local a = atan2(dy, dx)
-          local blade = math.floor((a + d * 2.5) / (math.pi / 7)) % 2
-          bg = (blade == 0) and colors.gray or colors.lightGray
-        elseif inner == "horizon" then
-          if d < 0.22 then bg = colors.white
-          elseif d < 0.5 then bg = colors.lightBlue
-          else bg = th.horizon end
+  local count = {}
+  count[p1] = (count[p1] or 0) + 1
+  count[p2] = (count[p2] or 0) + 1
+  count[p3] = (count[p3] or 0) + 1
+  count[p4] = (count[p4] or 0) + 1
+  count[p5] = (count[p5] or 0) + 1
+  count[p6] = (count[p6] or 0) + 1
+  local c1, w1, c2, w2 = nil, -1, nil, -1
+  for c, n in pairs(count) do
+    local wgt = n + (prio[c] or 0)
+    if wgt > w1 then
+      c2, w2 = c1, w1
+      c1, w1 = c, wgt
+    elseif wgt > w2 then
+      c2, w2 = c, wgt
+    end
+  end
+  -- the bottom-right sub-pixel always shows the background colour
+  local bg = nearest(p6, c1, c2)
+  local fg = (bg == c1) and c2 or c1
+  local code = 128
+  if nearest(p1, c1, c2) == fg then code = code + 1 end
+  if nearest(p2, c1, c2) == fg then code = code + 2 end
+  if nearest(p3, c1, c2) == fg then code = code + 4 end
+  if nearest(p4, c1, c2) == fg then code = code + 8 end
+  if nearest(p5, c1, c2) == fg then code = code + 16 end
+  return PIXEL_CHARS[code], fg, bg
+end
+
+-- Distance from the centre (1 = outer edge) and angle from the top
+-- (clockwise) of every sub-pixel, cached per drawing size.
+local GEOMETRY = {}
+local function geometry(pw, ph)
+  local key = pw * 1000 + ph
+  local g = GEOMETRY[key]
+  if g then return g end
+  g = { d = {}, a = {}, R = math.min(pw, ph) / 2 }
+  local cx, cy = (pw + 1) / 2, (ph + 1) / 2
+  for y = 1, ph do
+    for x = 1, pw do
+      local dx, dy = x - cx, y - cy
+      local i = (y - 1) * pw + x
+      g.d[i] = math.sqrt(dx * dx + dy * dy) / g.R
+      local a = atan2(dx, -dy)
+      if a < 0 then a = a + TWO_PI end
+      g.a[i] = a
+    end
+  end
+  GEOMETRY[key] = g
+  return g
+end
+
+-- Cheap repeatable noise in [0, 1) for glitter on the event horizon.
+local function noise(x, y, f)
+  local v = math.sin(x * 12.9898 + y * 78.233 + f * 37.719) * 43758.5453
+  return v - math.floor(v)
+end
+
+-- Draws the gate into a w x h block of cells at (x0, y0) of terminal t:
+-- body, symbol track (turning with the real ring), nine chevrons, and the
+-- event horizon or iris in the middle.
+local function drawRing(t, x0, y0, w, h, st, th)
+  local pw, ph = w * 2, h * 3
+  local g = geometry(pw, ph)
+  local gd, ga, R = g.d, g.a, g.R
+  local shape = GATE_SHAPE[st.gateKind or ""] or GATE_SHAPE.milky_way
+  local frame = UI.frame or 0
+  local open = st.status == "open_out" or st.status == "open_in"
+  local kawoosh = UI.kawooshPhase
+  local irisPct = (st.hasIris and st.irisName) and clamp(st.irisPct or 0, 0, 100) or 0
+  local inner = shape.inner
+  local irisEdge = inner * (1 - irisPct / 100)   -- the iris closes from the rim inwards
+  local rot = math.rad(st.rotation or 0)
+  local n = shape.glyphs or 0
+  local sector = TWO_PI / math.max(1, n)
+  local runner = nil
+  if shape.stopMotion and n > 0 and (st.status == "dialing" or st.status == "incoming" or st.status == "engaging") then
+    runner = (frame * 3) % n   -- Pegasus-style: a light runs round the symbols
+  end
+  local trackMid, trackHalf
+  if shape.trackIn then
+    trackMid = (shape.trackIn + shape.trackOut) / 2
+    trackHalf = (shape.trackOut - shape.trackIn) * 0.3
+  end
+  local chevSize = shape.bigChevrons and 0.21 or 0.17
+  local detail = R >= 20          -- big enough to show a light inside each chevron
+  local lit = st.lit or {}
+  local rimIn, rimOut = inner + 1.2 / R, 1 - 1.2 / R
+  local core, mid = 0.18, 0.45
+  if kawoosh then
+    -- the kawoosh floods the horizon with light, then it settles
+    local burst = math.sin(kawoosh * math.pi)
+    core, mid = 0.18 + 0.8 * burst, 0.45 + 0.6 * burst
+  end
+  local sparkle = 1 - (th.sparkle or 0.03)
+  local core2 = th.chevCore or th.chevOn
+
+  local px = {}
+  for y = 1, ph do
+    for x = 1, pw do
+      local i = (y - 1) * pw + x
+      local d = gd[i]
+      local c = colors.black
+      if d <= 1 then
+        local a = ga[i]
+        if d >= inner then
+          -- gate body, rims and symbol track
+          if d >= rimOut or d <= rimIn then c = th.rim else c = th.ring end
+          if trackMid and d >= shape.trackIn and d <= shape.trackOut then
+            c = th.track
+            if n > 0 then
+              local s = ((a - rot) % TWO_PI) / sector
+              local idx = math.floor(s)
+              local f = s - idx
+              if f > 0.28 and f < 0.72 and math.abs(d - trackMid) <= trackHalf then
+                c = (runner == idx) and th.glyphLit or th.glyph
+              end
+            end
+          end
+          if shape.segments then
+            local s = (a / CHEVRON_STEP + 0.5) % 1
+            if s < 0.04 or s > 0.96 then c = th.rim end
+          end
+          -- chevrons, clockwise from the top one
+          local k = math.floor(a / CHEVRON_STEP + 0.5) % 9
+          local da = a - k * CHEVRON_STEP
+          if da > math.pi then da = da - TWO_PI end
+          local u = math.abs(da) * d      -- distance along the ring
+          local v = 1 - d                 -- depth from the outer edge
+          local on = lit[k]
+          if shape.chevron == "v" then
+            local size = chevSize * ((k == 0) and 1.2 or 1)
+            local depth = size * 1.3
+            if v <= depth and u <= size * (1 - v / depth) then
+              c = on and th.chevOn or th.chevOff
+              if on and detail then
+                local iv = v - depth * 0.15
+                local inDepth, inSize = depth * 0.7, size * 0.5
+                if iv >= 0 and iv <= inDepth and u <= inSize * (1 - iv / inDepth) then c = core2 end
+              end
+            end
+          else
+            local size = shape.lightSize or 0.07
+            if u <= size and math.abs(v - (1 - inner) / 2) <= size * 1.3 then
+              c = on and th.chevOn or th.chevOff
+            end
+          end
+        elseif irisPct > 0 and d >= irisEdge then
+          local blade = math.floor((a + (d / inner) * 2.6) / (TWO_PI / 12)) % 2
+          c = (blade == 0) and colors.gray or colors.lightGray
+        elseif open or kawoosh then
+          -- event horizon: bright core, moving ripples and glitter
+          local dd = d / inner
+          if dd < core then c = colors.white
+          elseif dd < mid then c = th.horizon2
+          else c = th.horizon end
+          if dd >= core and (dd * 5 - frame * 0.4) % 1 < 0.12 then c = th.horizon2 end
+          if noise(x, y, frame) > sparkle then c = colors.white end
         end
       end
-      tx[col], fx[col], bx[col] = " ", toBlit(colors.black), toBlit(bg)
-    end
-    rows[row] = { tx, fx, bx }
-  end
-  local cr = 1 - band / 2
-  for k = 0, 8 do
-    local a = CHEVRON_ANGLE[k]
-    local col = math.floor(cx + math.sin(a) * rx * cr + 0.5)
-    local row = math.floor(cy - math.cos(a) * ry * cr + 0.5)
-    if row >= 1 and row <= h and col >= 1 and col <= w then
-      local lit = st.lit and st.lit[k]
-      rows[row][3][col] = toBlit(lit and th.chevOn or th.chevOff)
-      if k == 0 then
-        rows[row][1][col] = "V"
-      end
+      px[i] = c
     end
   end
-  for row = 1, h do
-    t.setCursorPos(x0, y0 + row - 1)
-    t.blit(table.concat(rows[row][1]), table.concat(rows[row][2]), table.concat(rows[row][3]))
+
+  local prio = { [th.chevOn] = 2, [th.glyphLit] = 2, [core2] = 2 }
+  for cy = 1, h do
+    local chars, fgs, bgs = {}, {}, {}
+    local r1 = (cy * 3 - 3) * pw
+    local r2, r3 = r1 + pw, r1 + 2 * pw
+    for cx = 1, w do
+      local xl = cx * 2 - 1
+      local ch, fg, bg = packCell(px[r1 + xl], px[r1 + xl + 1], px[r2 + xl], px[r2 + xl + 1],
+        px[r3 + xl], px[r3 + xl + 1], prio)
+      chars[cx], fgs[cx], bgs[cx] = ch, toBlit(fg), toBlit(bg)
+    end
+    t.setCursorPos(x0, y0 + cy - 1)
+    t.blit(table.concat(chars), table.concat(fgs), table.concat(bgs))
   end
 end
 
@@ -1811,7 +2028,7 @@ local CONFIG_ITEMS = {
   { key = "stepDelay",      label = "Ring dialing delay (s)",       short = "Ring delay",     kind = "num", min = 0, max = 3, step = 0.5, host = true },
   { key = "directEngage",   label = "Instant dial (Adv. Crystal)",  short = "Instant dial",   kind = "bool", host = true },
   { key = "showGlyphs",     label = "Show glyph marks",             short = "Glyph marks",    kind = "bool" },
-  { key = "theme",          label = "Theme",                        short = "Theme",          kind = "choice", choices = THEME_ORDER },
+  { key = "theme",          label = "Gate style",                   short = "Style",          kind = "choice", choices = THEME_ORDER },
   { key = "monitorBoard",   label = "Monitor status board",         short = "Monitor board",  kind = "bool", host = true },
   { key = "remoteEnabled",  label = "Allow pocket dialers",         short = "Pocket dialers", kind = "bool", host = true },
   { key = "remoteHost",     label = "Dialing computer name",        short = "Host name",      kind = "text", remote = true },
@@ -2075,7 +2292,36 @@ end
 
 -- Main draw -------------------------------------------------------------------
 
+-- Starts the kawoosh when a wormhole opens while we are watching (not when
+-- the program starts up next to a gate that is already open).
+local function updateAnimation()
+  local s = state.status
+  local isOpen = s == "open_out" or s == "open_in"
+  local was = UI.lastStatus
+  if isOpen and was and was ~= "offline" and was ~= "open_out" and was ~= "open_in" then
+    UI.kawooshStart = os.clock()
+  end
+  if not isOpen then UI.kawooshStart = nil end
+  UI.lastStatus = s
+  UI.kawooshPhase = nil
+  if UI.kawooshStart then
+    local p = (os.clock() - UI.kawooshStart) / 1.5
+    if p < 1 then UI.kawooshPhase = p else UI.kawooshStart = nil end
+  end
+end
+
+-- True while something on a visible gate moves.
+local function wantsAnimation()
+  if UI.view ~= "gate" and not Board.win then return false end
+  local s = state.status
+  if s == "open_out" or s == "open_in" or s == "dialing" or s == "incoming" or s == "engaging" then return true end
+  if UI.kawooshStart then return true end
+  local p = state.irisPct or 0
+  return state.irisName ~= nil and p > 0 and p < 100
+end
+
 local function draw()
+  updateAnimation()
   UI.buttons = {}
   UI.cursor = nil
   scr.setVisible(false)
@@ -2237,11 +2483,17 @@ local function uiLoop()
       scr.reposition(1, 1, W, H)
     elseif e == "monitor_resize" or e == "peripheral" or e == "peripheral_detach" then
       Board.refresh()
+    elseif e == "timer" and ev[2] == UI.animTimer then
+      UI.animTimer = nil
+      UI.frame = UI.frame + 1
     elseif e ~= "sghl_redraw" then
       dirty = false
     end
     if UI.quit then return end
     if dirty then draw() end
+    if not UI.animTimer and wantsAnimation() then
+      UI.animTimer = os.startTimer(0.25)
+    end
   end
 end
 

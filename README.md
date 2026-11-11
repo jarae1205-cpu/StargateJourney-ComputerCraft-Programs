@@ -50,8 +50,9 @@
 **Written for Stargate Journey 0.6.54 on Minecraft 1.20.1**  
  - Address book dialer in the style of the 1.12.2 personal dialers, with search, glyph marks and reordering
  - Works with every gate type (Milky Way, Pegasus, Universe, Classic, Tollan, Andromeda) and every interface tier
- - Gate page with a live ring, chevrons, event horizon and iris
- - Configurator page: Auto Close, open time limit, automatic iris, SGC 3-step dialing, themes, address access list
+ - Detailed gate display: V-shaped chevrons, a symbol track that turns with the ring, a shimmering event horizon with a kawoosh, and an iris that closes from the rim
+ - Gate styles for every gate type, plus styles based on SGCraft, Stargate Network and JSG
+ - Configurator page: Auto Close, open time limit, automatic iris, SGC 3-step dialing, address access list
  - Optional monitor status board and pocket computer dialer over rednet
 
 ![Stargate Hybrid Legacy image](./imgs/StargateHybridLegacy.png)

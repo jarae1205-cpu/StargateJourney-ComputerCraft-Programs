@@ -14,7 +14,7 @@ The layout borrows from the 1.12.2 era Stargate mods: an address book like a per
 - **Dialer page**: a searchable address book. Each entry shows the name, the address, a strip of glyph marks and a note such as the galaxy. A bar on the right is green when this gate can dial the address and red when a symbol is out of range. You can add, edit, delete and reorder entries.
 - **Gate page**: a ring display with live chevrons, the event horizon and the iris. It shows the status, target, local and remote address, open time, energy, iris state and the gate's last feedback. It has buttons to close the gate, toggle the iris and rescan.
 - **Log page**: chevrons, wormholes, travellers, iris hits and errors, with the in-game time.
-- **Config page**: Auto Close after someone steps through, a time limit for open wormholes, closing the iris on incoming wormholes and putting it back afterwards, the SGC 3-step chevron style, ring dialing speed, instant dialing, themes and the address access list.
+- **Config page**: Auto Close after someone steps through, a time limit for open wormholes, closing the iris on incoming wormholes and putting it back afterwards, the SGC 3-step chevron style, ring dialing speed, instant dialing, the gate style and the address access list.
 - **Monitor status board**: if a monitor is attached, it shows a large gate with the target and two touch buttons, **CLOSE** and **IRIS**.
 - **Pocket dialer**: run `sghl remote` on an Advanced Pocket Computer with a wireless or ender modem. It keeps its own address book and sends dial, close and iris requests to the dialing computer.
 
@@ -31,9 +31,26 @@ The layout borrows from the 1.12.2 era Stargate mods: an address book like a per
 
 The Advanced Crystal Interface also shows the local and connected address and unlocks the gate address whitelist and blacklist.
 
-The theme follows the gate automatically: SG-1 orange for Milky Way, Atlantis blue for Pegasus, Universe white, red for the Classic movie gate and light blue for Tollan. An extra Infinity palette can be picked on the Config page.
-
 The program was written against the Stargate Journey **0.6.54** sources for 1.20.1. Older 0.6.x builds that use `raiseChevron` and `lowerChevron` are handled as well.
+
+## Gate display
+
+![Gate styles](../imgs/StargateHybridLegacyStyles.png)
+
+*Top: Milky Way, Pegasus, Universe and Tollan in their own styles. Bottom: Classic, then a Milky Way gate in the SGCraft, SG Network and JSG styles.*
+
+The gate is drawn with ComputerCraft's 2×3 drawing characters, so each terminal cell holds six square sub-pixels.
+
+- **Chevrons**: nine V-shaped chevrons light up in the order the gate locks them, including 8- and 9-chevron addresses. The Universe and Tollan gates show lights instead.
+- **Symbol track**: on Milky Way, Classic and Universe gates the track turns with the real ring while it dials. On Pegasus and Andromeda gates a light runs round the symbols instead.
+- **Event horizon**: a bright core with moving ripples and glitter. The wormhole opens with a short kawoosh.
+- **Iris**: closes from the rim inwards as the real iris moves.
+
+The style follows the gate automatically: SG-1 orange for Milky Way, Atlantis blue for Pegasus, Universe white, red for the Classic movie gate and teal for Tollan. On the Config page, **Gate style** can also be set to Infinity or to one of three styles based on the 1.12.2 era mods:
+
+- **SGCraft**: red chevrons with yellow centres and a deep blue horizon
+- **SG Network**: a dark ring with cyan symbols and blue chevrons
+- **JSG**: a stone-grey ring with orange chevrons and a glittering horizon
 
 ## Requirements
 
