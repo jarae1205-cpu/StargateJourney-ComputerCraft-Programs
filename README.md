@@ -26,6 +26,15 @@
  ![Stargate Monitor image](./imgs/StargateMonitor.png)
  ![Stargate Monitor terminal image](./imgs/StargateMonitorTerminal.png)
 
+## [Personal Dialer](./PersonalDialer/)
+ - Address book with live search: add, edit, remove and reorder gates
+ - Dials every gate type (Milky Way ring rotation or direct symbol engaging)
+ - Chevron progress bar, gate state and incoming caller lookup
+ - Auto-close after you step through, iris control, colour themes
+ - Runs on the computer screen or an advanced monitor
+
+![Personal Dialer image](./imgs/PersonalDialer.png)
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program
