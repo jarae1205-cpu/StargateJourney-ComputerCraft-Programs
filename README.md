@@ -45,3 +45,14 @@
 
 ![Danger's Dialler image](./imgs/DangerDialler1.png)
 
+## [Stargate Hybrid Legacy](./StargateHybridLegacy/)
+*Created by jarae1205-cpu*  
+**Written for Stargate Journey 0.6.54 on Minecraft 1.20.1**  
+ - Address book dialer in the style of the 1.12.2 personal dialers, with search, glyph marks and reordering
+ - Works with every gate type (Milky Way, Pegasus, Universe, Classic, Tollan, Andromeda) and every interface tier
+ - Gate page with a live ring, chevrons, event horizon and iris
+ - Configurator page: Auto Close, open time limit, automatic iris, SGC 3-step dialing, themes, address access list
+ - Optional monitor status board and pocket computer dialer over rednet
+
+![Stargate Hybrid Legacy image](./imgs/StargateHybridLegacy.png)
+
