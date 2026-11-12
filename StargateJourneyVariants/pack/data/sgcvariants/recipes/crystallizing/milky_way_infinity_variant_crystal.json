@@ -1,0 +1,28 @@
+{
+	"type": "sgjourney:crystallizing",
+	"crystal_base": {
+		"item": "sgjourney:stargate_variant_crystal",
+		"amount": 1
+	},
+	"primary_ingredient": {
+		"item": "minecraft:lime_dye",
+		"amount": 1
+	},
+	"secondary_ingredient": {
+		"item": "minecraft:book",
+		"amount": 1
+	},
+	"deplete_primary": true,
+	"deplete_secondary": true,
+	"output": {
+		"item": "sgjourney:stargate_variant_crystal",
+		"nbt": {
+			"Variant": "sgcvariants:milky_way_infinity"
+		}
+	},
+	"progress": 100,
+	"input_fluid": {
+		"id": "sgjourney:liquid_naquadah",
+		"amount": 100
+	}
+}

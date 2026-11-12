@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "sgcaddon:block/gate_monitor_open"
+  }
+}

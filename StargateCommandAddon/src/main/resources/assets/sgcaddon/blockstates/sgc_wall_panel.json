@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "sgcaddon:block/sgc_wall_panel"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "sgcaddon:block/alarm_light"
+    },
+    "lit=true": {
+      "model": "sgcaddon:block/alarm_light_on"
+    }
+  }
+}

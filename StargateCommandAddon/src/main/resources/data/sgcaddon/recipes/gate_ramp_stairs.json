@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "R  ",
+    "RR ",
+    "RRR"
+  ],
+  "key": {
+    "R": {
+      "item": "sgcaddon:gate_ramp"
+    }
+  },
+  "result": {
+    "item": "sgcaddon:gate_ramp_stairs",
+    "count": 4
+  }
+}

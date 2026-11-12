@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "sgcaddon:alarm_light",
+    "sgcaddon:gate_monitor",
+    "sgcaddon:gate_ramp",
+    "sgcaddon:gate_ramp_stairs",
+    "sgcaddon:gate_ramp_slab",
+    "sgcaddon:sgc_wall_panel",
+    "sgcaddon:sgc_hazard_stripes",
+    "sgcaddon:sgc_floor_tiles"
+  ]
+}
