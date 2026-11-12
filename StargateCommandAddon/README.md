@@ -54,4 +54,4 @@ It needs internet access the first time (Forge, Minecraft and Stargate Journey f
 
 ## License
 
-The repository has no license file yet, so the mod's code has no license either until its owner picks one. The gate variant textures are recoloured from Stargate Journey's textures and stay CC BY-NC-SA 4.0 (see [the variant pack's license](../StargateJourneyVariants/LICENSE.txt)). The block textures are original.
+The code and the block textures are MIT, see [LICENSE](../LICENSE). The gate variant textures are recoloured from Stargate Journey's textures and stay CC BY-NC-SA 4.0 (see [the variant pack's license](../StargateJourneyVariants/LICENSE.txt)). The block textures are original, drawn by `tools/make_resources.py`.

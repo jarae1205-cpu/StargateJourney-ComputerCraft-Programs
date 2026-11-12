@@ -58,7 +58,9 @@ tasks.named('processResources', ProcessResources) {
     }
 }
 
+def licenseName = "LICENSE_${mod_id}"
 tasks.named('jar', Jar) {
+    from('../LICENSE') { rename { licenseName } }
     manifest {
         attributes([
                 'Specification-Title'   : mod_id,

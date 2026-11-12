@@ -99,4 +99,4 @@ The jar is `build/libs/chevron7-1.0.0.jar`.
 
 ## License
 
-The repository has no license file yet, so this mod has no license either until the repository's owner picks one. Every texture and symbol is original, drawn by `tools/make_resources.py`.
+MIT, see [LICENSE](../LICENSE). That covers the textures and symbols too: they are original, drawn by `tools/make_resources.py`.
