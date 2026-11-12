@@ -46,6 +46,8 @@ public class Chevron7
 
 	public static final RegistryObject<GateFieldFeature> GATE_FIELD = FEATURES.register("gate_field",
 			() -> new GateFieldFeature(NoneFeatureConfiguration.CODEC));
+	public static final RegistryObject<PlanetGateFeature> PLANET_GATE = FEATURES.register("planet_gate",
+			() -> new PlanetGateFeature(NoneFeatureConfiguration.CODEC));
 
 	public static final ResourceKey<DamageType> KAWOOSH = ResourceKey.create(Registries.DAMAGE_TYPE, id("kawoosh"));
 
@@ -71,6 +73,8 @@ public class Chevron7
 			() -> new BlockItem(DHD.get(), new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> IRIS = ITEMS.register("iris",
 			() -> new IrisItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> ADDRESS_BOOK = ITEMS.register("address_book",
+			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
 			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));

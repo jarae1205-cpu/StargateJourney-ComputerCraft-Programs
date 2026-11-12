@@ -11,6 +11,7 @@ public final class Config
 	public static final ForgeConfigSpec.BooleanValue KAWOOSH_KILLS;
 	public static final ForgeConfigSpec.BooleanValue INCOMING_CAN_CLOSE;
 	public static final ForgeConfigSpec.BooleanValue GATE_FIELDS;
+	public static final ForgeConfigSpec.BooleanValue PLANET_GATES;
 
 	static
 	{
@@ -26,6 +27,8 @@ public final class Config
 		builder.push("world");
 		GATE_FIELDS = builder.comment("Gate fields (five gates around a clearing) appear in plains, meadows and savannas")
 				.define("gate_fields", true);
+		PLANET_GATES = builder.comment("Planets (Ad Astra) get a gate near 0, 0, with an address listed in the Gate Address Book")
+				.define("planet_gates", true);
 		builder.pop();
 		SPEC = builder.build();
 	}

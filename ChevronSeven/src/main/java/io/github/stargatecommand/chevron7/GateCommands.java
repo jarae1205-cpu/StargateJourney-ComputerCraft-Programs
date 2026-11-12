@@ -25,6 +25,10 @@ public final class GateCommands
 		CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 		dispatcher.register(Commands.literal("chevron7").requires(source -> source.hasPermission(2))
 				.then(Commands.literal("list").executes(GateCommands::list))
+				.then(Commands.literal("planets").executes(context -> {
+					AddressBookItem.describePlanets(context.getSource().getServer(), line -> context.getSource().sendSuccess(() -> line, false));
+					return 1;
+				}))
 				.then(Commands.literal("field").then(Commands.argument("center", BlockPosArgument.blockPos())
 						.executes(context -> field(context, "north", 5))
 						.then(Commands.argument("direction", StringArgumentType.word())

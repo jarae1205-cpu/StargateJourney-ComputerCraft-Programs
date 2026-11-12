@@ -584,6 +584,8 @@ public class StargateBlockEntity extends BlockEntity
 		}
 		GateNetwork network = GateNetwork.get(level.getServer());
 		GateNetwork.Entry entry = network.find(target);
+		if(entry == null && PlanetGates.siteFor(level.getServer(), target) != null)
+			entry = network.find(target); // a planet nobody had been to: its gate now exists
 		ServerLevel targetLevel = entry == null ? null : level.getServer().getLevel(entry.dimension());
 		if(entry == null || targetLevel == null)
 		{
@@ -878,6 +880,20 @@ public class StargateBlockEntity extends BlockEntity
 	//============================================================================================
 	// network and lifecycle
 	//============================================================================================
+
+	/** Gives a gate made by world generation its address (a planet's gate); kept if no other gate has it. */
+	public void presetAddress(int[] preset)
+	{
+		if(GateAddress.valid(preset))
+			address = preset.clone();
+	}
+
+	/** Puts the gate on the network now, instead of on its first tick. */
+	public void ensureRegistered(ServerLevel level)
+	{
+		if(!registered)
+			register(level);
+	}
 
 	private void register(ServerLevel level)
 	{
