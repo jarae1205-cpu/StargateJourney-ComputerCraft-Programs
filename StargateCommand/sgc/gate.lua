@@ -52,6 +52,33 @@ G.FEEDBACK = {
     [-28] = "Chevron not open", [-29] = "Cannot encode the point of origin",
 }
 
+-- SGCraft 2.x reports errors as message keys
+G.SGCRAFT_ERRORS = {
+    unknownAddress = "No stargate at that address", selfBusy = "The gate is busy", selfIncomplete = "The gate isn't complete",
+    targetBusy = "The gate at that address is busy", selfOutOfRange = "This gate is out of stargate range",
+    targetOutOfRange = "The destination is out of stargate range", diallingItself = "A gate can't dial itself",
+    selfLackChevrons = "This gate needs more chevrons for that address", targetLackChevrons = "The destination gate lacks chevrons",
+    insufficientEnergy = "Not enough energy to dial", malformedAddress = "Malformed address",
+    dimensionTooFar = "That dimension is out of reach", zpmNotFound = "That address needs a ZPM",
+    zpmLowPower = "The ZPM lacks the power for that address", incomingConnection = "Interrupted by an incoming connection",
+    irisAtDestination = "Destination blocked by its iris", cannotDialToThisGate = "That gate can't be dialed",
+    cannotDialFromThisGate = "This gate can't dial out", oriOnlyOri = "An Ori supergate only connects to another supergate",
+    supergateNeedsZpms = "This supergate needs more ZPMs", targetSupergateNeedsZpms = "The other supergate needs more ZPMs",
+    generatedGateGone = "That gate no longer exists", accessFromDenied = "Access denied", playerAccessToDenied = "Access denied",
+    accessSystemDeniedOrigin = "Access denied", accessSystemDeniedDestination = "Access denied",
+}
+
+-- readable text for an SGCraft error ("...:12: unknownAddress" -> "No stargate at that address")
+function G.sgcraftError(err)
+    local msg = tostring(err):gsub("^.-:%d+: ", ""):gsub("^java%.lang%.%w+: ", "")
+    if G.SGCRAFT_ERRORS[msg] then return G.SGCRAFT_ERRORS[msg] end
+    if msg:match("^%l%w+$") then
+        msg = msg:gsub("(%u)", function(c) return " " .. c:lower() end)
+        return (msg:gsub("^%l", string.upper))
+    end
+    return msg
+end
+
 local function now() return os.clock() end
 
 ---------------------------------------------------------------------------
@@ -154,6 +181,7 @@ function G:detect()
         self.localAddress = A.fromValue(la)
         local iris = self:call("irisState")
         self.hasIris = type(iris) == "string" and iris ~= "Offline"
+        self.hasZpm = self:has("zpmEnergy") -- SGCraft 2.x
         return
     end
     self.typeId, self.typeName, self.symbolCount = "milky_way", "Stargate", 39
@@ -258,6 +286,12 @@ function G:pollSGCraft()
     self.hasIris = type(iris) == "string" and iris ~= "Offline"
     self.iris = self.hasIris and (SGC_IRIS[iris] or 50) or nil
     self.energy = self:call("energyAvailable")
+    -- ZPMs (SGCraft 2.x): the lookup searches around the gate, so not every poll
+    if self.hasZpm and now() - (self.zpmCheckedAt or -99) > 5 then
+        self.zpmCheckedAt = now()
+        local energy, count = self:call("zpmEnergy")
+        self.zpmEnergy, self.zpmCount = tonumber(energy), tonumber(count)
+    end
     return self.state
 end
 
@@ -283,7 +317,7 @@ G.EVENTS = {
     stargate_disconnected = true, stargate_reset = true, stargate_deconstructing_entity = true,
     stargate_reconstructing_entity = true, stargate_rotation_started = true, stargate_rotation_stopped = true,
     stargate_message_received = true, iris_thud = true,
-    sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgStargateStateChange = true,
+    sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgChevronUnset = true, sgStargateStateChange = true,
     sgIrisStateChange = true, sgMessageReceived = true,
 }
 
@@ -369,9 +403,32 @@ function G:event(e)
             self.engaged[n] = symbol
         end
         info = { type = "chevron", n = n, symbol = symbol, incoming = not self.outgoing }
+    elseif name == "sgChevronUnset" then
+        -- SGCraft 2.x: a symbol was taken back on the DHD
+        local n = e[o]
+        if type(n) == "number" then
+            self.chevrons = n
+            for i = n + 1, #self.engaged do self.engaged[i] = nil end
+        end
+        info = { type = "chevron", n = n, unset = true, incoming = not self.outgoing }
     elseif name == "sgStargateStateChange" then
         local new = e[o]
-        if new == "Opening" or (new == "Connected" and not self.openedAt) then
+        if new == "Dialling" then
+            -- SGCraft 2.x sends no sgDialIn/sgDialOut, but reports the direction while dialing
+            self.engaged, self.openedAt, self.closingAt = {}, nil, nil
+            local _, _, direction = self:call("stargateState")
+            if direction == "Incoming" and not self.dialing then
+                self.outgoing = false
+                self.remote = A.fromValue(self:call("remoteAddress"))
+                if self.remote then self.lastIncoming = self.remote end
+                info = { type = "dialin", address = self.remote }
+            elseif direction == "Outgoing" then
+                self.outgoing = true
+                info = { type = "dialout", address = self.remote }
+            else
+                info = { type = "state", state = new }
+            end
+        elseif new == "Opening" or (new == "Connected" and not self.openedAt) then
             self.connected = true
             self.openedAt = now()
             info = { type = self.outgoing and "outgoing" or "incoming", address = self.remote }
@@ -399,7 +456,7 @@ end
 function G:close()
     if self.mod == "sgcraft" then
         local ok, err = self:try("disconnect")
-        return ok, not ok and tostring(err) or nil
+        return ok, not ok and G.sgcraftError(err) or nil
     end
     self:call("endRotation")
     if self:has("isChevronOpen") and self:call("isChevronOpen") then self:call("closeChevron") end
@@ -562,7 +619,7 @@ function G:dialSGCraft(address, opts)
     if self:call("stargateState") ~= "Idle" then fail("The gate is busy") end
     self.outgoing, self.remote, self.engaged = true, address, {}
     local ok, err = self:try("dial", address)
-    if not ok then fail(tostring(err):gsub("^.-:%d+: ", "")) end
+    if not ok then fail(G.sgcraftError(err)) end
     local total = #address
     local seen = 0
     local done = waitUntil(opts, function()

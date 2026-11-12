@@ -393,7 +393,9 @@ local function drawPanel(t)
             if autoCloseTimer then timer = timer .. "  closing soon" end
         end
         line(timer, colors.lightBlue)
-        line("Energy " .. (gate.energy and (UI.energy(gate.energy) .. (gate.mod == "sgcraft" and " SU" or " FE")) or "?"), colors.lightGray)
+        local energy = "Energy " .. (gate.energy and (UI.energy(gate.energy) .. (gate.mod == "sgcraft" and " SU" or " FE")) or "?")
+        if gate.zpmCount and gate.zpmCount > 0 then energy = energy .. "  ZPM x" .. gate.zpmCount end
+        line(energy, colors.lightGray)
         local iris = "none"
         local ic = colors.gray
         if gate.hasIris then
@@ -598,7 +600,7 @@ end
 local function onGateEvent(info)
     if not info then return end
     local ty = info.type
-    if ty == "chevron" and info.incoming then
+    if ty == "chevron" and info.incoming and not info.unset then
         if dial.active then dial.abort = true end
         if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 and info.n == 1 then
             gate:closeIris()

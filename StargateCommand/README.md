@@ -5,7 +5,7 @@ Two monitor programs and a shared library for ComputerCraft stargates:
 - **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it.
 - **Gate Network Hub**: a touch screen of destination cards. Each card has its own portal colour and a tab (Milky Way, Pegasus, Crossover...). Tap a card to dial it.
 
-Both work with **Stargate Journey** (Minecraft 1.20.1, CC: Tweaked) and with **Greg's SGCraft** (Minecraft 1.7.10 to 1.12.2, ComputerCraft / CC: Tweaked). They share one address book with the [Personal Dialer](../PersonalDialer/).
+Both work with **Stargate Journey** (Minecraft 1.20.1, CC: Tweaked) and with **SGCraft**: Greg Ewing's original (Minecraft 1.7.10 to 1.10.2) and the 1.12.2 SGCraft 2.x line (written against 2.3). They share one address book with the [Personal Dialer](../PersonalDialer/).
 
 ![Gate Room](../imgs/GateRoom.png)
 
@@ -36,7 +36,7 @@ Variants from resource packs are matched by name, so a variant called `lantea_ga
 ## Requirements
 
 - **Stargate Journey**: a basic, crystal or advanced crystal interface next to the computer or on a wired modem network. Pegasus, Universe, Tollan and Classic gates need a crystal interface to dial. The local address and the caller's address need an advanced crystal interface.
-- **SGCraft**: the stargate computer interface under the gate base.
+- **SGCraft**: the ComputerCraft stargate interface under the gate base.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
 
@@ -142,9 +142,16 @@ print(gate.typeName, gate.state)
 local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 ```
 
+## SGCraft 2.3 notes
+
+- The computer interface doesn't report whether a gate is Milky Way, Pegasus, Universe or an Ori supergate, so every SGCraft gate starts with the SGCraft look. Tap **STYLE** in the Gate Room (or pick a theme in the dialer's gate info) to match a Pegasus or Universe gate. The choice is remembered.
+- ZPMs feeding the gate are shown next to its energy.
+- Incoming wormholes are recognised from the gate's dialing direction, which 2.3 reports instead of the old `sgDialIn`/`sgDialOut` events.
+- Dialing errors are shown as text ("No stargate at that address", "Not enough energy to dial"...) instead of SGCraft's message keys.
+
 ## Notes
 
 - Dialing reads the gate state from events and also polls it, so a missed event does not leave the screen stuck.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Not tested in a live game yet. The programs were run against simulated Stargate Journey and SGCraft interfaces built from each mod's source code.
+- Not tested in a live game yet. The programs were run against simulated Stargate Journey, SGCraft (original) and SGCraft 2.3 interfaces built from each mod's source code.

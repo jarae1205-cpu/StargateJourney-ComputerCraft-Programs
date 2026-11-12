@@ -348,6 +348,27 @@ local iface, ifaceName, ifaceType
 -- Greg's SGCraft "stargate" interface, wrapped so it answers the same calls
 -- as a Stargate Journey interface
 local SGCRAFT_IRIS = { Open = 0, Opening = 40, Closing = 60, Closed = 100 }
+-- SGCraft 2.x reports errors as message keys
+local SGCRAFT_ERRORS = {
+    unknownAddress = "No stargate at that address", selfBusy = "The gate is busy", selfIncomplete = "The gate isn't complete",
+    targetBusy = "The gate at that address is busy", selfOutOfRange = "This gate is out of stargate range",
+    targetOutOfRange = "The destination is out of range", diallingItself = "A gate can't dial itself",
+    selfLackChevrons = "This gate needs more chevrons", targetLackChevrons = "The destination gate lacks chevrons",
+    insufficientEnergy = "Not enough energy to dial", malformedAddress = "Malformed address",
+    dimensionTooFar = "That dimension is out of reach", zpmNotFound = "That address needs a ZPM",
+    zpmLowPower = "The ZPM lacks the power", incomingConnection = "Interrupted by an incoming connection",
+    irisAtDestination = "Destination blocked by its iris", cannotDialToThisGate = "That gate can't be dialed",
+    cannotDialFromThisGate = "This gate can't dial out",
+}
+local function sgcraftError(err)
+    local msg = tostring(err):gsub("^.-:%d+: ", "")
+    if SGCRAFT_ERRORS[msg] then return SGCRAFT_ERRORS[msg] end
+    if msg:match("^%l%w+$") then
+        msg = msg:gsub("(%u)", function(c) return " " .. c:lower() end)
+        return (msg:gsub("^%l", string.upper))
+    end
+    return msg
+end
 local function sgcraftInterface(p)
     local function state()
         local ok, s, chevrons, direction = pcall(p.stargateState)
@@ -376,6 +397,8 @@ local function sgcraftInterface(p)
     function w.openIris() return p.openIris() end
     function w.closeIris() return p.closeIris() end
     function w.dialAddress(address) return p.dial(address) end
+    -- SGCraft 2.x: ZPM energy and how many ZPMs feed the gate
+    if p.zpmEnergy then w.getZpmEnergy = function() return p.zpmEnergy() end end
     w.state = state
     return w
 end
@@ -554,7 +577,7 @@ local function runDialSGCraft()
     if s ~= "Idle" then fail("The gate is busy") end
     redrawLater()
     local ok, err = pcall(iface.dialAddress, address)
-    if not ok then fail((tostring(err):gsub("^.-:%d+: ", ""))) end
+    if not ok then fail(sgcraftError(err)) end
     local connected = waitUntil(function()
         local st, chevrons = iface.state()
         if chevrons ~= gate.chevrons then
@@ -1166,6 +1189,8 @@ local function openInfo()
             if gate.connected and type(open) == "number" then add("Open for", math.floor(open / 20) .. " s") end
             local se = call("getStargateEnergy")
             if se then add("Gate energy", commas(se) .. (iface.sgcraft and " SU" or " FE")) end
+            local zpm, zpms = call("getZpmEnergy")
+            if type(zpms) == "number" and zpms > 0 then add("ZPM", zpms .. " x, " .. commas(zpm) .. " SU") end
             local ie, cap = call("getEnergy"), call("getEnergyCapacity")
             if ie then add("Buffer", commas(ie) .. (cap and (" / " .. commas(cap)) or "") .. " FE") end
             if has("getIris") then
@@ -1685,7 +1710,8 @@ local GATE_EVENTS = {
     stargate_disconnected = true, stargate_reset = true,
     stargate_deconstructing_entity = true, stargate_reconstructing_entity = true,
     -- SGCraft
-    sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgStargateStateChange = true, sgIrisStateChange = true,
+    sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgChevronUnset = true, sgStargateStateChange = true,
+    sgIrisStateChange = true,
 }
 
 local function interruptDial()
@@ -1759,7 +1785,15 @@ local function gateEvent(e)
         gate.remote = toAddress(e[o]) or gate.remote
     elseif name == "sgStargateStateChange" then
         local new = e[o]
-        if new == "Connected" and gate.outgoing then
+        local _, _, direction = iface.state()
+        if new == "Dialling" and direction == "Incoming" and not dial.active then
+            -- SGCraft 2.x sends no sgDialIn, it reports the direction instead
+            gate.outgoing, gate.incomingChevrons = false, true
+            gate.remote = toAddress(call("getConnectedAddress"))
+            if gate.remote then gate.lastIncoming = gate.remote end
+            local who = describeRemote(gate.remote)
+            setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+        elseif new == "Connected" and gate.outgoing then
             local who = (dial.entry and dial.active and dial.entry.name) or describeRemote(gate.remote)
             setMessage("Wormhole open" .. (who and (" to " .. who) or ""), colors.lightBlue)
             if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end

@@ -28,7 +28,7 @@
 
 ## [Personal Dialer](./PersonalDialer/)
  - Address book with live search: add, edit, remove and reorder gates
- - Dials every gate type (Milky Way ring rotation or direct symbol engaging), and Greg's SGCraft gates
+ - Dials every gate type (Milky Way ring rotation or direct symbol engaging), and SGCraft gates (original and 2.3)
  - Chevron progress bar, gate state, incoming caller lookup and a gate picture
  - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid...)
  - Runs on the computer screen or an advanced monitor
@@ -38,7 +38,7 @@
 ## [Stargate Command: Gate Room and Network Hub](./StargateCommand/)
  - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Legacy Hybrid, SGCraft): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
- - Works with Stargate Journey (1.20.1) and Greg's SGCraft (1.7.10 - 1.12.2)
+ - Works with Stargate Journey (1.20.1) and SGCraft (Greg's original and the 1.12.2 SGCraft 2.3)
  - Shares its address book with the Personal Dialer; one installer for all three
 
 ![Gate Room image](./imgs/GateRoom.png)

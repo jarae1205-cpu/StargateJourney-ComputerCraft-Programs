@@ -2,7 +2,7 @@
 
 An address book you can dial from. Save gates with a name and a note, find them with a live search, and dial with a double-click. The wormhole closes behind you after you step through.
 
-Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works with Greg's SGCraft (Minecraft 1.7.10 to 1.12.2) through its computer interface.
+Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works with SGCraft through its ComputerCraft interface: Greg Ewing's original and the 1.12.2 SGCraft 2.x line (2.3 shows ZPMs in the gate info panel). SGCraft doesn't tell the computer the gate type, so pick the Pegasus or Universe theme by hand for those gates.
 
 ![Personal Dialer screens](../imgs/PersonalDialer.png)
 
@@ -32,7 +32,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 
 - Minecraft 1.20.1, Stargate Journey 0.6.x, CC: Tweaked
 - A basic, crystal or advanced crystal interface next to the computer or on a wired modem network. The local address in the title bar needs an advanced crystal interface.
-- Or: Greg's SGCraft with its stargate computer interface (ComputerCraft or CC: Tweaked).
+- Or: SGCraft (original or 2.x) with its ComputerCraft stargate interface.
 - An advanced computer is recommended for mouse support and colour. Keyboard controls also work on a basic computer.
 
 ## Installation
