@@ -37,7 +37,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Universe | Universe gates: dark ring, white chevron lights |
 | Tollan | Tollan gates: slim white ring |
 | Classic | Classic gates: bronze ring |
-| Infinity | variants with "infinity" in their name: pale horizon with spiral lines, like the animated series |
+| Infinity | variants with "infinity" in their name: the gate of the animated series *Stargate Infinity*. A cartoon gate with black ink outlines and dark claw chevrons that light lime-yellow, a white-blue whirlpool drawn with ink lines, in front of the brown gate room wall with its lime light bars |
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |

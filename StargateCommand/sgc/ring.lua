@@ -111,17 +111,45 @@ function Ring.starAt(x, y)
     return nil
 end
 
--- background colour of every gate pixel for styles drawn in space (cached)
-function Ring:background()
-    if self.bg then return self.bg end
+-- the gate room wall of Stargate Infinity: lime light bars radiating around the gate
+local function infinityWall(x, y, cx, cy, R)
+    local dx, dy = (x - 0.5) - cx, (y - 0.5) - cy
+    local d = sqrt(dx * dx + dy * dy) / R
+    if d < 1.12 or d > 1.7 then return nil end
+    local a = math.deg(atan2(dx, -dy)) % 360
+    local bars = 20
+    local slot = floor(((a - 9) % 360) / (360 / bars) + 0.5) % bars
+    local diff = abs(((a - 9) % 360) - slot * 360 / bars)
+    if diff > 180 then diff = 360 - diff end
+    -- an elongated capsule pointing at the gate
+    local along = (d - 1.41) / 0.27
+    local across = rad(diff) * d / 0.075
+    local v = along * along + across * across
+    if v > 1 then return nil end
+    if v > 0.62 then return colors.gray end    -- ink outline
+    if v < 0.18 then return colors.yellow end  -- highlight
+    return colors.orange
+end
+
+-- what is behind the gate: black, a starfield, or a style's own wall (nil = black)
+function Ring.backdropAt(style, x, y, cx, cy, R)
+    if style.stars then return Ring.starAt(x, y) end
+    if style.backdrop == "infinity" then return infinityWall(x, y, cx, cy, R) end
+    return nil
+end
+
+-- background colour of every gate pixel for styles with a backdrop (cached per style)
+function Ring:background(style)
+    self.bgs = self.bgs or {}
+    if self.bgs[style.id] then return self.bgs[style.id] end
     local bg, w = {}, self.canvas.w
     local black = IDX[colors.black]
     for j, p in ipairs(self.pi) do
         local x, y = (p - 1) % w + 1, floor((p - 1) / w) + 1
-        local star = Ring.starAt(x, y)
-        bg[j] = star and IDX[star] or black
+        local c = Ring.backdropAt(style, x, y, self.cx, self.cy, self.R)
+        bg[j] = c and IDX[c] or black
     end
-    self.bg = bg
+    self.bgs[style.id] = bg
     return bg
 end
 
@@ -293,7 +321,7 @@ function Ring:draw(style, view)
     end
     local irisAperture = view.iris and (1 - view.iris / 100) * horizonR or nil
     local chase = view.chase and floor(((view.chase - rot) % 360) / segW + 0.5) % symbols
-    local BG = style.stars and self:background() or nil
+    local BG = (style.stars or style.backdrop) and self:background(style) or nil
 
     -- supergate segments: they light one after another as the gate dials
     local segLit, arcs = {}, false
@@ -370,9 +398,10 @@ function Ring:draw(style, view)
                 elseif mode == "closing" and h > 1 - age / 0.8 then
                     c = BG and BG[j] or BLACK
                 elseif style.horizon == "spiral" then
-                    local q = a / 360 * 12 + h * 1.3 - t * 0.15
+                    -- a cartoon whirlpool: ink lines curling into the middle
+                    local q = a / 360 * 16 + h * 2.2 - t * 0.25
                     local f = q - floor(q)
-                    if f < 0.07 and h > 0.04 then c = IDX[colors.blue]
+                    if f < 0.07 and h > 0.14 then c = IDX[colors.blue]
                     elseif h < 0.35 then c = IDX[colors.white]
                     elseif h < 0.8 then c = IDX[colors.lightBlue]
                     else c = IDX[colors.cyan] end

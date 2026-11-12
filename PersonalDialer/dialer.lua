@@ -1589,6 +1589,7 @@ local RING_COLORS = {
     origins  = { colors.lightGray, colors.brown, colors.brown, colors.lightGray },
     continuum = { colors.lightGray, colors.gray, colors.gray, colors.white },
     ark      = { colors.brown, colors.gray, colors.gray, colors.orange },
+    infinity = { colors.lightGray, colors.black, colors.lightGray, colors.gray },
     pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
 }
@@ -1601,14 +1602,33 @@ local function drawGatePicture(x0, y0, cols, rows, th)
     -- the Ori supergate: separate segments in space, no symbols or chevrons
     local supergate = themeId == "ori"
     local px = {}
-    for y = 1, h do
-        for x = 1, w do
-            local star = supergate and (x * 7919 + y * 104729 + (x * y) % 131) % 1009
-            px[(y - 1) * w + x] = (star and star < 9) and (star < 3 and colors.white or colors.gray) or colors.black
-        end
-    end
     local cx, cy = w / 2, h / 2
     local R = math.min(w, h) / 2 / 1.1
+    local cartoon = themeId == "infinity"
+    for y = 1, h do
+        for x = 1, w do
+            local c = colors.black
+            if supergate then
+                local star = (x * 7919 + y * 104729 + (x * y) % 131) % 1009
+                if star < 9 then c = star < 3 and colors.white or colors.gray end
+            elseif cartoon then
+                -- Stargate Infinity: brown wall with lime light bars around the gate
+                c = colors.brown
+                local dx, dy = x - 0.5 - cx, y - 0.5 - cy
+                local d = math.sqrt(dx * dx + dy * dy) / R
+                if d > 1.12 and d < 1.7 then
+                    local a = math.deg(atan2(dx, -dy)) % 360
+                    local slot = math.floor(((a - 9) % 360) / 18 + 0.5) % 20
+                    local diff = math.abs(((a - 9) % 360) - slot * 18)
+                    if diff > 180 then diff = 360 - diff end
+                    local along, across = (d - 1.41) / 0.27, math.rad(diff) * d / 0.085
+                    local v = along * along + across * across
+                    if v <= 1 then c = v > 0.6 and colors.black or v < 0.2 and colors.yellow or colors.lime end
+                end
+            end
+            px[(y - 1) * w + x] = c
+        end
+    end
     local rc = RING_COLORS[themeId] or { colors.lightGray, colors.gray, colors.gray, colors.lightGray }
     local plain = themeId == "tollan" or themeId == "universe"
     local t = os.clock()
@@ -1640,7 +1660,12 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     elseif open then
                         local v = 0.24 + 0.46 * (1 - hh) ^ 1.4
                             + 0.17 * math.sin(hh * 15 - t * 3 + 1.3 * hh * math.sin(math.rad(a) * 2 + t * 0.6))
-                        if themeId == "ark" then
+                        if cartoon then
+                            -- a cartoon whirlpool drawn with ink lines
+                            local q = a / 360 * 16 + hh * 2.2 - t * 0.25
+                            local f = q - math.floor(q)
+                            c = (f < 0.08 and hh > 0.14) and colors.black or hh < 0.35 and colors.white or hh < 0.8 and colors.lightBlue or colors.cyan
+                        elseif themeId == "ark" then
                             -- the Ark's golden light
                             c = v < 0.36 and colors.brown or v < 0.56 and colors.orange or v < 0.8 and colors.yellow or colors.white
                         else
@@ -1687,7 +1712,9 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     local hw = 2.5 + 6 * f
                     if diff <= hw then
                         local pos = POSITION_OF_SLOT[slot]
-                        c = (diff <= hw * 0.6 and f > 0.12 and f < 0.86) and (on[pos] or colors.brown) or colors.gray
+                        local off, housing = colors.brown, colors.gray
+                        if cartoon then off, housing = colors.gray, colors.black end
+                        c = (diff <= hw * 0.6 and f > 0.12 and f < 0.86) and (on[pos] or off) or housing
                     end
                 end
                 if c then px[(y - 1) * w + x] = c end

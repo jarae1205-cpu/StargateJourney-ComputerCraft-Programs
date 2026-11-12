@@ -115,14 +115,14 @@ local function setMessage(text, color)
     message.color = color or colors.lightGray
 end
 
--- black, or a starfield for styles drawn in space
+-- black, or the style's backdrop (a starfield, the Infinity gate room wall)
 local function paintBackground()
     canvas:clear(colors.black)
-    if style.stars then
+    if style.stars or style.backdrop then
         for y = 1, canvas.h do
             for x = 1, canvas.w do
-                local star = Ring.starAt(x, y)
-                if star then canvas:set(x, y, star) end
+                local c = Ring.backdropAt(style, x, y, ring.cx, ring.cy, ring.R)
+                if c then canvas:set(x, y, c) end
             end
         end
     end

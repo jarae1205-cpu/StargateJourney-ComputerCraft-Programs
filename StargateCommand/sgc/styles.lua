@@ -148,12 +148,17 @@ S.LIST = {
         }),
     },
     {
+        -- the animated series: a cartoon gate with black ink outlines, dark claw
+        -- chevrons that light lime-yellow, a white-blue whirlpool drawn with ink
+        -- lines, in front of a brown wall with lime light bars around the gate
         id = "infinity", room = "STARGATE INFINITY", name = "Infinity", series = "Stargate Infinity",
-        shape = "v", track = true, horizon = "spiral",
+        shape = "v", track = true, horizon = "spiral", chevronWidth = 1.2, backdrop = "infinity",
         palette = palette({
-            [colors.lightGray] = 0x9EA6B0, [colors.gray] = 0x58606A, [colors.brown] = 0x7C848F, [colors.pink] = 0xC8CED6,
-            [colors.magenta] = 0x4A6224, [colors.orange] = 0xC8F03C, [colors.yellow] = 0xF2FF8A,
-            [colors.blue] = 0x26303C, [colors.cyan] = 0xA9C7E6, [colors.lightBlue] = 0xCFE2F4, [colors.white] = 0xF6FAFF,
+            [colors.black] = 0x45331F, [colors.white] = 0xF4F8FC,
+            [colors.lightGray] = 0xB4C0D2, [colors.gray] = 0x14161C, [colors.brown] = 0x9AA7BB, [colors.pink] = 0x3A4252,
+            [colors.magenta] = 0x2E3440, [colors.orange] = 0xD6F23C, [colors.yellow] = 0xF7FFB0,
+            [colors.blue] = 0x1A1E26, [colors.cyan] = 0xB7D3EE, [colors.lightBlue] = 0xD9E9F7,
+            [colors.green] = 0xC2CCDA, [colors.purple] = 0x2A303A,
         }),
     },
     {
