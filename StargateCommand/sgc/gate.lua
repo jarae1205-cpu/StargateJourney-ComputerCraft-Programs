@@ -5,6 +5,7 @@
 --   SGCraft (Greg Ewing's, and the 1.12.2 SGCraft 2.x): the "stargate" computer interface
 --   Lantea: Stargates (1.20.1 / 1.21.1, 0.7.7.0+): a gate controller with a Power Coupler Kit
 --   Just Stargate Mod (1.20.1): the stargate base block
+--   Just Stargate Mod (1.12.2, OpenComputers): the stargate base block
 --   Chevron Seven (1.20.1): any block of the gate ring
 --
 -- local gate = require("sgc.gate").find()
@@ -12,6 +13,7 @@
 -- gate:event(e)                     feed it every event, returns a short description or nil
 -- gate:dial(address, opts)          blocking, run it in its own coroutine
 -- gate:close(), gate:toggleIris()
+-- gate:sendMessage(text)            through an open wormhole (iris codes)
 --
 -- gate.state is one of IDLE, DIALING, OPEN, INCOMING, CLOSING, OFFLINE
 --
@@ -31,6 +33,7 @@ G.INTERFACE_NAMES = {
     stargate = "SGCraft interface",
     lantea = "Lantea gate controller",
     jsg = "JSG stargate",
+    jsg112 = "JSG stargate (1.12.2)",
 }
 
 -- mods that share the "stargate" peripheral type, told apart by their methods
@@ -47,7 +50,11 @@ function G.modFor(p, ptype)
     if ptype ~= "stargate" then return "sgjourney" end
     if type(p.stargateState) == "function" then return "sgcraft" end
     if type(p.getChevronsLocked) == "function" then return "lantea" end
-    if type(p.getGateStatus) == "function" then return "jsg" end
+    if type(p.getGateStatus) == "function" then
+        -- JSG 1.12.2 (OpenComputers) dials symbol by symbol; 1.20.1 has dialAddress
+        if type(p.dialAddress) ~= "function" and type(p.engageSymbol) == "function" then return "jsg112" end
+        return "jsg"
+    end
     return "sgcraft"
 end
 
@@ -361,6 +368,10 @@ G.EVENTS = {
     stargate_wormhole_open_unstable = true, stargate_wormhole_open_fully = true, stargate_wormhole_close_unstable = true,
     stargate_wormhole_close_fully = true, stargate_attempt_open_failed = true, stargate_event_horizon_traveler = true,
     stargate_iris_state_changed = true, stargate_iris_hit = true,
+    -- Just Stargate Mod 1.12.2 (OpenComputers)
+    stargate_spin_chevron_engaged = true, stargate_dhd_chevron_engaged = true, stargate_open = true,
+    stargate_wormhole_stabilized = true, stargate_close = true, stargate_wormhole_closed_fully = true,
+    stargate_failed = true, stargate_traveler = true, stargate_event_iris_hit = true, received_code = true,
 }
 
 local function eventAddress(e, offset)
@@ -509,6 +520,20 @@ function G:close()
     self:call("endRotation")
     if self:has("isChevronOpen") and self:call("isChevronOpen") then self:call("closeChevron") end
     return self:call("disconnectStargate") ~= nil
+end
+
+-- sends a text message through an open wormhole (iris codes use this)
+function G:sendMessage(text)
+    if self.impl then
+        if self.impl.sendMessage then return self.impl.sendMessage(self, text) end
+        return false, "This gate can't send messages"
+    end
+    local method = self.mod == "sgcraft" and "sendMessage" or "sendStargateMessage"
+    if not self:has(method) then return false, "This gate can't send messages" end
+    local ok, result = self:try(method, text)
+    if not ok then return false, self.mod == "sgcraft" and G.sgcraftError(result) or tostring(result) end
+    if result == false then return false, "The message did not go through" end
+    return true
 end
 
 function G:openIris()

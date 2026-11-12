@@ -15,6 +15,8 @@ They share one address book with the [Personal Dialer](../PersonalDialer/) and w
 | **Just Stargate Mod** (JSG) | 1.20.1 | the gate's base block (it is a CC: Tweaked peripheral) | every gate |
 | **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral) | every gate |
 
+On OpenComputers (SGCraft, and Just Stargate Mod for 1.12.2), use [gatedial](../OpenComputers/) instead. It reads and writes the same address book, iris codes and gate log.
+
 ![Gate Room](../imgs/GateRoom.png)
 
 *Gate Room on a 4x3 monitor. Top: dialing Abydos on an SG-1 gate, and the open wormhole. Bottom: the iris closed over an incoming wormhole, and an SGCraft gate with a 9-symbol address. These screens were rendered from a headless CC: Tweaked test harness with simulated gates, not captured in-game.*
@@ -100,7 +102,10 @@ A 4x3 or 5x3 advanced monitor gives the best picture. 3x2 works with a compact p
 | `CLOSE` / `ABORT` | Ctrl+X | close the wormhole or stop dialing |
 | `IRIS` or the gate | Ctrl+I | open or close the iris |
 | `STYLE` | Ctrl+S | next gate look (Auto, then every style) |
+| `LOG` in the destination list | Ctrl+L | the gate log |
 | | Ctrl+Q | quit |
+
+Ctrl+D and Ctrl+L close their list again.
 
 The dialing computer panel shows each chevron as it is encoded and locked, the destination or caller, how long the wormhole has been open, the gate's energy and the iris. Gates dialed from a DHD show up the same way.
 
@@ -115,6 +120,31 @@ Settings at the top of `gateroom.lua`:
 - `alarmSide`: redstone side powered while an incoming wormhole forms, e.g. `"back"`
 - `klaxon`: speaker alarm on or off
 - `autoClose`: close an outgoing wormhole this many seconds after someone steps through (0 = never)
+- `irisCodes`: check iris codes from the gate that dialed in (on by default), `codesFile`: where the trusted codes are kept
+- `logFile`, `logSize`: the gate log and how many entries it keeps
+
+## Iris codes and the gate log
+
+Like the GDO in the show: the team dialing home sends a code through the wormhole, and the Gate Room opens the iris if the code is trusted.
+
+1. On the home gate's computer, trust the code with the `idc` program and set `autoIris = true` in `gateroom.lua`, so the iris closes when a wormhole comes in.
+2. On the computer that dials home, give the home gate's address book entry the same code: the **Iris code** field in the Personal Dialer's edit form.
+3. Dial home. The Personal Dialer or the Gate Room sends the code as soon as the wormhole opens. The Gate Room at home opens the iris and answers "accepted"; an unknown code gets "rejected", and the iris stays shut.
+
+```
+idc                     list the trusted codes
+idc add 1234 SG-1       trust code 1234, under the name SG-1
+idc remove 1234         stop trusting it
+idc log                 print the gate log
+```
+
+![Iris codes and the gate log](../imgs/IrisCodes.png)
+
+*Top left: a trusted code arrives during an incoming wormhole and the iris opens. Top right: the gate log. Bottom left: the destination list leaves out an entry tied to another gate. Bottom right: our code accepted at the other end. Rendered from the headless test harness.*
+
+Codes are 1 to 16 letters, digits or dashes. They travel as gate messages (`IDC:1234`, answered by `IDC:ACCEPTED SG-1` or `IDC:REJECTED`), so both gates need a mod that sends messages: Stargate Journey's crystal interfaces, SGCraft and Chevron Seven do. Lantea and JSG gates don't, so their computers can't send or check codes.
+
+The Gate Room keeps a log in `gate_log.db`: incoming and outgoing wormholes with how long they stayed open, failed dials, travellers and codes, each with the in-game day and time. See it with `LOG` in the destination list, Ctrl+L, or `idc log`.
 
 ## Gate Network Hub
 
@@ -156,6 +186,8 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 - `name`, `note`
 - `address`: numbers (Stargate Journey, Lantea), a string of letters (SGCraft), a list of symbol names (JSG), or nothing for a planned destination
 - `group` and `color` (used by the Hub)
+- `idc`: an [iris code](#iris-codes-and-the-gate-log) to send after the wormhole opens
+- `home`: the local address of one gate. The entry is listed only on computers at that gate, for bases with several gates. Set it with **Only list it at this gate** in the Personal Dialer's edit form
 
 ## The sgc library
 

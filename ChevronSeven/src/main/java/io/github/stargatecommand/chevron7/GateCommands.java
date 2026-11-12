@@ -25,6 +25,17 @@ public final class GateCommands
 		CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 		dispatcher.register(Commands.literal("chevron7").requires(source -> source.hasPermission(2))
 				.then(Commands.literal("list").executes(GateCommands::list))
+				.then(Commands.literal("planets").executes(context -> {
+					AddressBookItem.describePlanets(context.getSource().getServer(), line -> context.getSource().sendSuccess(() -> line, false));
+					return 1;
+				}))
+				.then(Commands.literal("field").then(Commands.argument("center", BlockPosArgument.blockPos())
+						.executes(context -> field(context, "north", 5))
+						.then(Commands.argument("direction", StringArgumentType.word())
+								.executes(context -> field(context, StringArgumentType.getString(context, "direction"), 5))
+								.then(Commands.argument("gates", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, GateField.MAX_GATES))
+										.executes(context -> field(context, StringArgumentType.getString(context, "direction"),
+												com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "gates")))))))
 				.then(Commands.literal("address").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.executes(context -> {
 							StargateBlockEntity gate = gate(context);
@@ -68,6 +79,22 @@ public final class GateCommands
 			context.getSource().sendSuccess(() -> Component.literal(line), false);
 		}
 		return network.all().size();
+	}
+
+	/** Builds a gate field: the gates stand on an arc in the given direction from the centre. */
+	private static int field(CommandContext<CommandSourceStack> context, String direction, int gates) throws CommandSyntaxException
+	{
+		BlockPos center = BlockPosArgument.getLoadedBlockPos(context, "center");
+		net.minecraft.core.Direction opens = net.minecraft.core.Direction.byName(direction.toLowerCase());
+		if(opens == null || opens.getAxis().isVertical())
+		{
+			context.getSource().sendFailure(Component.translatable("message.chevron7.bad_direction"));
+			return 0;
+		}
+		var built = GateField.build(context.getSource().getLevel(), center, opens, gates,
+				net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.field_built", built.size()), true);
+		return built.size();
 	}
 
 	private static int iris(CommandContext<CommandSourceStack> context, boolean closed) throws CommandSyntaxException

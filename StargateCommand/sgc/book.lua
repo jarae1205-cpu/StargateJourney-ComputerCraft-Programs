@@ -12,10 +12,13 @@
 --   group   = "Milky Way",   -- hub tab
 --   color   = "blue",        -- hub portal colour, a key of the colors API
 --   last    = "ok" | "fail" | nil,
+--   idc     = "1234",        -- iris code sent through the gate after connecting (optional)
+--   home    = "-27-25-4-35-10-28-", -- list it only at the gate with this address (optional)
 -- }
 --
 
 local A = require("sgc.address")
+local IDC = require("sgc.idc")
 
 local B = {}
 B.__index = B
@@ -45,7 +48,26 @@ function B.clean(e)
         group = trim(e.group) ~= "" and trim(e.group) or nil,
         color = color,
         last = (e.last == "ok" or e.last == "fail") and e.last or nil,
+        idc = IDC.clean(e.idc),
+        home = type(e.home) == "string" and A.fromValue(A.parse(e.home)) and e.home or nil,
     }
+end
+
+-- true if the entry should be listed at the gate with this local address
+-- (entries without a home gate are listed everywhere; an unknown local address shows everything)
+function B.isListedAt(e, localAddress)
+    if not e.home or not localAddress then return true end
+    local home = A.parse(e.home)
+    return home ~= nil and A.same(home, localAddress)
+end
+
+-- the entries listed at the gate with this local address
+function B:visible(localAddress)
+    local out = {}
+    for _, e in ipairs(self.entries) do
+        if B.isListedAt(e, localAddress) then out[#out + 1] = e end
+    end
+    return out
 end
 
 -- opens (and if needed creates) the address book

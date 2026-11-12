@@ -154,7 +154,7 @@ function A.fromValue(v)
 end
 
 -- which mods dial which address format
-A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", jsg = "names" }
+A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", jsg = "names", jsg112 = "names" }
 A.KIND_LABEL = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft", names = "a Just Stargate Mod" }
 
 -- true if a gate of that mod can dial the address; otherwise false and a message

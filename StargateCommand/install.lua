@@ -17,9 +17,12 @@ local BASE = "https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-Co
 
 local FILES = {
     { "StargateCommand/gateroom.lua",    "gateroom.lua" },
+    { "StargateCommand/idc.lua",         "idc.lua" },
     { "StargateCommand/hub.lua",         "hub.lua" },
     { "StargateCommand/sgc/address.lua", "sgc/address.lua" },
     { "StargateCommand/sgc/book.lua",    "sgc/book.lua" },
+    { "StargateCommand/sgc/calllog.lua", "sgc/calllog.lua" },
+    { "StargateCommand/sgc/idc.lua",     "sgc/idc.lua" },
     { "StargateCommand/sgc/gate.lua",    "sgc/gate.lua" },
     { "StargateCommand/sgc/lantea.lua",  "sgc/lantea.lua" },
     { "StargateCommand/sgc/jsg.lua",     "sgc/jsg.lua" },

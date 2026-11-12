@@ -156,7 +156,8 @@ end
 
 local function visibleEntries()
     local out = {}
-    for _, e in ipairs(book.entries) do
+    -- entries tied to another gate of the base are left out
+    for _, e in ipairs(book:visible(gate and gate.localAddress)) do
         if tab == "All" or (e.group or "Other") == tab then out[#out + 1] = e end
     end
     return out
@@ -259,7 +260,9 @@ local function saveEditor()
     end
     local item = editor.entry
     local data = { name = name, address = address, note = f[3].value, group = f[4].value, color = editor.color,
-                   last = item and A.same(item.address, address) and item.last or nil }
+                   last = item and A.same(item.address, address) and item.last or nil,
+                   -- set in the Personal Dialer, kept as they are
+                   idc = item and item.idc, home = item and item.home }
     local clean = Book.clean(data)
     if item then
         for k in pairs(item) do item[k] = nil end
@@ -586,6 +589,41 @@ local function editorKey(e, held)
     end
 end
 
+-- Gate events are collected by a task that never calls the gate. A task that is
+-- waiting for a gate call doesn't get the events that arrive in the meantime,
+-- so the UI task reads them from this queue instead.
+local gateEvents = {}
+
+local function listenerTask()
+    while true do
+        local e = table.pack(os.pullEvent())
+        if Gate.EVENTS[e[1]] then
+            gateEvents[#gateEvents + 1] = e
+            os.queueEvent("hub_gate_event")
+        end
+    end
+end
+
+local function onGateEvent(e)
+    if not gate then return end
+    local info = gate:event(e)
+    if not info then return end
+    if info.type == "incoming" or info.type == "dialin" then
+        if dial.active then dial.abort = true end
+        local who = info.address and book:describe(info.address)
+        setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+    elseif info.type == "chevron" and info.incoming then
+        if dial.active then dial.abort = true end
+        setMessage("Incoming wormhole", colors.red)
+    elseif (info.type == "closed" or info.type == "reset") and os.clock() - dial.endedAt < 2 then
+        if dial.failed and info.error and info.reason then
+            setMessage("Dialing " .. (dial.entry and dial.entry.name or "") .. " failed: " .. info.reason, colors.red)
+        end
+    elseif (info.type == "closed" or info.type == "reset") and not dial.active then
+        setMessage(info.error and ("Gate reset: " .. tostring(info.reason)) or "Wormhole closed", info.error and colors.red or colors.lightGray)
+    end
+end
+
 local function uiTask()
     local held = {}
     local pollTimer = os.startTimer(CONFIG.pollInterval)
@@ -603,24 +641,8 @@ local function uiTask()
             else
                 redraw = false
             end
-        elseif gate and Gate.EVENTS[name] then
-            local info = gate:event(e)
-            if info then
-                if info.type == "incoming" or info.type == "dialin" then
-                    if dial.active then dial.abort = true end
-                    local who = info.address and book:describe(info.address)
-                    setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
-                elseif info.type == "chevron" and info.incoming then
-                    if dial.active then dial.abort = true end
-                    setMessage("Incoming wormhole", colors.red)
-                elseif (info.type == "closed" or info.type == "reset") and os.clock() - dial.endedAt < 2 then
-                    if dial.failed and info.error and info.reason then
-                        setMessage("Dialing " .. (dial.entry and dial.entry.name or "") .. " failed: " .. info.reason, colors.red)
-                    end
-                elseif (info.type == "closed" or info.type == "reset") and not dial.active then
-                    setMessage(info.error and ("Gate reset: " .. tostring(info.reason)) or "Wormhole closed", info.error and colors.red or colors.lightGray)
-                end
-            end
+        elseif Gate.EVENTS[name] or name == "hub_gate_event" then
+            -- handled below, from the queue
         elseif name == "peripheral" then
             if not gate and Gate.isInterfaceType(peripheral.getType(e[2])) then gate = Gate.find(CONFIG.interfaceName) end
         elseif name == "peripheral_detach" then
@@ -654,6 +676,12 @@ local function uiTask()
         elseif name ~= "hub_redraw" then
             redraw = false
         end
+        if #gateEvents > 0 then
+            local pending = gateEvents
+            gateEvents = {}
+            for _, ge in ipairs(pending) do onGateEvent(ge) end
+            redraw = true
+        end
         if running and redraw then draw() end
     end
 end
@@ -672,7 +700,7 @@ else
     setMessage("Tap a destination, tap again to dial", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
 
 Styles.reset(target)
 target.setBackgroundColor(colors.black)

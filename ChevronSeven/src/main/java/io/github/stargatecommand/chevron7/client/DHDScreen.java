@@ -25,6 +25,10 @@ import net.minecraft.util.Mth;
  */
 public class DHDScreen extends Screen
 {
+	/** The gate picked on each DHD, while the game runs. */
+	private static final java.util.Map<BlockPos, BlockPos> CHOICES = new java.util.HashMap<>();
+	private static final int PREV_GATE = -100, NEXT_GATE = -101;
+
 	private final BlockPos dhd;
 	private int cx, cy, outerRadius, innerRadius, keySize, buttonRadius;
 
@@ -56,7 +60,33 @@ public class DHDScreen extends Screen
 	private StargateBlockEntity gate()
 	{
 		Minecraft minecraft = Minecraft.getInstance();
-		return minecraft.level == null ? null : GateShape.nearestGate(minecraft.level, dhd, DHDBlock.RANGE);
+		return minecraft.level == null ? null : GateShape.chosenGate(minecraft.level, dhd, DHDBlock.RANGE, CHOICES.get(dhd));
+	}
+
+	private List<StargateBlockEntity> gatesInRange()
+	{
+		Minecraft minecraft = Minecraft.getInstance();
+		return minecraft.level == null ? List.of() : GateShape.gatesNear(minecraft.level, dhd, DHDBlock.RANGE);
+	}
+
+	/** Picks the next or previous gate in range. */
+	private void cycleGate(int step)
+	{
+		List<StargateBlockEntity> gates = gatesInRange();
+		if(gates.size() < 2)
+			return;
+		StargateBlockEntity current = gate();
+		int index = current == null ? 0 : Math.max(0, gates.indexOf(current));
+		int next = Math.floorMod(index + step, gates.size());
+		CHOICES.put(dhd, gates.get(next).getBlockPos());
+	}
+
+	/** The arrows either side of the title, when several gates are in range: {left x, right x, y}. */
+	private int[] gateArrows()
+	{
+		int text = font.width(title) + font.width("  ") + font.width(Component.translatable("screen.chevron7.gate_n", 7, 7));
+		int half = text / 2 + 14;
+		return new int[] {cx - half, cx + half - 10, 4};
 	}
 
 	/** Centre of a key: symbol 0 at the top of the outer ring, going clockwise. */
@@ -81,6 +111,17 @@ public class DHDScreen extends Screen
 		}
 		if((mx - cx) * (mx - cx) + (my - cy) * (my - cy) <= buttonRadius * buttonRadius)
 			return Net.DIAL_BUTTON;
+		if(gatesInRange().size() > 1)
+		{
+			int[] a = gateArrows();
+			if(my >= a[2] && my <= a[2] + 11)
+			{
+				if(mx >= a[0] && mx <= a[0] + 10)
+					return PREV_GATE;
+				if(mx >= a[1] && mx <= a[1] + 10)
+					return NEXT_GATE;
+			}
+		}
 		if(irisButton() != null)
 		{
 			int[] b = irisButton();
@@ -107,9 +148,16 @@ public class DHDScreen extends Screen
 		if(button == 0)
 		{
 			int key = keyAt(mx, my);
+			if(key == PREV_GATE || key == NEXT_GATE)
+			{
+				cycleGate(key == NEXT_GATE ? 1 : -1);
+				Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 0.3F));
+				return true;
+			}
 			if(key != Integer.MIN_VALUE)
 			{
-				Net.CHANNEL.sendToServer(new Net.DhdPress(dhd, key));
+				StargateBlockEntity chosen = gate();
+				Net.CHANNEL.sendToServer(new Net.DhdPress(dhd, key, chosen == null ? null : chosen.getBlockPos()));
 				Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.STONE_BUTTON_CLICK_ON, 1.4F, 0.4F));
 				return true;
 			}
@@ -159,8 +207,23 @@ public class DHDScreen extends Screen
 		disc(g, cx, cy, buttonRadius, active ? rgb(0.95F * pulse, 0.22F * pulse, 0.12F * pulse) : (hover == Net.DIAL_BUTTON ? 0xFF8E2A1C : 0xFF6A1E15));
 		disc(g, cx - buttonRadius / 4, cy - buttonRadius / 4, buttonRadius / 3, active ? 0x55FFFFFF : 0x22FFFFFF);
 
-		// text
-		g.drawCenteredString(font, title, cx, 6, 0xFFE8D9C0);
+		// text, and the gate picker when several gates are in range
+		List<StargateBlockEntity> inRange = gatesInRange();
+		if(inRange.size() > 1 && gate != null)
+		{
+			Component which = Component.translatable("screen.chevron7.gate_n", inRange.indexOf(gate) + 1, inRange.size());
+			g.drawCenteredString(font, Component.empty().append(title).append("  ").append(which), cx, 6, 0xFFE8D9C0);
+			int[] a = gateArrows();
+			for(int i = 0; i < 2; i++)
+			{
+				int ax = i == 0 ? a[0] : a[1];
+				boolean over = hover == (i == 0 ? PREV_GATE : NEXT_GATE);
+				g.fill(ax, a[2], ax + 10, a[2] + 11, over ? 0xFF8C7A68 : 0xFF5B4A3C);
+				g.drawCenteredString(font, i == 0 ? "<" : ">", ax + 5, a[2] + 2, 0xFFFFFFFF);
+			}
+		}
+		else
+			g.drawCenteredString(font, title, cx, 6, 0xFFE8D9C0);
 		String status;
 		if(gate == null)
 			status = Component.translatable("screen.chevron7.no_gate").getString();

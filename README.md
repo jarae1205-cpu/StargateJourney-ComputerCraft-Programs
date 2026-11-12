@@ -43,6 +43,14 @@
 
 ![Gate Room image](./imgs/GateRoom.png)
 
+## [gatedial for OpenComputers](./OpenComputers/)
+ - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x) and Just Stargate Mod for 1.12.2
+ - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
+ - Iris codes and the gate log, through JSG's own GDO on JSG gates
+ - Shares its address book, iris codes and gate log files with the ComputerCraft programs
+
+![gatedial on OpenComputers](./imgs/OpenComputers.png)
+
 ## Mods and resource packs
 
 Not ComputerCraft programs, but made to go with them:

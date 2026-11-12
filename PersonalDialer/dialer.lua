@@ -329,6 +329,14 @@ local function saveBook()
     return true
 end
 
+-- iris codes: 1-16 letters, digits or dashes
+local function cleanCode(code)
+    if code == nil then return nil end
+    code = tostring(code):gsub("%s", ""):upper()
+    if code == "" or #code > 16 or code:find("[^%w%-]") then return nil end
+    return code
+end
+
 -- entries without an address are "planned" gates (from the Network Hub)
 local function cleanEntry(e)
     if type(e) ~= "table" then return nil end
@@ -343,6 +351,10 @@ local function cleanEntry(e)
         group = type(e.group) == "string" and e.group ~= "" and e.group or nil,
         color = type(e.color) == "string" and e.color or nil,
         last = (e.last == "ok" or e.last == "fail") and e.last or nil,
+        -- iris code sent through the gate after connecting (Gate Room "idc" codes)
+        idc = cleanCode(e.idc),
+        -- list it only at the gate with this address
+        home = type(e.home) == "string" and e.home ~= "" and e.home or nil,
     }
 end
 
@@ -438,6 +450,7 @@ local function sgcraftInterface(p)
         return nil
     end
     function w.disconnectStargate() return p.disconnect() end
+    function w.sendStargateMessage(text) p.sendMessage(text) return true end
     function w.getLocalAddress() return p.localAddress() end
     function w.getConnectedAddress() return p.remoteAddress() end
     function w.getStargateEnergy() return p.energyAvailable() end
@@ -729,6 +742,17 @@ local function dialSuccess()
     end
     if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
     setMessage("Connection established, wormhole forming...", colors.lightBlue)
+    -- the entry's iris code goes through the gate, for the gate room on the other side
+    local code = dial.entry and dial.entry.idc
+    if code then
+        if not has("sendStargateMessage") then
+            setMessage("Connection established - this gate can't send the iris code", colors.orange)
+        elseif pcall(iface.sendStargateMessage, "IDC:" .. code) then
+            setMessage("Connection established, iris code " .. code .. " sent", colors.lightBlue)
+        else
+            setMessage("Connection established - sending the iris code failed", colors.orange)
+        end
+    end
 end
 
 local function runDialSGCraft()
@@ -1139,13 +1163,20 @@ local function selectedEntry()
     return idx and db.entries[idx], idx
 end
 
+-- entries tied to another gate of the base are left out
+local function listedHere(e)
+    if not e.home or not gate.localAddress then return true end
+    local home = parseAddress(e.home)
+    return home ~= nil and sameAddress(home, gate.localAddress)
+end
+
 local function refilter(keep)
     keep = keep or selectedEntry()
     local q = search.value:lower()
     visible = {}
     for i, e in ipairs(db.entries) do
-        if q == "" or e.name:lower():find(q, 1, true) or e.note:lower():find(q, 1, true)
-            or formatAddress(e.address):find(q, 1, true) then
+        if listedHere(e) and (q == "" or e.name:lower():find(q, 1, true) or e.note:lower():find(q, 1, true)
+            or formatAddress(e.address):find(q, 1, true)) then
             visible[#visible + 1] = i
         end
     end
@@ -1332,9 +1363,14 @@ local function openEditor(entry)
         { label = "Name",    value = entry and entry.name or "", max = 40 },
         { label = "Address", value = entry and entry.address and formatAddress(entry.address) or prefill, max = 40 },
         { label = "Note",    value = entry and entry.note or "", max = 40 },
+        { label = "Iris code", value = entry and entry.idc or "", max = 16 },
     }
+    local NF = #fields
+    -- "only list it at this gate": needs the local address (advanced crystal interface, SGCraft...)
+    local homeOn = entry ~= nil and entry.home ~= nil
+    local FOCUS_HOME, FOCUS_SAVE, FOCUS_CANCEL = NF + 1, NF + 2, NF + 3
+    local FOCUS_COUNT = FOCUS_CANCEL
     local focus, err = 1, nil
-    local FOCUS_SAVE, FOCUS_CANCEL = 4, 5
 
     local function submit()
         local address, why
@@ -1353,14 +1389,26 @@ local function openEditor(entry)
             end
             name = formatAddress(address)
         end
+        local code = nil
+        if trim(fields[4].value) ~= "" then
+            code = cleanCode(fields[4].value)
+            if not code then
+                err, focus = "An iris code is 1-16 letters, digits or dashes", 4
+                return
+            end
+        end
+        local home = nil
+        if homeOn then
+            home = gate.localAddress and formatAddress(gate.localAddress) or (entry and entry.home)
+        end
         local note = trim(fields[3].value)
         local item = entry
         if item then
             if not (address and item.address and sameAddress(item.address, address)) then item.last = nil end
-            item.name, item.address, item.note = name, address, note
+            item.name, item.address, item.note, item.idc, item.home = name, address, note, code, home
             setMessage("Saved " .. name, colors.lightGray)
         else
-            item = { name = name, address = address, note = note }
+            item = { name = name, address = address, note = note, idc = code, home = home }
             db.entries[#db.entries + 1] = item
             setMessage("Added " .. name, colors.lightGray)
         end
@@ -1370,17 +1418,31 @@ local function openEditor(entry)
         refilter(item)
     end
 
+    local function toggleHome()
+        if not homeOn and not gate.localAddress then
+            err = "This interface doesn't tell its own address"
+            return
+        end
+        homeOn = not homeOn
+    end
+
     modal = {
         draw = function()
-            local x, y, w, h = panel(entry and "Edit address" or "Add address", 46, 10)
+            local x, y, w, h = panel(entry and "Edit address" or "Add address", 46, 13)
             for i, f in ipairs(fields) do
                 local fy = y + 1 + i
                 writeAt(x + 1, fy, (focus == i and ">" or " ") .. f.label .. ":", focus == i and colors.black or colors.gray, colors.lightGray)
-                drawField(x + 11, fy, w - 13, f, focus == i)
+                drawField(x + 13, fy, w - 15, f, focus == i)
                 hit(x + 1, fy, x + w - 3, fy, function() focus = i end)
             end
-            writeAt(x + 2, y + 5, fit("e.g. 26 6 14 31 11 29, or WLDQ-DQB-MT for SGCraft", w - 4), colors.gray, colors.lightGray)
-            if err then writeAt(x + 2, y + 6, fit(err, w - 4), colors.red, colors.lightGray) end
+            local hy = y + 2 + NF
+            local box = homeOn and "[x]" or "[ ]"
+            writeAt(x + 1, hy, (focus == FOCUS_HOME and ">" or " ") .. box .. " Only list it at this gate",
+                focus == FOCUS_HOME and colors.black or colors.gray, colors.lightGray)
+            hit(x + 1, hy, x + w - 3, hy, function() focus = FOCUS_HOME toggleHome() end)
+            writeAt(x + 2, hy + 1, fit("e.g. 26 6 14 31 11 29 or WLDQ-DQB-MT", w - 4), colors.gray, colors.lightGray)
+            writeAt(x + 2, hy + 2, fit("The code goes through when the gate opens", w - 4), colors.gray, colors.lightGray)
+            if err then writeAt(x + 2, hy + 3, fit(err, w - 4), colors.red, colors.lightGray) end
             local by = y + h - 2
             local saveLbl = focus == FOCUS_SAVE and "[Save]" or " Save "
             local cancelLbl = focus == FOCUS_CANCEL and "[Cancel]" or " Cancel "
@@ -1392,21 +1454,25 @@ local function openEditor(entry)
             if e[1] == "key" then
                 local k = e[2]
                 if k == keys.tab or k == keys.down then
-                    focus = focus % 5 + 1
+                    focus = focus % FOCUS_COUNT + 1
                 elseif k == keys.up then
-                    focus = (focus - 2) % 5 + 1
+                    focus = (focus - 2) % FOCUS_COUNT + 1
                 elseif k == keys.enter or k == keys.numPadEnter then
-                    if focus < 3 then
+                    if focus < NF then
                         focus = focus + 1
+                    elseif focus == FOCUS_HOME then
+                        toggleHome()
                     elseif focus == FOCUS_CANCEL then
                         modal = nil
                     else
                         submit()
                     end
-                elseif focus <= 3 then
+                elseif k == keys.space and focus == FOCUS_HOME then
+                    toggleHome()
+                elseif focus <= NF then
                     fieldInput(fields[focus], e)
                 end
-            elseif (e[1] == "char" or e[1] == "paste") and focus <= 3 then
+            elseif (e[1] == "char" or e[1] == "paste") and focus <= NF then
                 fieldInput(fields[focus], e)
             end
         end,
@@ -2070,6 +2136,7 @@ local function describeRemote(address)
 end
 
 local GATE_EVENTS = {
+    stargate_message_received = true, sgMessageReceived = true,
     stargate_chevron_engaged = true, stargate_incoming_wormhole = true, stargate_outgoing_wormhole = true,
     stargate_disconnected = true, stargate_reset = true,
     stargate_deconstructing_entity = true, stargate_reconstructing_entity = true,
@@ -2117,6 +2184,19 @@ local function gateEvent(e)
         if gate.remote and #gate.remote > 0 then gate.lastIncoming = gate.remote end
         local who = describeRemote(gate.remote)
         setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+    elseif name == "stargate_message_received" or name == "sgMessageReceived" then
+        local parts = {}
+        for i = o, e.n or #e do parts[#parts + 1] = tostring(e[i]) end
+        local text = table.concat(parts, " ")
+        local reply, who = text:match("^%s*[Ii][Dd][Cc]%s*[:%s]%s*(%a+)%s*(.-)%s*$")
+        reply = reply and reply:upper()
+        if reply == "ACCEPTED" then
+            setMessage("Iris code accepted" .. (who ~= "" and (" as " .. who) or "") .. " - the way is open", colors.lime)
+        elseif reply == "REJECTED" then
+            setMessage("Iris code rejected - their iris stays closed", colors.red)
+        elseif not text:match("^%s*[Ii][Dd][Cc]") then
+            setMessage("Message: " .. text, colors.yellow)
+        end
     elseif name == "stargate_outgoing_wormhole" then
         gate.outgoing = true
         gate.remote = eventAddress(e, o) or gate.remote
@@ -2235,6 +2315,21 @@ local function attachInterface()
     end
 end
 
+-- Gate events are collected by a task that never calls the gate. A task that is
+-- waiting for a gate call doesn't get the events that arrive in the meantime,
+-- so the UI task reads them from this queue instead.
+local gateEventQueue = {}
+
+local function listenerTask()
+    while true do
+        local e = table.pack(os.pullEvent())
+        if GATE_EVENTS[e[1]] then
+            gateEventQueue[#gateEventQueue + 1] = e
+            os.queueEvent("dialer_gate_event")
+        end
+    end
+end
+
 local function uiTask()
     draw()
     local pollTimer = os.startTimer(CONFIG.pollInterval)
@@ -2263,8 +2358,8 @@ local function uiTask()
             else
                 redraw = false
             end
-        elseif GATE_EVENTS[name] then
-            gateEvent(e)
+        elseif GATE_EVENTS[name] or name == "dialer_gate_event" then
+            -- handled below, from the queue
         elseif name == "peripheral" then
             if not iface then attachInterface() end
         elseif name == "peripheral_detach" then
@@ -2295,6 +2390,14 @@ local function uiTask()
             redraw = false
         end
 
+        -- gate events, in the order they came
+        if #gateEventQueue > 0 then
+            local pending = gateEventQueue
+            gateEventQueue = {}
+            for _, ge in ipairs(pending) do gateEvent(ge) end
+            redraw = true
+        end
+
         if running and redraw then draw() end
     end
 end
@@ -2314,7 +2417,7 @@ else
     setMessage("Ready - [?] or Ctrl+H for help", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
 
 term.redirect(native)
 if monitor then

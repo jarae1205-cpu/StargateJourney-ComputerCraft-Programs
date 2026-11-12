@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#chevron7:has_planet_gate",
+  "features": "chevron7:planet_gate",
+  "step": "surface_structures"
+}

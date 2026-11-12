@@ -256,6 +256,22 @@ def iris_icon():
     return img.resize((16, 16), Image.LANCZOS)
 
 
+def address_book_icon():
+    s = 64
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rectangle([10, 6, 54, 58], fill=(52, 70, 120, 255), outline=(26, 34, 60, 255), width=3)
+    d.rectangle([12, 52, 54, 56], fill=(228, 220, 200, 255))
+    c = (32, 28)
+    d.ellipse([c[0] - 14, c[1] - 14, c[0] + 14, c[1] + 14], outline=(200, 204, 214, 255), width=5)
+    d.ellipse([c[0] - 7, c[1] - 7, c[0] + 7, c[1] + 7], fill=(120, 180, 240, 255))
+    for i in range(7):
+        a = math.tau * i / 7
+        x, y = c[0] + 15 * math.sin(a), c[1] - 15 * math.cos(a)
+        d.ellipse([x - 2.5, y - 2.5, x + 2.5, y + 2.5], fill=(240, 150, 40, 255))
+    return img.resize((16, 16), Image.LANCZOS)
+
+
 def particle():
     return gate_stone().resize((16, 16), Image.LANCZOS)
 
@@ -270,6 +286,10 @@ LANG = {
     "block.chevron7.gate_frame": "Stargate",
     "block.chevron7.dhd": "Dial Home Device",
     "item.chevron7.iris": "Gate Iris",
+    "item.chevron7.address_book": "Gate Address Book",
+    "message.chevron7.planets": "Planet gates:",
+    "message.chevron7.planets_hint": "Dial one from any gate. The first wormhole to a planet finds its gate, near 8, 6.",
+    "message.chevron7.no_planets": "No planets with gates (planets come from mods such as Ad Astra)",
     "death.attack.chevron7.kawoosh": "%1$s was vaporised by a kawoosh",
     "death.attack.chevron7.kawoosh.player": "%1$s was vaporised by a kawoosh while fighting %2$s",
     "message.chevron7.no_room": "Not enough room: a stargate needs a clear 7 by 7 space",
@@ -313,6 +333,9 @@ LANG = {
     "screen.chevron7.iris_closed": "Iris shut",
     "screen.chevron7.point_of_origin": "Point of origin (dial it last)",
     "screen.chevron7.symbol": "Symbol %s",
+    "screen.chevron7.gate_n": "Gate %s of %s",
+    "message.chevron7.bad_direction": "The direction is north, east, south or west",
+    "message.chevron7.field_built": "Built a gate field of %s gates",
 }
 
 
@@ -355,6 +378,7 @@ def data_files():
     })
     write_json(os.path.join(ASSETS, "models", "item", "stargate.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/stargate"}})
     write_json(os.path.join(ASSETS, "models", "item", "iris.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/iris"}})
+    write_json(os.path.join(ASSETS, "models", "item", "address_book.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/address_book"}})
     write_json(os.path.join(ASSETS, "models", "item", "dhd.json"), {"parent": "chevron7:block/dhd"})
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), LANG)
 
@@ -380,6 +404,11 @@ def data_files():
            {"R": "minecraft:redstone_block", "G": "minecraft:gold_ingot", "C": "minecraft:compass", "S": "minecraft:smooth_sandstone"},
            "chevron7:dhd")
     shaped("iris", ["III", "ITI", "III"], {"I": "minecraft:iron_ingot", "T": "minecraft:iron_trapdoor"}, "chevron7:iris")
+    write_json(os.path.join(DATA, "recipes", "address_book.json"), {
+        "type": "minecraft:crafting_shapeless", "category": "misc",
+        "ingredients": [{"item": "minecraft:book"}, {"item": "minecraft:ender_eye"}],
+        "result": {"item": "chevron7:address_book", "count": 1},
+    })
 
     # tags
     tags = os.path.join(RES, "data", "minecraft", "tags")
@@ -388,6 +417,47 @@ def data_files():
     write_json(os.path.join(tags, "blocks", "needs_iron_tool.json"),
                {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame"]})
     write_json(os.path.join(tags, "damage_type", "bypasses_armor.json"), {"replace": False, "values": ["chevron7:kawoosh"]})
+    # gate fields: a feature added to plains, meadows and savannas by a Forge biome modifier
+    write_json(os.path.join(DATA, "worldgen", "configured_feature", "gate_field.json"),
+               {"type": "chevron7:gate_field", "config": {}})
+    write_json(os.path.join(DATA, "worldgen", "placed_feature", "gate_field.json"), {
+        "feature": "chevron7:gate_field",
+        "placement": [
+            {"type": "minecraft:rarity_filter", "chance": 600},
+            {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"},
+            {"type": "minecraft:biome"},
+        ],
+    })
+    write_json(os.path.join(DATA, "tags", "worldgen", "biome", "has_gate_field.json"), {"values": [
+        "minecraft:plains", "minecraft:sunflower_plains", "minecraft:meadow", "minecraft:savanna",
+    ]})
+    write_json(os.path.join(DATA, "forge", "biome_modifier", "gate_field.json"), {
+        "type": "forge:add_features",
+        "biomes": "#chevron7:has_gate_field",
+        "features": "chevron7:gate_field",
+        "step": "surface_structures",
+    })
+    # planet gates: one site at chunk 0, 0 of every dimension made of these biomes (Ad Astra's planets).
+    # The entries are optional, so the tag loads without Ad Astra.
+    write_json(os.path.join(DATA, "worldgen", "configured_feature", "planet_gate.json"),
+               {"type": "chevron7:planet_gate", "config": {}})
+    write_json(os.path.join(DATA, "worldgen", "placed_feature", "planet_gate.json"), {
+        "feature": "chevron7:planet_gate",
+        "placement": [
+            {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"},
+            {"type": "minecraft:biome"},
+        ],
+    })
+    planet_biomes = ["glacio_ice_peaks", "glacio_snowy_barrens", "infernal_venus_barrens", "lunar_wastelands",
+                     "martian_canyon_creek", "martian_polar_caps", "martian_wastelands", "mercury_deltas", "venus_wastelands"]
+    write_json(os.path.join(DATA, "tags", "worldgen", "biome", "has_planet_gate.json"),
+               {"values": [{"id": "ad_astra:" + b, "required": False} for b in planet_biomes]})
+    write_json(os.path.join(DATA, "forge", "biome_modifier", "planet_gate.json"), {
+        "type": "forge:add_features",
+        "biomes": "#chevron7:has_planet_gate",
+        "features": "chevron7:planet_gate",
+        "step": "surface_structures",
+    })
     write_json(os.path.join(DATA, "damage_type", "kawoosh.json"),
                {"exhaustion": 0.0, "message_id": "chevron7.kawoosh", "scaling": "never"})
 
@@ -405,6 +475,7 @@ def main():
     save(dhd_bottom(), "block", "dhd_bottom")
     save(gate_icon(), "item", "stargate")
     save(iris_icon(), "item", "iris")
+    save(address_book_icon(), "item", "address_book")
     data_files()
     print("resources written to", os.path.normpath(RES))
 

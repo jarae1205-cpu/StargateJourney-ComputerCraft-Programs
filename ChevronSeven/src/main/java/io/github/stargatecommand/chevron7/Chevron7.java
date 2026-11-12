@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -40,6 +42,12 @@ public class Chevron7
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
 	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MOD_ID);
 	public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+	public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(ForgeRegistries.FEATURES, MOD_ID);
+
+	public static final RegistryObject<GateFieldFeature> GATE_FIELD = FEATURES.register("gate_field",
+			() -> new GateFieldFeature(NoneFeatureConfiguration.CODEC));
+	public static final RegistryObject<PlanetGateFeature> PLANET_GATE = FEATURES.register("planet_gate",
+			() -> new PlanetGateFeature(NoneFeatureConfiguration.CODEC));
 
 	public static final ResourceKey<DamageType> KAWOOSH = ResourceKey.create(Registries.DAMAGE_TYPE, id("kawoosh"));
 
@@ -65,6 +73,8 @@ public class Chevron7
 			() -> new BlockItem(DHD.get(), new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> IRIS = ITEMS.register("iris",
 			() -> new IrisItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> ADDRESS_BOOK = ITEMS.register("address_book",
+			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
 			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));
@@ -82,6 +92,7 @@ public class Chevron7
 		ITEMS.register(bus);
 		BLOCK_ENTITIES.register(bus);
 		TABS.register(bus);
+		FEATURES.register(bus);
 		context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 		Net.register();
 		MinecraftForge.EVENT_BUS.addListener(GateCommands::register);

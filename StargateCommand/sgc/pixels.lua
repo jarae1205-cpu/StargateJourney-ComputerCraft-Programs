@@ -112,4 +112,42 @@ function P:draw(t, ox, oy)
     end
 end
 
+-- A canvas for OpenComputers screens: every character cell holds 1 x 2 pixels,
+-- drawn as an upper half block (top pixel in the foreground colour).
+function P.newHalf(cols, rows, background)
+    local self = setmetatable({ cols = cols, rows = rows, w = cols, h = rows * 2, px = {}, cache = {}, half = true }, P)
+    self:clear(background or colors.black)
+    return self
+end
+
+local UPPER_HALF = "\226\150\128" -- U+2580
+
+-- draws a half-block canvas: emit(x, y, text, fg, bg) for each run of cells with the same
+-- colours, where fg and bg are colour indexes 0-15. Rows that did not change are skipped.
+function P:drawHalf(emit, ox, oy)
+    local px, w = self.px, self.w
+    for row = 1, self.rows do
+        local top, bottom = (2 * row - 2) * w, (2 * row - 1) * w
+        local key = {}
+        for col = 1, w do key[col] = HEX[px[top + col]] .. HEX[px[bottom + col]] end
+        local k = concat(key)
+        if self.cache[row] ~= k then
+            self.cache[row] = k
+            local col = 1
+            while col <= w do
+                local t, b = px[top + col], px[bottom + col]
+                local run = col
+                while run < w and px[top + run + 1] == t and px[bottom + run + 1] == b do run = run + 1 end
+                local n = run - col + 1
+                if t == b then
+                    emit(ox + col - 1, oy + row - 1, (" "):rep(n), t, b)
+                else
+                    emit(ox + col - 1, oy + row - 1, UPPER_HALF:rep(n), t, b)
+                end
+                col = run + 1
+            end
+        end
+    end
+end
+
 return P
