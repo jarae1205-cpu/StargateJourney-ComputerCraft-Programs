@@ -13,6 +13,7 @@ They share one address book with the [Personal Dialer](../PersonalDialer/) and w
 | **SGCraft** (Greg Ewing's, and SGCraft 2.x, the "Stargate Network" mod) | 1.7.10 to 1.12.2 | the ComputerCraft stargate interface | every gate |
 | **Lantea: Stargates** 0.7.7.0+ | 1.20.1 (Forge), 1.21.1 (NeoForge) | a Stargate Power Coupler Kit on the gate controller | Milky Way gates (Pegasus gates can be watched, not dialed) |
 | **Just Stargate Mod** (JSG) | 1.20.1 | the gate's base block (it is a CC: Tweaked peripheral) | every gate |
+| **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral) | every gate |
 
 ![Gate Room](../imgs/GateRoom.png)
 
@@ -58,10 +59,11 @@ The supergate has no chevrons. Its segments light up one after another, clockwis
 - **SGCraft**: the ComputerCraft stargate interface under the gate base.
 - **Lantea: Stargates**: right-click a Stargate Power Coupler Kit onto the finished controller, then put the computer against the controller (or connect it with a wired modem). Needs Lantea 0.7.7.0 or newer.
 - **Just Stargate Mod**: put the computer against the gate's base block, or connect it with a wired modem. To open and close the iris from a computer, set the iris mode to OC/computer in the gate's GUI.
+- **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
 
-Mods without a ComputerCraft interface can't be driven by these programs. The Gate Room and the Hub find the gate by itself; SGCraft, Lantea and JSG all call their peripheral `stargate`, and the programs tell them apart by the methods they have.
+Mods without a ComputerCraft interface can't be driven by these programs. The Gate Room and the Hub find the gate by itself; SGCraft, Lantea and JSG all call their peripheral `stargate`, and the programs tell them apart by the methods they have. Chevron Seven's gate (`chevron7_stargate`) speaks the same language as Stargate Journey's crystal interface.
 
 ## Installation
 
@@ -141,7 +143,7 @@ Each mod writes addresses its own way. Type them like this; the point of origin 
 
 | Mod | Example |
 |---|---|
-| Stargate Journey, Lantea | `26 6 14 31 11 29` or `-26-6-14-31-11-29-` (symbols 1-38; Lantea's 7th symbol is the galaxy) |
+| Stargate Journey, Lantea, Chevron Seven | `26 6 14 31 11 29` or `-26-6-14-31-11-29-` (symbols 1-38; Lantea's 7th symbol is the galaxy) |
 | SGCraft | `WLDQ-DQB-MT` (7 or 9 letters/digits) |
 | Just Stargate Mod | `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput` (symbol names, separated by commas) |
 

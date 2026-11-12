@@ -340,9 +340,10 @@ def data_files():
                 "south": {"uv": [3, 7, 13, 16], "texture": side},
                 "east": {"uv": [3, 7, 13, 16], "texture": side},
                 "west": {"uv": [3, 7, 13, 16], "texture": side},
+                "up": {"uv": [3, 3, 13, 13], "texture": "#bottom"},
                 "down": {"uv": [3, 3, 13, 13], "texture": "#bottom", "cullface": "down"}}},
             {"from": [1, 9, 1], "to": [15, 12, 15],
-             "rotation": {"angle": 22.5, "axis": "x", "origin": [8, 10.5, 8]},
+             "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 10.5, 8]},
              "faces": {
                  "up": {"uv": [0, 0, 16, 16], "texture": "#top"},
                  "down": {"uv": [1, 1, 15, 15], "texture": side},

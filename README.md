@@ -43,6 +43,27 @@
 
 ![Gate Room image](./imgs/GateRoom.png)
 
+## Mods and resource packs
+
+Not ComputerCraft programs, but made to go with them:
+
+### [Chevron Seven](./ChevronSeven/)
+A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
+ - A 7-block ring gate with a turning symbol track, chevrons, kawoosh, event horizon and travel between gates, even across dimensions
+ - Dial Home Device, iris, automatic closing, chunk loading while a wormhole is open
+ - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate
+
+![Chevron Seven](./imgs/ChevronSeven.jpg)
+
+### [Stargate Command Addon](./StargateCommandAddon/)
+A Forge 1.20.1 add-on for Stargate Journey:
+ - Gate room alarm light that flashes for incoming wormholes, gate monitor with redstone and comparator output
+ - SGC ramp grating, wall, hazard stripe and floor blocks
+ - Includes the variants below
+
+### [Stargate Journey Variants](./StargateJourneyVariants/)
+A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth and Infinity looks, made in the crystallizer.
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program

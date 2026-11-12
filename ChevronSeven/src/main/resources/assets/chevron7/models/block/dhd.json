@@ -55,6 +55,15 @@
           ],
           "texture": "#side"
         },
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#bottom"
+        },
         "down": {
           "uv": [
             3,
@@ -79,7 +88,7 @@
         15
       ],
       "rotation": {
-        "angle": 22.5,
+        "angle": -22.5,
         "axis": "x",
         "origin": [
           8,
