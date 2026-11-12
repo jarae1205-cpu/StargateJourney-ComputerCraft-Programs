@@ -12,6 +12,7 @@
 -- gate:event(e)                     feed it every event, returns a short description or nil
 -- gate:dial(address, opts)          blocking, run it in its own coroutine
 -- gate:close(), gate:toggleIris()
+-- gate:sendMessage(text)            through an open wormhole (iris codes)
 --
 -- gate.state is one of IDLE, DIALING, OPEN, INCOMING, CLOSING, OFFLINE
 --
@@ -509,6 +510,20 @@ function G:close()
     self:call("endRotation")
     if self:has("isChevronOpen") and self:call("isChevronOpen") then self:call("closeChevron") end
     return self:call("disconnectStargate") ~= nil
+end
+
+-- sends a text message through an open wormhole (iris codes use this)
+function G:sendMessage(text)
+    if self.impl then
+        if self.impl.sendMessage then return self.impl.sendMessage(self, text) end
+        return false, "This gate can't send messages"
+    end
+    local method = self.mod == "sgcraft" and "sendMessage" or "sendStargateMessage"
+    if not self:has(method) then return false, "This gate can't send messages" end
+    local ok, result = self:try(method, text)
+    if not ok then return false, self.mod == "sgcraft" and G.sgcraftError(result) or tostring(result) end
+    if result == false then return false, "The message did not go through" end
+    return true
 end
 
 function G:openIris()

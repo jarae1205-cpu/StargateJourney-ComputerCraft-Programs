@@ -52,6 +52,15 @@ local CONFIG = {
     klaxon = true,
     -- close an outgoing wormhole this many seconds after someone steps through, 0 = never
     autoClose = 0,
+
+    -- iris codes (IDC): open the iris when the gate that dialed in sends a trusted code.
+    -- Manage the trusted codes with the idc program. Address book entries with a code
+    -- send it by themselves after the wormhole opens.
+    irisCodes = true,
+    codesFile = "iris_codes.db",
+    -- log of wormholes, travellers and codes (Ctrl+L, or LOG in the destination list)
+    logFile = "gate_log.db",
+    logSize = 200,
 }
 --
 -- END OF CONFIGURATION
@@ -59,7 +68,9 @@ local CONFIG = {
 
 local A = require("sgc.address")
 local Book = require("sgc.book")
+local CallLog = require("sgc.calllog")
 local Gate = require("sgc.gate")
+local IDC = require("sgc.idc")
 local Styles = require("sgc.styles")
 local Pixels = require("sgc.pixels")
 local Ring = require("sgc.ring")
@@ -99,7 +110,9 @@ local book = Book.open(CONFIG.dataFile)
 local gate = Gate.find(CONFIG.interfaceName)
 local style
 local canvas, ring, L
-local overlay = nil -- { page = 1 } while the destination list is shown
+local overlay = nil -- { page = 1, kind = "dial" | "log" } while a list is shown
+local log = CallLog.open(CONFIG.logFile, CONFIG.logSize)
+local call = nil -- the wormhole in progress: { name, address, start }
 local dial = { active = false, abort = false, entry = nil, address = nil, endedAt = -10, failed = false }
 local message = { text = "", color = colors.lightGray }
 local manual = ""
@@ -113,6 +126,45 @@ local lastFrame = os.clock()
 local function setMessage(text, color)
     message.text = text or ""
     message.color = color or colors.lightGray
+end
+
+local function logCall(e)
+    local ok = pcall(log.add, log, e)
+    return ok
+end
+
+local function beginCall(kind, name, address)
+    call = { name = name, address = address, start = os.clock() }
+    logCall({ kind = kind, name = name, address = address })
+end
+
+-- sends the entry's iris code through the wormhole we just opened
+local function sendCode(entry)
+    if not (entry and entry.idc) then return end
+    local ok, why = gate:sendMessage(IDC.message(entry.idc))
+    if ok then
+        setMessage("Wormhole established to " .. entry.name .. " - iris code sent", colors.lightBlue)
+    else
+        setMessage("Wormhole established to " .. entry.name .. " - could not send the iris code: " .. tostring(why), colors.orange)
+    end
+end
+
+-- a code arrived from the gate that dialed us
+local function onCode(code)
+    if not CONFIG.irisCodes or gate.outgoing then return end
+    local trusted = IDC.check(IDC.load(CONFIG.codesFile), code)
+    if trusted then
+        local who = trusted.name ~= "" and trusted.name or ("code " .. code)
+        local opening = gate.hasIris and (gate.iris or 0) > 0
+        if opening then gate:openIris() end
+        gate:sendMessage("IDC:ACCEPTED " .. who)
+        setMessage("Iris code " .. code .. " accepted: " .. who .. (opening and " - opening the iris" or ""), colors.lime)
+        logCall({ kind = "code", text = code .. " accepted (" .. who .. ")" })
+    else
+        gate:sendMessage("IDC:REJECTED")
+        setMessage("Unknown iris code " .. code .. (gate.hasIris and " - the iris stays closed" or ""), colors.red)
+        logCall({ kind = "code", text = code .. " rejected" })
+    end
 end
 
 -- black, or the style's backdrop (a starfield, the Infinity gate room wall)
@@ -469,12 +521,51 @@ local function drawPanel(t)
     end
 end
 
+local LOG_COLORS = {
+    ["in"] = colors.red, out = colors.lightBlue, fail = colors.orange, closed = colors.lightGray,
+    traveler = colors.white, code = colors.lime,
+}
+
+local function drawLog()
+    local x, y, w, h = L.gx, L.gy, L.gw, L.gh
+    ui:fill(x, y, w, h, colors.black)
+    ui:fill(x, y, w, 1, colors.orange)
+    ui:write(x + 1, y, fit("GATE LOG", w - 2), colors.black, colors.orange)
+    local entries = log.entries
+    local per = math.max(1, math.floor((h - 2) / 2))
+    local pages = math.max(1, math.ceil(#entries / per))
+    overlay.page = math.max(1, math.min(overlay.page, pages))
+    local first = (overlay.page - 1) * per + 1
+    for i = 0, per - 1 do
+        local e = entries[first + i]
+        if not e then break end
+        local ry = y + 1 + i * 2
+        local rowBg = i % 2 == 0 and colors.black or colors.gray
+        local when, label, text = CallLog.describe(e)
+        ui:fill(x, ry, w, 2, rowBg)
+        ui:write(x + 1, ry, fit(label, 6), LOG_COLORS[e.kind] or colors.white, rowBg)
+        ui:write(x + 7, ry, fit(when, w - 8), colors.lightGray, rowBg)
+        ui:write(x + 1, ry + 1, fit(text ~= "" and text or "-", w - 2), colors.white, rowBg)
+    end
+    if #entries == 0 then ui:center(x, y + 2, w, "Nothing has gone through the gate yet", colors.lightGray, colors.black) end
+    local by = y + h - 1
+    ui:fill(x, by, w, 1, colors.gray)
+    local bx = x + 1
+    bx = ui:button(bx, by, " \30 ", colors.white, colors.gray, function() overlay.page = overlay.page - 1 end) + 1
+    ui:write(bx, by, overlay.page .. "/" .. pages, colors.lightGray, colors.gray)
+    bx = bx + #(overlay.page .. "/" .. pages) + 1
+    ui:button(bx, by, " \31 ", colors.white, colors.gray, function() overlay.page = overlay.page + 1 end)
+    ui:button(x + w - 8, by, " CLOSE ", colors.white, colors.red, function() overlay = nil paintBackground() end)
+end
+
 local function drawOverlay()
+    if overlay.kind == "log" then return drawLog() end
     local x, y, w, h = L.gx, L.gy, L.gw, L.gh
     ui:fill(x, y, w, h, colors.black)
     ui:fill(x, y, w, 1, colors.orange)
     ui:write(x + 1, y, fit("SELECT DESTINATION", w - 2), colors.black, colors.orange)
-    local entries = book.entries
+    -- entries tied to another gate of the base are left out
+    local entries = book:visible(gate and gate.localAddress)
     local per = math.max(1, math.floor((h - 3) / 2))
     local pages = math.max(1, math.ceil(#entries / per))
     overlay.page = math.max(1, math.min(overlay.page, pages))
@@ -506,6 +597,7 @@ local function drawOverlay()
     ui:write(bx, by, overlay.page .. "/" .. pages, colors.lightGray, colors.gray)
     bx = bx + #(overlay.page .. "/" .. pages) + 1
     ui:button(bx, by, " \31 ", colors.white, colors.gray, function() overlay.page = overlay.page + 1 end)
+    if w >= 26 then ui:button(x + w - 15, by, " LOG ", colors.black, colors.lightGray, function() overlay = { page = 1, kind = "log" } end) end
     ui:button(x + w - 9, by, " CANCEL ", colors.white, colors.red, function() overlay = nil paintBackground() end)
 end
 
@@ -549,7 +641,7 @@ local function drawNative()
         { "> " .. manual, colors.orange },
         { "", colors.white },
         { "Ctrl+X close gate   Ctrl+I iris   Ctrl+S style", colors.lightGray },
-        { "Ctrl+Q quit", colors.lightGray },
+        { "Ctrl+D destinations   Ctrl+L log   Ctrl+Q quit", colors.lightGray },
     }
     for i, l in ipairs(lines) do
         native.setCursorPos(1, i)
@@ -610,11 +702,14 @@ local function dialerTask()
         if ok then
             setMessage("Wormhole established" .. (entry and (" to " .. entry.name) or ""), colors.lightBlue)
             if entry then entry.last = "ok" end
+            beginCall("out", entry and entry.name, dial.address)
+            sendCode(entry)
         elseif why == "aborted" then
             setMessage("Dialing aborted", colors.orange)
         else
             setMessage("Dialing failed: " .. tostring(why), colors.red)
             if entry then entry.last = "fail" end
+            logCall({ kind = "fail", name = entry and entry.name, address = dial.address, text = tostring(why) })
         end
         if entry then book:save() end
         dial.active, dial.abort = false, false
@@ -642,11 +737,22 @@ local function onGateEvent(info)
         local who = info.address and book:describe(info.address)
         setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
         if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then gate:closeIris() end
+        beginCall("in", info.address and book:find(info.address) and who or nil, info.address)
     elseif ty == "outgoing" then
         local who = (dial.entry and dial.entry.name) or (info.address and book:describe(info.address))
         setMessage("Wormhole established" .. (who and (" to " .. who) or ""), colors.lightBlue)
+        if not dial.active and os.clock() - dial.endedAt > 2 then
+            -- dialed from somewhere else (a DHD, another computer)
+            local entry = info.address and book:find(info.address)
+            beginCall("out", entry and entry.name, info.address)
+            sendCode(entry)
+        end
     elseif ty == "closed" or ty == "reset" then
         if autoCloseTimer then os.cancelTimer(autoCloseTimer) autoCloseTimer = nil end
+        if call and ty == "closed" then
+            logCall({ kind = "closed", name = call.name, address = call.address, seconds = os.clock() - call.start, text = info.reason })
+        end
+        call = nil
         if os.clock() - dial.endedAt < 2 then
             -- the gate resetting after our own dial: keep its result, with the gate's reason if it has one
             if dial.failed and info.error and info.reason then setMessage("Dialing failed: " .. info.reason, colors.red) end
@@ -656,6 +762,7 @@ local function onGateEvent(info)
         end
     elseif ty == "traveler" then
         local name = info.name and tostring(info.name) or "Traveller"
+        logCall({ kind = "traveler", text = (info.direction == "out" and "out: " or "in: ") .. name })
         if info.direction == "out" then
             setMessage(name .. " stepped through the gate", colors.lightBlue)
             if CONFIG.autoClose > 0 and gate.outgoing and not autoCloseTimer then
@@ -672,7 +779,18 @@ local function onGateEvent(info)
     elseif ty == "iris" then
         setMessage("Iris " .. tostring(info.state):lower(), colors.lightGray)
     elseif ty == "message" then
-        setMessage("Message: " .. info.text, colors.yellow)
+        local kind, value = IDC.parse(info.text)
+        if kind == "code" then
+            onCode(value)
+        elseif kind == "accepted" then
+            setMessage("Iris code accepted" .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
+            logCall({ kind = "code", text = "our code accepted" })
+        elseif kind == "rejected" then
+            setMessage("Iris code rejected - their iris stays closed", colors.red)
+            logCall({ kind = "code", text = "our code rejected" })
+        else
+            setMessage("Message: " .. info.text, colors.yellow)
+        end
     end
 end
 
@@ -690,7 +808,13 @@ local function keyEvent(e, held)
         if ctrl and k == keys.x then closeGate()
         elseif ctrl and k == keys.i then toggleIris()
         elseif ctrl and k == keys.s then cycleStyle()
-        elseif ctrl and k == keys.d then overlay = { page = 1 } book:reload()
+        elseif ctrl and k == keys.d then
+            -- Ctrl+D again closes the list (CC has no Escape key)
+            if overlay and overlay.kind ~= "log" then overlay = nil paintBackground()
+            else overlay = { page = 1 } book:reload() end
+        elseif ctrl and k == keys.l then
+            if overlay and overlay.kind == "log" then overlay = nil paintBackground()
+            else overlay = { page = 1, kind = "log" } end
         elseif ctrl and k == keys.q then quit()
         elseif k == keys.backspace then manual = manual:sub(1, -2)
         elseif k == keys.enter or k == keys.numPadEnter then
@@ -702,6 +826,21 @@ local function keyEvent(e, held)
     elseif (e[1] == "char" or e[1] == "paste") and not ctrl then
         local s = tostring(e[2]):gsub("[^%w%s%-,]", "")
         manual = (manual .. s):sub(1, 40)
+    end
+end
+
+-- Gate events are collected by a task that never calls the gate. A task that is
+-- waiting for a gate call (every frame reads the ring) doesn't get the events that
+-- arrive in the meantime, so the UI task reads them from this queue instead.
+local gateEvents = {}
+
+local function listenerTask()
+    while true do
+        local e = table.pack(os.pullEvent())
+        if Gate.EVENTS[e[1]] then
+            gateEvents[#gateEvents + 1] = e
+            os.queueEvent("gateroom_gate_event")
+        end
     end
 end
 
@@ -732,8 +871,7 @@ local function uiTask()
                 end
                 redraw = true
             end
-        elseif gate and Gate.EVENTS[name] then
-            onGateEvent(gate:event(e))
+        elseif name == "gateroom_gate_event" then
             redraw = true
         elseif name == "peripheral" then
             if not gate and Gate.isInterfaceType(peripheral.getType(e[2])) then
@@ -775,6 +913,16 @@ local function uiTask()
             redraw = true
         end
 
+        -- gate events, in the order they came
+        if #gateEvents > 0 then
+            local pending = gateEvents
+            gateEvents = {}
+            for _, ge in ipairs(pending) do
+                if gate then onGateEvent(gate:event(ge)) end
+            end
+            redraw = true
+        end
+
         if running and redraw then
             updateAlarm(os.clock())
             draw()
@@ -804,7 +952,7 @@ else
     setMessage("Ready. DIAL to pick a destination.", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
 
 if CONFIG.alarmSide then redstone.setOutput(CONFIG.alarmSide, false) end
 Styles.reset(target)
