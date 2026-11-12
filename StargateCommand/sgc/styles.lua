@@ -77,6 +77,19 @@ S.LIST = {
         }),
     },
     {
+        -- Stargate: Continuum (2008): the gate found frozen in the Arctic ice of the
+        -- altered timeline: frosted blue-grey stone flecked with ice, icy horizon
+        id = "continuum", room = "CONTINUUM", name = "Continuum", series = "Stargate: Continuum", place = "Arctic",
+        shape = "v", track = true, frost = true,
+        palette = palette({
+            [colors.black] = 0x050A11, [colors.white] = 0xEEF6FF,
+            [colors.lightGray] = 0x9FAFBF, [colors.gray] = 0x46535F, [colors.brown] = 0x77858F, [colors.pink] = 0xCFDDE8,
+            [colors.magenta] = 0x584640, [colors.orange] = 0xFF7A33, [colors.yellow] = 0xFFD7A8,
+            [colors.blue] = 0x0E3C8A, [colors.cyan] = 0x2C86D9, [colors.lightBlue] = 0xA8DCFF,
+            [colors.green] = 0xB7C4D0, [colors.purple] = 0x56636F,
+        }),
+    },
+    {
         id = "pegasus", room = "GATE ROOM", name = "Pegasus", series = "Stargate Journey",
         shape = "v", track = true, glyphLight = true,
         palette = palette({
@@ -171,7 +184,7 @@ end
 
 -- picks the style for a gate from its type and variant
 local VARIANT_MATCH = {
-    { "origins", "origins" }, { "1939", "origins" },
+    { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },

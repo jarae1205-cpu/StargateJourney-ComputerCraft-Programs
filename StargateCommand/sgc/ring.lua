@@ -38,7 +38,7 @@ function Ring.position(i, total)
     return i
 end
 
-local Z_NONE, Z_STONE, Z_SHADE, Z_TRACK, Z_RIM, Z_HORIZON, Z_BAND = 0, 1, 2, 3, 4, 5, 6
+local Z_NONE, Z_STONE, Z_SHADE, Z_TRACK, Z_RIM, Z_HORIZON, Z_BAND, Z_FROST = 0, 1, 2, 3, 4, 5, 6, 7
 
 function Ring.new(canvas, cx, cy, radius)
     local self = setmetatable({ canvas = canvas, cx = cx, cy = cy, R = radius, zones = {} }, Ring)
@@ -166,11 +166,17 @@ function Ring:zonesFor(style)
         if z == Z_STONE and not style.track and style.shape == "light" and d > rimR + 0.05 and d < 0.84 then
             z = Z_BAND
         end
-        -- weathered stone: worn, darker specks
-        if style.weathered and (z == Z_STONE or z == Z_TRACK) then
+        -- weathered stone: worn, darker specks; frozen stone: specks of ice, more on the outer edge
+        if (style.weathered or style.frost) and (z == Z_STONE or z == Z_TRACK or z == Z_SHADE and d > trackR) then
             local p = self.pi[j]
             local x, y = (p - 1) % self.canvas.w + 1, floor((p - 1) / self.canvas.w) + 1
-            if (x * 3571 + y * 2909 + (x * y) % 97) % 61 < 6 then z = Z_SHADE end
+            local h = (x * 3571 + y * 2909 + (x * y) % 97) % 61
+            if style.weathered and z ~= Z_SHADE and h < 6 then z = Z_SHADE end
+            if style.frost then
+                -- a less regular pattern than the wear, so the ice doesn't form streaks
+                local n = x * 157 + y * 311
+                if (n * n * 41 + n * 7) % 1009 < (d > 0.93 and 150 or 70) then z = Z_FROST end
+            end
         end
         -- chevrons
         if d >= r0 and d <= r1 then
@@ -284,6 +290,8 @@ function Ring:draw(style, view)
             c = BG and BG[j] or nil
         elseif z == Z_STONE then
             c = STONE
+        elseif z == Z_FROST then
+            c = IDX[colors.white]
         elseif z == Z_SHADE or z == Z_RIM then
             c = SHADE
         elseif z == Z_TRACK or z == Z_BAND then

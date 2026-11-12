@@ -36,7 +36,7 @@
 ![Personal Dialer image](./imgs/PersonalDialer.png)
 
 ## [Stargate Command: Gate Room and Network Hub](./StargateCommand/)
- - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
+ - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+) and Just Stargate Mod (1.20.1)
  - Shares its address book with the Personal Dialer; one installer for all three
