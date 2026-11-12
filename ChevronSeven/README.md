@@ -40,6 +40,10 @@ A gate field is five gates on an arc around a clearing, each at the end of a dir
 
 ## Planet gates
 
+![The gate on Mars](../imgs/PlanetGateMars.jpg)
+
+*Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad, with a wormhole open from a gate on Earth.*
+
 With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a paved pad near 8, 6 with the gate and a DHD.
 
 - Every planet's gate has its own address, fixed for the world. The **Gate Address Book** (or `/chevron7 planets`) lists them.
@@ -123,6 +127,7 @@ Put [`dist/chevron7-1.1.0.jar`](dist/chevron7-1.1.0.jar) in the `mods` folder (c
   - The address book listed the five planets and left out the orbits.
   - A gate on Earth dialed Mars before anyone had been there. The wormhole generated Mars's gate site (gate facing south, DHD on the paved pad), and a pig walked from Earth to Mars.
   - Without Ad Astra, the mod loads and the address book says there are no planets.
+  - In a Minecraft 1.20.1 client, on a server set up the same way, a gate on Earth dialed Mars, and the Mars gate opened its end of the wormhole. The picture above is from that client.
 
 Not tested: playing with several people, and the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
 
