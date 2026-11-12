@@ -118,6 +118,18 @@ S.LIST = {
         }),
     },
     {
+        -- a ring of separate segments in space: no symbols, no chevrons; the segments
+        -- light one after another as it dials and energy arcs between them
+        id = "ori", room = "ORI SUPERGATE", name = "Ori Supergate", series = "Stargate SG-1 / The Ark of Truth",
+        shape = "segments", segments = 40, track = false, stars = true,
+        ring = { track = 0.84, rim = 0.84, horizon = 0.82 },
+        palette = palette({
+            [colors.black] = 0x03040A, [colors.lightGray] = 0x5C5866, [colors.gray] = 0x24222B,
+            [colors.orange] = 0xFFB347, [colors.yellow] = 0xFFF2CC,
+            [colors.blue] = 0x0A2A78, [colors.cyan] = 0x2466D8, [colors.lightBlue] = 0x9CD8FF,
+        }),
+    },
+    {
         id = "hybrid", room = "GATE ROOM", name = "Legacy Hybrid", series = "Stargate Journey",
         shape = "v", track = true,
         -- amber, red and purple chevron pairs with a blue master chevron
@@ -149,6 +161,7 @@ local VARIANT_MATCH = {
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
+    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" },
 }
 
 function S.forGate(gate)

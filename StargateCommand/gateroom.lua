@@ -115,10 +115,24 @@ local function setMessage(text, color)
     message.color = color or colors.lightGray
 end
 
+-- black, or a starfield for styles drawn in space
+local function paintBackground()
+    canvas:clear(colors.black)
+    if style.stars then
+        for y = 1, canvas.h do
+            for x = 1, canvas.w do
+                local star = Ring.starAt(x, y)
+                if star then canvas:set(x, y, star) end
+            end
+        end
+    end
+    canvas:invalidate()
+end
+
 local function chooseStyle()
     style = Styles.resolve(book:setting("gateroomStyle", "auto"), gate)
     Styles.apply(target, style)
-    if canvas then canvas:invalidate() end
+    if canvas then paintBackground() end
 end
 
 ---------------------------------------------------------------------------
@@ -142,6 +156,7 @@ local function layout()
     canvas = Pixels.new(L.gw, L.gh, colors.black)
     local r = math.min(canvas.w, canvas.h) / 2 / 1.1
     ring = Ring.new(canvas, canvas.w / 2, canvas.h / 2 + 0.5, r)
+    paintBackground()
     target.setBackgroundColor(colors.black)
     target.clear()
 end
@@ -479,7 +494,7 @@ local function drawOverlay()
         end
         ui:hit(x, ry, x + w - 1, ry + 1, function()
             overlay = nil
-            canvas:invalidate()
+            paintBackground()
             startDial(e)
         end)
     end
@@ -491,7 +506,7 @@ local function drawOverlay()
     ui:write(bx, by, overlay.page .. "/" .. pages, colors.lightGray, colors.gray)
     bx = bx + #(overlay.page .. "/" .. pages) + 1
     ui:button(bx, by, " \31 ", colors.white, colors.gray, function() overlay.page = overlay.page + 1 end)
-    ui:button(x + w - 9, by, " CANCEL ", colors.white, colors.red, function() overlay = nil canvas:invalidate() end)
+    ui:button(x + w - 9, by, " CANCEL ", colors.white, colors.red, function() overlay = nil paintBackground() end)
 end
 
 local function drawGate(t)
@@ -682,7 +697,7 @@ local function keyEvent(e, held)
             if manual ~= "" then dialManual() end
         elseif overlay and k == keys.up then overlay.page = overlay.page - 1
         elseif overlay and k == keys.down then overlay.page = overlay.page + 1
-        elseif k == keys.escape and overlay then overlay = nil canvas:invalidate()
+        elseif k == keys.escape and overlay then overlay = nil paintBackground()
         end
     elseif (e[1] == "char" or e[1] == "paste") and not ctrl then
         local s = tostring(e[2]):gsub("[^%w%s%-,]", "")

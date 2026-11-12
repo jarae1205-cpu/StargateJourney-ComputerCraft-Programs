@@ -36,9 +36,18 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Classic | Classic gates: bronze ring |
 | Infinity | variants with "infinity" in their name: pale horizon with spiral lines, like the animated series |
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
+| Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
+
+### Ori Supergate
+
+The supergate has no chevrons. Its segments light up one after another, clockwise from the top, as the address is encoded, with energy arcing between the lit segments. When the wormhole forms the whole ring glows. It is drawn against a starfield.
+
+![Ori Supergate](../imgs/OriSupergate.png)
+
+*Left: chevron 5 of 7 encoded. Right: the wormhole established.*
 
 ## Requirements
 
@@ -166,7 +175,7 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 
 ## SGCraft 2.3 notes
 
-- The computer interface doesn't report whether a gate is Milky Way, Pegasus, Universe or an Ori supergate, so every SGCraft gate starts with the SGCraft look. Tap **STYLE** in the Gate Room (or pick a theme in the dialer's gate info) to match a Pegasus or Universe gate. The choice is remembered.
+- The computer interface doesn't report whether a gate is Milky Way, Pegasus, Universe or an Ori supergate, so every SGCraft gate starts with the SGCraft look. Tap **STYLE** in the Gate Room (or pick a theme in the dialer's gate info) to match a Pegasus, Universe or Ori Supergate gate. The choice is remembered.
 - ZPMs feeding the gate are shown next to its energy.
 - Incoming wormholes are recognised from the gate's dialing direction, which 2.3 reports instead of the old `sgDialIn`/`sgDialOut` events.
 - Dialing errors are shown as text ("No stargate at that address", "Not enough energy to dial"...) instead of SGCraft's message keys.

@@ -61,10 +61,75 @@ function Ring.new(canvas, cx, cy, radius)
     return self
 end
 
+-- a fixed starfield for space backgrounds (the Ori supergate): colour or nil
+function Ring.starAt(x, y)
+    local h = (x * 7919 + y * 104729 + (x * y) % 131) % 1009
+    if h < 3 then return colors.white end
+    if h < 9 then return colors.lightGray end
+    if h < 14 then return colors.gray end
+    return nil
+end
+
+-- background colour of every gate pixel for styles drawn in space (cached)
+function Ring:background()
+    if self.bg then return self.bg end
+    local bg, w = {}, self.canvas.w
+    local black = IDX[colors.black]
+    for j, p in ipairs(self.pi) do
+        local x, y = (p - 1) % w + 1, floor((p - 1) / w) + 1
+        local star = Ring.starAt(x, y)
+        bg[j] = star and IDX[star] or black
+    end
+    self.bg = bg
+    return bg
+end
+
+-- zones of a supergate: separate segments with gaps, no symbols or chevrons
+--   100 + k  segment body      200 + k  glowing seam      400 + k  segment edge
+--   300 + b  gap before segment b (energy arcs jump across it)
+function Ring:segmentZones(style)
+    local zone = {}
+    local n = style.segments or 40
+    local segW = 360 / n
+    local inner, horizonR = style.ring.track, style.ring.horizon
+    local px = 1 / self.R
+    local seamIn, seamOut = inner + (1 - inner) * 0.38, inner + (1 - inner) * 0.62
+    for j = 1, #self.pi do
+        local d, a = self.prn[j], self.pang[j]
+        local z = Z_NONE
+        if d <= horizonR then
+            z = Z_HORIZON
+        elseif d >= inner and d <= 1 then
+            local sgm = a / segW
+            local k = floor(sgm)
+            local f = sgm - k
+            -- the gap is about 1.5 pixels wide whatever the size
+            local gap = math.max(0.06, 0.75 / (d * self.R * rad(segW)))
+            if f < gap then
+                z = 300 + k % n
+            elseif f > 1 - gap then
+                z = 300 + (k + 1) % n
+            elseif d > 1 - 1.2 * px or d < inner + 1.0 * px or f < gap + 0.05 or f > 1 - gap - 0.05 then
+                z = 400 + k % n
+            elseif d > seamIn and d < seamOut then
+                z = 200 + k % n
+            else
+                z = 100 + k % n
+            end
+        end
+        zone[j] = z
+    end
+    return zone
+end
+
 -- per pixel zone for a style (cached)
 function Ring:zonesFor(style)
     local cached = self.zones[style.id]
     if cached then return cached end
+    if style.shape == "segments" then
+        self.zones[style.id] = self:segmentZones(style)
+        return self.zones[style.id]
+    end
     local zone = {}
     local R = self.R
     local ring = style.ring
@@ -175,11 +240,43 @@ function Ring:draw(style, view)
     end
     local irisAperture = view.iris and (1 - view.iris / 100) * horizonR or nil
     local chase = view.chase and floor(((view.chase - rot) % 360) / segW + 0.5) % symbols
+    local BG = style.stars and self:background() or nil
+
+    -- supergate segments: they light one after another as the gate dials
+    local segLit, arcs = {}, false
+    if style.shape == "segments" then
+        local n = style.segments or 40
+        local count = (view.openedAt or (total > 0 and lit >= total)) and n or floor(n * lit / math.max(total, 1))
+        for k = 0, count - 1 do segLit[k] = true end
+        if view.chase and count < n and floor(t * 6) % 2 == 0 then segLit[count] = true end
+        -- energy arcs while it dials and as the wormhole forms
+        arcs = count > 0 and (not view.openedAt or t - view.openedAt < 1.6)
+    end
+    local LIT, HOT, ARC, WHITE = IDX[colors.orange], IDX[colors.yellow], IDX[colors.lightBlue], IDX[colors.white]
 
     for j = 1, #pi do
         local z = zone[j]
         local c
-        if z == Z_STONE then
+        if z >= 100 then
+            local kind, k = floor(z / 100), z % 100
+            if kind == 3 then
+                local n = style.segments or 40
+                if arcs and segLit[(k - 1) % n] and segLit[k] then
+                    local flicker = (k * 13 + floor(t * 14) + floor(prn[j] * R)) % 5
+                    c = flicker == 0 and WHITE or flicker < 3 and ARC or (BG and BG[j] or BLACK)
+                else
+                    c = BG and BG[j] or BLACK
+                end
+            elseif kind == 4 then
+                c = SHADE
+            elseif kind == 2 then
+                c = segLit[k] and HOT or SHADE
+            else
+                c = segLit[k] and LIT or STONE
+            end
+        elseif z == Z_NONE then
+            c = BG and BG[j] or nil
+        elseif z == Z_STONE then
             c = STONE
         elseif z == Z_SHADE or z == Z_RIM then
             c = SHADE
@@ -213,9 +310,9 @@ function Ring:draw(style, view)
                     if h < burst * 0.55 then c = IDX[colors.white]
                     elseif h < burst * 0.85 then c = IDX[colors.lightBlue]
                     elseif h < burst then c = IDX[colors.cyan]
-                    else c = BLACK end
+                    else c = BG and BG[j] or BLACK end
                 elseif mode == "closing" and h > 1 - age / 0.8 then
-                    c = BLACK
+                    c = BG and BG[j] or BLACK
                 elseif style.horizon == "spiral" then
                     local q = a / 360 * 12 + h * 1.3 - t * 0.15
                     local f = q - floor(q)
@@ -230,7 +327,7 @@ function Ring:draw(style, view)
                     c = swirlColor(v)
                 end
             else
-                c = BLACK
+                c = BG and BG[j] or BLACK
             end
         elseif z >= 10 then
             local k = z % 10

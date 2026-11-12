@@ -249,11 +249,13 @@ local THEMES = {
     atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
     sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
+    -- a ring of separate segments that light one after another (gate picture only)
+    ori       = { name = "Ori Supergate", header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
     -- multi-coloured chevrons: amber, red and purple pairs with a blue master chevron
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "hybrid", "sgcraft" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -268,6 +270,7 @@ local GATE_TYPES = {
 local VARIANT_THEMES = {
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
+    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" },
 }
 
 local STATE_STYLE = {
@@ -1586,11 +1589,18 @@ local atan2 = math.atan2 or math.atan
 local function drawGatePicture(x0, y0, cols, rows, th)
     if cols < 4 or rows < 3 then return end
     local w, h = cols * 2, rows * 3
+    local themeId = db.settings.theme ~= "auto" and db.settings.theme or gate.themeId
+    -- the Ori supergate: separate segments in space, no symbols or chevrons
+    local supergate = themeId == "ori"
     local px = {}
-    for i = 1, w * h do px[i] = colors.black end
+    for y = 1, h do
+        for x = 1, w do
+            local star = supergate and (x * 7919 + y * 104729 + (x * y) % 131) % 1009
+            px[(y - 1) * w + x] = (star and star < 9) and (star < 3 and colors.white or colors.gray) or colors.black
+        end
+    end
     local cx, cy = w / 2, h / 2
     local R = math.min(w, h) / 2 / 1.1
-    local themeId = db.settings.theme ~= "auto" and db.settings.theme or gate.themeId
     local rc = RING_COLORS[themeId] or { colors.lightGray, colors.gray, colors.gray, colors.lightGray }
     local plain = themeId == "tollan" or themeId == "universe"
     local t = os.clock()
@@ -1604,6 +1614,8 @@ local function drawGatePicture(x0, y0, cols, rows, th)
     iris = type(iris) == "number" and iris or nil
     local open = gate.connected
     local symbolsOnRing = (themeId == "pegasus" or themeId == "atlantis" or themeId == "universe") and 36 or 39
+    local hr = supergate and 0.82 or 0.66 -- event horizon radius
+    local segmentsLit = open and 40 or math.floor(40 * lit / math.max(total, 1))
 
     for y = 1, h do
         for x = 1, w do
@@ -1612,15 +1624,30 @@ local function drawGatePicture(x0, y0, cols, rows, th)
             if d <= 1.08 then
                 local a = math.deg(atan2(dx, -dy)) % 360
                 local c
-                if d <= 0.66 then
-                    local hh = d / 0.66
-                    if iris and iris > 0 and d >= (1 - iris / 100) * 0.66 then
+                if d <= hr then
+                    local hh = d / hr
+                    if iris and iris > 0 and d >= (1 - iris / 100) * hr then
                         local q = a / 18 + hh * 2.4
                         c = (q - math.floor(q) < 0.15) and colors.gray or colors.lightGray
                     elseif open then
                         local v = 0.24 + 0.46 * (1 - hh) ^ 1.4
                             + 0.17 * math.sin(hh * 15 - t * 3 + 1.3 * hh * math.sin(math.rad(a) * 2 + t * 0.6))
                         c = v < 0.36 and colors.blue or v < 0.56 and colors.cyan or v < 0.8 and colors.lightBlue or colors.white
+                    end
+                elseif supergate then
+                    -- 40 segments with gaps; lit ones glow orange with a hot seam
+                    if d >= 0.84 and d <= 1 then
+                        local sgm = a / 9
+                        local k = math.floor(sgm)
+                        local f = sgm - k
+                        if f > 0.12 and f < 0.88 then
+                            local glowing = k < segmentsLit
+                            if d > 0.9 and d < 0.94 then
+                                c = glowing and colors.yellow or colors.gray
+                            else
+                                c = glowing and colors.orange or colors.lightGray
+                            end
+                        end
                     end
                 elseif d <= 0.70 then
                     c = rc[2]
@@ -1632,7 +1659,7 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     c = (d > 0.97 or d < 0.88 and not plain) and rc[2] or rc[1]
                 end
                 -- chevrons
-                if d >= 0.8 and d <= 1.06 then
+                if not supergate and d >= 0.8 and d <= 1.06 then
                     local slot = math.floor(a / 40 + 0.5) % 9
                     local diff = math.abs(a - slot * 40)
                     if diff > 180 then diff = 360 - diff end
