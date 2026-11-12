@@ -8,11 +8,12 @@
 --                       type on the computer to search)
 --
 --   Works with the basic, crystal and advanced crystal interface and with
---   every gate type (Milky Way, Pegasus, Universe, Tollan, Classic).
+--   every gate type (Milky Way, Pegasus, Universe, Tollan, Classic), and with
+--   Greg's SGCraft (Minecraft 1.7.10 - 1.12.2) through its computer interface.
 --   An advanced computer is recommended (mouse + colour).
 --
 
-local VERSION = "1.0"
+local VERSION = "1.1"
 
 --
 -- CONFIGURATION
@@ -103,13 +104,19 @@ local function wrap(text, width)
     return lines
 end
 
+-- Stargate Journey addresses are tables of numbers, SGCraft addresses are
+-- strings of 7 or 9 letters/digits ("WLDQDQBMT"), planned entries have none
 local function formatAddress(address)
+    if type(address) == "string" and #address > 0 then
+        return address:sub(1, 4) .. "-" .. address:sub(5, 7) .. (#address > 7 and ("-" .. address:sub(8)) or "")
+    end
     if type(address) ~= "table" or #address == 0 then return "-" end
     return "-" .. table.concat(address, "-") .. "-"
 end
 
 -- copies an address and drops the point of origin (0) from the end
 local function stripOrigin(address)
+    if type(address) == "string" then return address end
     local out = {}
     if type(address) ~= "table" then return out end
     for i, s in ipairs(address) do out[i] = s end
@@ -118,6 +125,9 @@ local function stripOrigin(address)
 end
 
 local function sameAddress(a, b)
+    if type(a) == "string" or type(b) == "string" then
+        return type(a) == "string" and a ~= "" and a == b
+    end
     a, b = stripOrigin(a), stripOrigin(b)
     if #a ~= #b or #a == 0 then return false end
     for i = 1, #a do
@@ -126,8 +136,41 @@ local function sameAddress(a, b)
     return true
 end
 
+-- symbols shown on the chevron bar: the point of origin is added for Stargate Journey
+local function chevronSymbols(address)
+    local out = {}
+    if type(address) == "string" then
+        for c in address:gmatch(".") do out[#out + 1] = c end
+        return out
+    end
+    out = stripOrigin(address)
+    out[#out + 1] = 0
+    return out
+end
+
+-- reads an address from an interface result or event (table or SGCraft string)
+local function toAddress(v)
+    if type(v) == "string" then
+        v = v:upper():gsub("[^A-Z0-9]", "")
+        return #v > 0 and v or nil
+    end
+    if type(v) ~= "table" then return nil end
+    local out = {}
+    for _, s in ipairs(v) do
+        if type(s) == "number" then out[#out + 1] = s end
+    end
+    out = stripOrigin(out)
+    return #out > 0 and out or nil
+end
+
 -- accepts "-26-6-14-31-11-29-", "26 6 14 31 11 29", "26,6,14,..."
+-- and SGCraft addresses like "WLDQ-DQB-MT"
 local function parseAddress(text)
+    if tostring(text or ""):find("%a") then
+        local s = tostring(text):upper():gsub("[^A-Z0-9]", "")
+        if #s ~= 7 and #s ~= 9 then return nil, "SGCraft addresses have 7 or 9 letters/digits" end
+        return s
+    end
     local address = {}
     for num in tostring(text or ""):gmatch("%d+") do
         address[#address + 1] = tonumber(num)
@@ -157,11 +200,16 @@ local THEMES = {
     universe  = { name = "Universe",      header = colors.gray,  title = colors.white,     address = colors.lightGray, lit = colors.white,     master = colors.white,     button = colors.white },
     tollan    = { name = "Tollan",        header = colors.cyan,  title = colors.white,     address = colors.cyan,      lit = colors.lightBlue, master = colors.white,     button = colors.cyan },
     classic   = { name = "Classic",       header = colors.brown, title = colors.yellow,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.yellow },
+    sg1       = { name = "SG-1",          header = colors.gray,  title = colors.red,       address = colors.orange,    lit = colors.red,       master = colors.orange,    button = colors.red },
+    movie     = { name = "Movie",         header = colors.brown, title = colors.orange,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
+    atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
+    infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
+    sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
     -- multi-coloured chevrons: amber, red and purple pairs with a blue master chevron
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "pegasus", "universe", "tollan", "classic", "hybrid" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "hybrid", "sgcraft" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -169,6 +217,13 @@ local GATE_TYPES = {
     { match = "universe",  name = "Universe",  theme = "universe" },
     { match = "tollan",    name = "Tollan",    theme = "tollan" },
     { match = "classic",   name = "Classic",   theme = "classic" },
+    { match = "sgcraft",   name = "SGCraft",   theme = "sgcraft" },
+}
+
+-- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
+local VARIANT_THEMES = {
+    { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
+    { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
 }
 
 local STATE_STYLE = {
@@ -221,19 +276,19 @@ local function saveBook()
     return true
 end
 
+-- entries without an address are "planned" gates (from the Network Hub)
 local function cleanEntry(e)
-    if type(e) ~= "table" or type(e.address) ~= "table" then return nil end
-    local address = {}
-    for _, s in ipairs(e.address) do
-        if type(s) == "number" then address[#address + 1] = s end
-    end
-    address = stripOrigin(address)
-    if #address == 0 then return nil end
+    if type(e) ~= "table" then return nil end
+    local address = toAddress(e.address)
     local name = trim(e.name)
+    if not address and name == "" then return nil end
     return {
         name = name ~= "" and name or formatAddress(address),
         address = address,
         note = trim(e.note),
+        -- kept for the Network Hub and the Gate Room
+        group = type(e.group) == "string" and e.group ~= "" and e.group or nil,
+        color = type(e.color) == "string" and e.color or nil,
         last = (e.last == "ok" or e.last == "fail") and e.last or nil,
     }
 end
@@ -266,7 +321,7 @@ local function loadBook()
         if ok and type(list) == "table" then
             for _, e in ipairs(list) do
                 local clean = cleanEntry(e)
-                if clean and #clean.address >= 6 then db.entries[#db.entries + 1] = clean end
+                if clean and type(clean.address) == "table" and #clean.address >= 6 then db.entries[#db.entries + 1] = clean end
             end
             loadNotice = "Imported " .. #db.entries .. " addresses from 1_cartouche.lua"
         end
@@ -278,8 +333,9 @@ local function loadBook()
 end
 
 local function findByAddress(address)
+    if not address then return nil end
     for _, e in ipairs(db.entries) do
-        if sameAddress(e.address, address) then return e end
+        if e.address and sameAddress(e.address, address) then return e end
     end
 end
 
@@ -289,16 +345,57 @@ end
 
 local iface, ifaceName, ifaceType
 
+-- Greg's SGCraft "stargate" interface, wrapped so it answers the same calls
+-- as a Stargate Journey interface
+local SGCRAFT_IRIS = { Open = 0, Opening = 40, Closing = 60, Closed = 100 }
+local function sgcraftInterface(p)
+    local function state()
+        local ok, s, chevrons, direction = pcall(p.stargateState)
+        if ok then return s, tonumber(chevrons) or 0, direction end
+        return "Offline", 0, ""
+    end
+    local w = { sgcraft = true }
+    function w.getStargateType() return "sgcraft:stargate" end
+    function w.getChevronsEngaged() local _, c = state() return c end
+    function w.isStargateConnected() return (state()) == "Connected" end
+    function w.isStargateDialingOut()
+        local _, _, d = state()
+        if d == "Outgoing" then return true elseif d == "Incoming" then return false end
+        return nil
+    end
+    function w.disconnectStargate() return p.disconnect() end
+    function w.getLocalAddress() return p.localAddress() end
+    function w.getConnectedAddress() return p.remoteAddress() end
+    function w.getStargateEnergy() return p.energyAvailable() end
+    function w.getIris()
+        local s = p.irisState()
+        if s ~= "Offline" then return s end
+        return nil
+    end
+    function w.getIrisProgressPercentage() return SGCRAFT_IRIS[p.irisState()] end
+    function w.openIris() return p.openIris() end
+    function w.closeIris() return p.closeIris() end
+    function w.dialAddress(address) return p.dial(address) end
+    w.state = state
+    return w
+end
+
+local function wrapInterface(name, t)
+    local p = peripheral.wrap(name)
+    if t == "stargate" then return sgcraftInterface(p), name, t end
+    return p, name, t
+end
+
 local function findInterface()
     if CONFIG.interfaceName then
         if peripheral.isPresent(CONFIG.interfaceName) then
-            return peripheral.wrap(CONFIG.interfaceName), CONFIG.interfaceName, peripheral.getType(CONFIG.interfaceName)
+            return wrapInterface(CONFIG.interfaceName, peripheral.getType(CONFIG.interfaceName))
         end
         return nil
     end
-    for _, t in ipairs({ "advanced_crystal_interface", "crystal_interface", "basic_interface" }) do
+    for _, t in ipairs({ "advanced_crystal_interface", "crystal_interface", "basic_interface", "stargate" }) do
         local p = peripheral.find(t)
-        if p then return p, peripheral.getName(p), t end
+        if p then return wrapInterface(peripheral.getName(p), t) end
     end
 end
 
@@ -333,6 +430,7 @@ local gate = {
     typeName = "Stargate",
     themeId = nil,
     localAddress = nil,
+    variant = nil,
     remote = nil,           -- address on the other side of the wormhole, if known
     lastIncoming = nil,
 }
@@ -357,8 +455,18 @@ local function detectGate()
             end
         end
     end
-    local la = call("getLocalAddress")
-    gate.localAddress = (type(la) == "table" and #la > 0) and stripOrigin(la) or nil
+    local v = call("getStargateVariant")
+    gate.variant = type(v) == "string" and v:gsub("^.*:", "") or nil
+    if gate.variant == "empty" or gate.variant == "" then gate.variant = nil end
+    if gate.variant then
+        for _, m in ipairs(VARIANT_THEMES) do
+            if gate.variant:lower():find(m[1]) then
+                gate.themeId = m[2]
+                break
+            end
+        end
+    end
+    gate.localAddress = toAddress(call("getLocalAddress"))
 end
 
 local function refreshGate()
@@ -429,7 +537,41 @@ local function checkFeedback(fb, allowed)
     fail(feedbackText(fb))
 end
 
+local function dialSuccess()
+    gate.outgoing = true
+    if dial.entry then
+        dial.entry.last = "ok"
+        saveBook()
+    end
+    if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
+    setMessage("Connection established, wormhole forming...", colors.lightBlue)
+end
+
+local function runDialSGCraft()
+    local address = dial.address
+    if type(address) ~= "string" then fail("That is a Stargate Journey address, this gate is SGCraft") end
+    local s = iface.state()
+    if s ~= "Idle" then fail("The gate is busy") end
+    redrawLater()
+    local ok, err = pcall(iface.dialAddress, address)
+    if not ok then fail((tostring(err):gsub("^.-:%d+: ", ""))) end
+    local connected = waitUntil(function()
+        local st, chevrons = iface.state()
+        if chevrons ~= gate.chevrons then
+            gate.chevrons = chevrons
+            redrawLater()
+        end
+        if st == "Idle" then fail("The gate stopped dialing") end
+        return st == "Connected"
+    end, CONFIG.stepTimeout)
+    if dial.abort then return end
+    if not connected then fail("No connection was established") end
+    dialSuccess()
+end
+
 local function runDial()
+    if iface.sgcraft then return runDialSGCraft() end
+    if type(dial.address) == "string" then fail("That is an SGCraft address, this gate is Stargate Journey") end
     local address = stripOrigin(dial.address)
     address[#address + 1] = 0
 
@@ -505,13 +647,7 @@ local function runDial()
         local code = call("getRecentFeedback")
         fail(type(code) == "number" and code < 0 and feedbackText(code) or "No connection was established")
     end
-    gate.outgoing = true
-    if dial.entry then
-        dial.entry.last = "ok"
-        saveBook()
-    end
-    if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
-    setMessage("Connection established, wormhole forming...", colors.lightBlue)
+    dialSuccess()
 end
 
 local function dialerTask()
@@ -586,6 +722,7 @@ local cursor = nil
 local held = {}
 local lastClick = { vi = nil, time = 0 }
 local running = true
+local gateView = false -- the gate picture instead of the list
 
 local function theme()
     local id = db.settings.theme
@@ -612,6 +749,12 @@ local function layout()
     L.listTop = 3
     L.listBottom = L.chevronY - 1
     L.perPage = math.max(1, math.floor((L.listBottom - L.listTop + 1) / 2))
+    -- wide screens (big monitors) show the gate next to the list
+    L.lw = w
+    if w >= 80 and L.listBottom - L.listTop >= 8 then
+        L.side = math.floor(w * 0.4)
+        L.lw = w - L.side
+    end
     return L
 end
 
@@ -730,6 +873,10 @@ end
 local function startDial(entry)
     if not entry then
         setMessage("Select an address first", colors.orange)
+        return
+    end
+    if not entry.address then
+        setMessage(entry.name .. " has no address yet - [E] to add one", colors.orange)
         return
     end
     if not iface then
@@ -873,24 +1020,33 @@ local function openEditor(entry)
     end
     local fields = {
         { label = "Name",    value = entry and entry.name or "", max = 40 },
-        { label = "Address", value = entry and formatAddress(entry.address) or prefill, max = 40 },
+        { label = "Address", value = entry and entry.address and formatAddress(entry.address) or prefill, max = 40 },
         { label = "Note",    value = entry and entry.note or "", max = 40 },
     }
     local focus, err = 1, nil
     local FOCUS_SAVE, FOCUS_CANCEL = 4, 5
 
     local function submit()
-        local address, why = parseAddress(fields[2].value)
-        if not address then
-            err, focus = why, 2
-            return
+        local address, why
+        if trim(fields[2].value) ~= "" then
+            address, why = parseAddress(fields[2].value)
+            if not address then
+                err, focus = why, 2
+                return
+            end
         end
         local name = trim(fields[1].value)
-        if name == "" then name = formatAddress(address) end
+        if name == "" then
+            if not address then
+                err, focus = "Enter a name or an address", 1
+                return
+            end
+            name = formatAddress(address)
+        end
         local note = trim(fields[3].value)
         local item = entry
         if item then
-            if not sameAddress(item.address, address) then item.last = nil end
+            if not (address and item.address and sameAddress(item.address, address)) then item.last = nil end
             item.name, item.address, item.note = name, address, note
             setMessage("Saved " .. name, colors.lightGray)
         else
@@ -913,7 +1069,7 @@ local function openEditor(entry)
                 drawField(x + 11, fy, w - 13, f, focus == i)
                 hit(x + 1, fy, x + w - 3, fy, function() focus = i end)
             end
-            writeAt(x + 2, y + 5, fit("Symbols 1-38, e.g. 26 6 14 31 11 29", w - 4), colors.gray, colors.lightGray)
+            writeAt(x + 2, y + 5, fit("e.g. 26 6 14 31 11 29, or WLDQ-DQB-MT for SGCraft", w - 4), colors.gray, colors.lightGray)
             if err then writeAt(x + 2, y + 6, fit(err, w - 4), colors.red, colors.lightGray) end
             local by = y + h - 2
             local saveLbl = focus == FOCUS_SAVE and "[Save]" or " Save "
@@ -998,18 +1154,18 @@ local function openInfo()
             add("Interface", "none found", colors.red)
         else
             local kind = ({ basic_interface = "Basic", crystal_interface = "Crystal",
-                advanced_crystal_interface = "Advanced crystal" })[ifaceType] or tostring(ifaceType)
+                advanced_crystal_interface = "Advanced crystal", stargate = "SGCraft" })[ifaceType] or tostring(ifaceType)
             add("Interface", kind)
             add("Peripheral", ifaceName)
             local gen = call("getStargateGeneration")
-            add("Stargate", gate.typeName .. (gen and ("  gen " .. tostring(gen)) or ""))
+            add("Stargate", gate.typeName .. (gen and ("  gen " .. tostring(gen)) or "") .. (gate.variant and ("  " .. gate.variant) or ""))
             add("Local address", gate.localAddress and formatAddress(gate.localAddress) or "advanced interface needed",
                 gate.localAddress and colors.blue or colors.gray)
             add("Status", gate.state .. ", " .. gate.chevrons .. " chevrons engaged")
             local open = call("getOpenTime")
             if gate.connected and type(open) == "number" then add("Open for", math.floor(open / 20) .. " s") end
             local se = call("getStargateEnergy")
-            if se then add("Gate energy", commas(se) .. " FE") end
+            if se then add("Gate energy", commas(se) .. (iface.sgcraft and " SU" or " FE")) end
             local ie, cap = call("getEnergy"), call("getEnergyCapacity")
             if ie then add("Buffer", commas(ie) .. (cap and (" / " .. commas(cap)) or "") .. " FE") end
             if has("getIris") then
@@ -1065,8 +1221,8 @@ local function openHelp()
         "[E] Ctrl+E  edit       [i] Ctrl+I  gate info",
         "Shift+Up/Down or the \30\31 arrows: move address",
         "CLOSE  Ctrl+X  close gate / abort dialing",
-        "[x]    Ctrl+A  auto-close on/off",
-        "QUIT   Ctrl+Q  exit",
+        "Chevron bar or Ctrl+G: gate picture",
+        "[x] Ctrl+A auto-close    QUIT Ctrl+Q exit",
         "",
         "Auto-close shuts an outgoing wormhole " .. CONFIG.autoCloseDelay .. "s",
         "after someone steps through (" .. CONFIG.autoCloseIdle .. "s if unused).",
@@ -1084,14 +1240,11 @@ local function chevronColor(th, i, total)
     return th.lit
 end
 
-local function drawChevrons(L, th)
-    local y = L.chevronY
-    fill(1, y, L.w, 1, colors.black)
-
+-- symbols on the chevron bar, chevrons in the address, chevrons locked
+local function chevronState()
     local symbols, total, lit
     if dial.active and dial.address then
-        symbols = stripOrigin(dial.address)
-        symbols[#symbols + 1] = 0
+        symbols = chevronSymbols(dial.address)
         total = #symbols
         lit = math.min(gate.chevrons, total)
     else
@@ -1099,13 +1252,136 @@ local function drawChevrons(L, th)
         lit = gate.chevrons
         if gate.connected then
             if gate.remote then
-                symbols = stripOrigin(gate.remote)
-                symbols[#symbols + 1] = 0
+                symbols = chevronSymbols(gate.remote)
                 total = #symbols
             end
             lit = total
         end
     end
+    return symbols, total, lit
+end
+
+---------------------------------------------------------------------------
+-- Gate picture: drawn with teletext characters, 2 x 3 pixels per character
+---------------------------------------------------------------------------
+
+local HEXDIGIT = {}
+for i = 0, 15 do HEXDIGIT[2 ^ i] = ("0123456789abcdef"):sub(i + 1, i + 1) end
+-- chevron positions (angle / 40 degrees, clockwise from the top) -> locking order, 9 = master
+local POSITION_OF_SLOT = { [1] = 1, [2] = 2, [3] = 3, [6] = 4, [7] = 5, [8] = 6, [4] = 7, [5] = 8, [0] = 9 }
+-- stone, shadow, symbol track, symbols
+local RING_COLORS = {
+    universe = { colors.gray, colors.black, colors.gray, colors.lightGray },
+    tollan   = { colors.white, colors.lightGray, colors.white, colors.white },
+    classic  = { colors.brown, colors.gray, colors.brown, colors.lightGray },
+    movie    = { colors.lightGray, colors.brown, colors.gray, colors.lightGray },
+    pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
+    atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
+}
+local atan2 = math.atan2 or math.atan
+
+local function drawGatePicture(x0, y0, cols, rows, th)
+    if cols < 4 or rows < 3 then return end
+    local w, h = cols * 2, rows * 3
+    local px = {}
+    for i = 1, w * h do px[i] = colors.black end
+    local cx, cy = w / 2, h / 2
+    local R = math.min(w, h) / 2 / 1.1
+    local themeId = db.settings.theme ~= "auto" and db.settings.theme or gate.themeId
+    local rc = RING_COLORS[themeId] or { colors.lightGray, colors.gray, colors.gray, colors.lightGray }
+    local plain = themeId == "tollan" or themeId == "universe"
+    local t = os.clock()
+
+    local _, total, lit = chevronState()
+    local on = {}
+    for i = 1, math.min(lit, total) do
+        on[i >= total and 9 or i] = chevronColor(th, i, total)
+    end
+    local iris = has("getIris") and call("getIris") and irisPercent()
+    iris = type(iris) == "number" and iris or nil
+    local open = gate.connected
+    local symbolsOnRing = (themeId == "pegasus" or themeId == "atlantis" or themeId == "universe") and 36 or 39
+
+    for y = 1, h do
+        for x = 1, w do
+            local dx, dy = x - 0.5 - cx, y - 0.5 - cy
+            local d = math.sqrt(dx * dx + dy * dy) / R
+            if d <= 1.08 then
+                local a = math.deg(atan2(dx, -dy)) % 360
+                local c
+                if d <= 0.66 then
+                    local hh = d / 0.66
+                    if iris and iris > 0 and d >= (1 - iris / 100) * 0.66 then
+                        local q = a / 18 + hh * 2.4
+                        c = (q - math.floor(q) < 0.15) and colors.gray or colors.lightGray
+                    elseif open then
+                        local v = 0.24 + 0.46 * (1 - hh) ^ 1.4
+                            + 0.17 * math.sin(hh * 15 - t * 3 + 1.3 * hh * math.sin(math.rad(a) * 2 + t * 0.6))
+                        c = v < 0.36 and colors.blue or v < 0.56 and colors.cyan or v < 0.8 and colors.lightBlue or colors.white
+                    end
+                elseif d <= 0.70 then
+                    c = rc[2]
+                elseif d <= 0.86 and not plain then
+                    local seg = a / (360 / symbolsOnRing) + 0.5
+                    local f = seg - math.floor(seg)
+                    c = (f > 0.33 and f < 0.67 and d > 0.75 and d < 0.82) and rc[4] or rc[3]
+                elseif d <= 1 then
+                    c = (d > 0.97 or d < 0.88 and not plain) and rc[2] or rc[1]
+                end
+                -- chevrons
+                if d >= 0.8 and d <= 1.06 then
+                    local slot = math.floor(a / 40 + 0.5) % 9
+                    local diff = math.abs(a - slot * 40)
+                    if diff > 180 then diff = 360 - diff end
+                    local f = (d - 0.8) / 0.26
+                    local hw = 2.5 + 6 * f
+                    if diff <= hw then
+                        local pos = POSITION_OF_SLOT[slot]
+                        c = (diff <= hw * 0.6 and f > 0.12 and f < 0.86) and (on[pos] or colors.brown) or colors.gray
+                    end
+                end
+                if c then px[(y - 1) * w + x] = c end
+            end
+        end
+    end
+
+    -- 2 x 3 pixels per character: the two most common colours of each cell
+    for row = 1, rows do
+        local text, fg, bg = {}, {}, {}
+        for col = 1, cols do
+            local b = (row - 1) * 3 * w + (col - 1) * 2 + 1
+            local p = { px[b], px[b + 1], px[b + w], px[b + w + 1], px[b + 2 * w], px[b + 2 * w + 1] }
+            local count, first, second = {}, nil, nil
+            for i = 1, 6 do count[p[i]] = (count[p[i]] or 0) + 1 end
+            for c, n in pairs(count) do
+                if not first or n > count[first] then
+                    second, first = first, c
+                elseif not second or n > count[second] then
+                    second = c
+                end
+            end
+            if not second then
+                text[col], fg[col], bg[col] = " ", HEXDIGIT[first], HEXDIGIT[first]
+            else
+                local back, fore = first, second
+                if p[6] == second then back, fore = second, first end
+                local code = 128
+                for i = 1, 5 do
+                    if p[i] == fore then code = code + 2 ^ (i - 1) end
+                end
+                text[col], fg[col], bg[col] = string.char(code), HEXDIGIT[fore], HEXDIGIT[back]
+            end
+        end
+        term.setCursorPos(x0, y0 + row - 1)
+        term.blit(table.concat(text), table.concat(fg), table.concat(bg))
+    end
+end
+
+local function drawChevrons(L, th)
+    local y = L.chevronY
+    fill(1, y, L.w, 1, colors.black)
+
+    local symbols, total, lit = chevronState()
 
     local st = STATE_STYLE[gate.state] or STATE_STYLE.OFFLINE
     local label = st.label
@@ -1181,8 +1457,8 @@ local function drawList(L, th)
     if #visible == 0 then
         local msg = #db.entries == 0 and "The address book is empty - press + to add one"
             or "No address matches \"" .. search.value .. "\""
-        msg = fit(msg, L.w - 2)
-        writeAt(math.floor((L.w - #msg) / 2) + 1, L.listTop + 1, msg, colors.gray, colors.black)
+        msg = fit(msg, L.lw - 2)
+        writeAt(math.floor((L.lw - #msg) / 2) + 1, L.listTop + 1, msg, colors.gray, colors.black)
         return
     end
 
@@ -1195,26 +1471,26 @@ local function drawList(L, th)
         local y = L.listTop + row * 2
         local selected = (vi == sel)
         local bg = selected and colors.gray or colors.black
-        fill(1, y, L.w - 2, 2, bg)
+        fill(1, y, L.lw - 2, 2, bg)
 
-        local cw = L.w - 6
-        writeAt(2, y, fit(entry.name, cw), colors.white, bg)
-        local addr = fit(formatAddress(entry.address), cw)
-        writeAt(2, y + 1, addr, th.address, bg)
+        local cw = L.lw - 6
+        writeAt(2, y, fit(entry.name, cw), entry.address and colors.white or colors.lightGray, bg)
+        local addr = fit(entry.address and formatAddress(entry.address) or "no address yet", cw)
+        writeAt(2, y + 1, addr, entry.address and th.address or colors.gray, bg)
         if entry.note ~= "" and #addr + 4 < cw then
             writeAt(2 + #addr, y + 1, fit("  " .. entry.note, cw - #addr), selected and colors.lightGray or colors.gray, bg)
         end
 
         local ac = canMove and colors.lightGray or colors.gray
-        writeAt(L.w - 3, y, "\30", ac, bg)
-        writeAt(L.w - 3, y + 1, "\31", ac, bg)
-        hit(L.w - 3, y, L.w - 3, y, function() moveEntry(vi, -1) end)
-        hit(L.w - 3, y + 1, L.w - 3, y + 1, function() moveEntry(vi, 1) end)
+        writeAt(L.lw - 3, y, "\30", ac, bg)
+        writeAt(L.lw - 3, y + 1, "\31", ac, bg)
+        hit(L.lw - 3, y, L.lw - 3, y, function() moveEntry(vi, -1) end)
+        hit(L.lw - 3, y + 1, L.lw - 3, y + 1, function() moveEntry(vi, 1) end)
 
         local stripe = entry.last == "ok" and colors.lime or entry.last == "fail" and colors.red or colors.gray
-        fill(L.w - 1, y, 1, 2, stripe)
+        fill(L.lw - 1, y, 1, 2, stripe)
 
-        hit(1, y, L.w - 4, y + 1, function() clickEntry(vi) end)
+        hit(1, y, L.lw - 4, y + 1, function() clickEntry(vi) end)
     end
 
     -- scrollbar
@@ -1222,9 +1498,9 @@ local function drawList(L, th)
         local maxTop = #visible - L.perPage + 1
         local thumb = math.max(1, math.floor(listH * L.perPage / #visible))
         local pos = math.floor((top - 1) / (maxTop - 1) * (listH - thumb) + 0.5)
-        fill(L.w, L.listTop, 1, listH, colors.gray)
-        fill(L.w, L.listTop + pos, 1, thumb, colors.lightGray)
-        hit(L.w, L.listTop, L.w, L.listTop + listH - 1, function(_, y)
+        fill(L.lw, L.listTop, 1, listH, colors.gray)
+        fill(L.lw, L.listTop + pos, 1, thumb, colors.lightGray)
+        hit(L.lw, L.listTop, L.lw, L.listTop + listH - 1, function(_, y)
             if y < L.listTop + pos then
                 top = clamp(top - L.perPage, 1, maxTop)
             elseif y >= L.listTop + pos + thumb then
@@ -1264,8 +1540,21 @@ local function drawMain(L)
     hit(10, 2, 9 + fw, 2, function() end)
     button(L.w - 2, 2, " x ", colors.white, colors.red, function() search.value = "" refilter() end)
 
-    drawList(L, th)
+    local listH = L.listBottom - L.listTop + 1
+    if gateView then
+        fill(1, L.listTop, L.w, listH, colors.black)
+        drawGatePicture(1, L.listTop, L.w, listH, th)
+        hit(1, L.listTop, L.w, L.listBottom, function() gateView = false end)
+    else
+        drawList(L, th)
+        if L.side then
+            fill(L.lw + 1, L.listTop, L.side, listH, colors.black)
+            drawGatePicture(L.lw + 2, L.listTop, L.side - 2, listH, th)
+        end
+    end
     drawChevrons(L, th)
+    -- the chevron bar switches between the list and the gate picture
+    hit(1, L.chevronY, L.w - 12, L.chevronY, function() gateView = not gateView end)
 
     fill(1, L.messageY, L.w, 1, colors.black)
     writeAt(2, L.messageY, fit(message.text, L.w - 2), message.color, colors.black)
@@ -1322,6 +1611,7 @@ local CTRL_ACTIONS = {
     [keys.x] = function() closeGate() end,
     [keys.a] = function() toggleAutoClose() end,
     [keys.q] = function() quit() end,
+    [keys.g] = function() gateView = not gateView end,
 }
 
 local function mainEvent(e)
@@ -1329,7 +1619,10 @@ local function mainEvent(e)
     local L = layout()
     local ctrl = held[keys.leftCtrl] or held[keys.rightCtrl]
     if name == "char" or name == "paste" then
-        if fieldInput(search, e) then refilter() end
+        if fieldInput(search, e) then
+            gateView = false
+            refilter()
+        end
     elseif name == "key" then
         local k = e[2]
         local shift = held[keys.leftShift] or held[keys.rightShift]
@@ -1391,6 +1684,8 @@ local GATE_EVENTS = {
     stargate_chevron_engaged = true, stargate_incoming_wormhole = true, stargate_outgoing_wormhole = true,
     stargate_disconnected = true, stargate_reset = true,
     stargate_deconstructing_entity = true, stargate_reconstructing_entity = true,
+    -- SGCraft
+    sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgStargateStateChange = true, sgIrisStateChange = true,
 }
 
 local function interruptDial()
@@ -1450,6 +1745,31 @@ local function gateEvent(e)
         end
     elseif name == "stargate_deconstructing_entity" then
         if gate.state == "OPEN" and db.settings.autoClose then armAutoClose(CONFIG.autoCloseDelay) end
+
+    -- SGCraft
+    elseif name == "sgDialIn" then
+        gate.outgoing, gate.incomingChevrons = false, true
+        interruptDial()
+        gate.remote = toAddress(e[o])
+        if gate.remote then gate.lastIncoming = gate.remote end
+        local who = describeRemote(gate.remote)
+        setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+    elseif name == "sgDialOut" then
+        gate.outgoing, gate.incomingChevrons = true, false
+        gate.remote = toAddress(e[o]) or gate.remote
+    elseif name == "sgStargateStateChange" then
+        local new = e[o]
+        if new == "Connected" and gate.outgoing then
+            local who = (dial.entry and dial.active and dial.entry.name) or describeRemote(gate.remote)
+            setMessage("Wormhole open" .. (who and (" to " .. who) or ""), colors.lightBlue)
+            if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
+        elseif new == "Idle" then
+            disarmAutoClose()
+            gate.outgoing, gate.remote, gate.incomingChevrons = false, nil, false
+            if not dial.active and os.clock() - dial.endedAt > 2 and os.clock() - autoClose.closedAt > 2 then
+                setMessage("Gate closed", colors.lightGray)
+            end
+        end
     end
     refreshGate()
 end
@@ -1479,7 +1799,10 @@ local function uiTask()
         elseif name == "timer" then
             if e[2] == pollTimer then
                 refreshGate()
-                pollTimer = os.startTimer(CONFIG.pollInterval)
+                -- the gate picture animates the open wormhole and the iris
+                local L = layout()
+                local fast = (gateView or L.side) and gate.state ~= "IDLE" and gate.state ~= "OFFLINE"
+                pollTimer = os.startTimer(fast and 0.3 or CONFIG.pollInterval)
             elseif e[2] == autoClose.timer then
                 autoClose.timer, autoClose.deadline = nil, nil
                 refreshGate()
