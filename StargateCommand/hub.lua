@@ -7,7 +7,8 @@
 --   not found an address for yet can be kept as planned cards.
 --
 --   Works with Stargate Journey (crystal or advanced crystal interface; the
---   basic interface works for Milky Way gates) and with Greg's SGCraft.
+--   basic interface works for Milky Way gates), SGCraft, Lantea: Stargates
+--   and Just Stargate Mod (1.20.1).
 --
 --   Usage:
 --     hub              first advanced monitor, or this screen if there is none
@@ -144,7 +145,7 @@ local page = 1
 local selected = nil     -- entry
 local editMode = false
 local editor = nil       -- open editor dialog
-local dial = { active = false, abort = false, entry = nil, address = nil }
+local dial = { active = false, abort = false, entry = nil, address = nil, endedAt = -10, failed = false }
 local message = { text = "", color = colors.lightGray }
 local running = true
 
@@ -186,9 +187,9 @@ local function startDial(entry)
     if dial.active then setMessage("Already dialing - CLOSE aborts", colors.orange) return end
     gate:poll()
     if gate.state ~= "IDLE" then setMessage("The gate is busy", colors.red) return end
-    local kind = A.kind(entry.address)
-    if kind == "sgcraft" and gate.mod ~= "sgcraft" or kind == "sgjourney" and gate.mod ~= "sgjourney" then
-        setMessage(entry.name .. " is an " .. (kind == "sgcraft" and "SGCraft" or "Stargate Journey") .. " address", colors.red)
+    local dialable, why = A.dialableBy(entry.address, gate.mod)
+    if not dialable then
+        setMessage(why, colors.red)
         return
     end
     dial.active, dial.abort, dial.entry, dial.address = true, false, entry, entry.address
@@ -420,7 +421,7 @@ local function drawStatus()
     if gate and st ~= "IDLE" then
         local total = 7
         local addr = (dial.active and dial.address) or gate.remote
-        if addr then total = #A.symbols(addr) + (gate.mod == "sgjourney" and 1 or 0) end
+        if addr then total = #A.symbols(addr) + (gate.originSymbol ~= nil and 1 or 0) end
         local lit = gate.connected and total or gate.chevrons
         for i = 1, total do
             ui:write(x, y, "\31", i <= lit and colors.orange or colors.gray, colors.black)
@@ -488,7 +489,7 @@ local function drawEditor()
         sx = sx + 2
     end
     ui:write(x + 2, y + 9, fit(monitor and "Type on the computer. Tab: next field." or "Tab: next field, Enter: save.", w - 4), colors.gray, colors.lightGray)
-    ui:write(x + 2, y + 10, fit("26 6 14 31 11 29, WLDQ-DQB-MT, or leave empty", w - 4), colors.gray, colors.lightGray)
+    ui:write(x + 2, y + 10, fit("26 6 14 31 11 29 / WLDQ-DQB-MT / Crater, Virgo, ..", w - 4), colors.gray, colors.lightGray)
     if editor.err then ui:write(x + 2, y + 11, fit(editor.err, w - 4), colors.red, colors.lightGray) end
     local by = y + h - 2
     local bx = x + 2
@@ -563,6 +564,7 @@ local function dialerTask()
         end
         book:save()
         dial.active, dial.abort = false, false
+        dial.endedAt, dial.failed = os.clock(), not ok
         gate:poll()
         os.queueEvent("hub_redraw")
     end
@@ -611,6 +613,10 @@ local function uiTask()
                 elseif info.type == "chevron" and info.incoming then
                     if dial.active then dial.abort = true end
                     setMessage("Incoming wormhole", colors.red)
+                elseif (info.type == "closed" or info.type == "reset") and os.clock() - dial.endedAt < 2 then
+                    if dial.failed and info.error and info.reason then
+                        setMessage("Dialing " .. (dial.entry and dial.entry.name or "") .. " failed: " .. info.reason, colors.red)
+                    end
                 elseif (info.type == "closed" or info.type == "reset") and not dial.active then
                     setMessage(info.error and ("Gate reset: " .. tostring(info.reason)) or "Wormhole closed", info.error and colors.red or colors.lightGray)
                 end

@@ -1,27 +1,47 @@
 --
--- sgc.address - gate addresses for Stargate Journey and SGCraft
+-- sgc.address - gate addresses for every supported mod
 --
--- Stargate Journey addresses are tables of numbers, e.g. { 26, 6, 14, 31, 11, 29 }
--- (6 to 8 symbols, 1-38, the point of origin 0 is added when dialing).
--- SGCraft addresses are strings of 7 or 9 letters/digits, e.g. "WLDQDQBMT".
+--   numbers  Stargate Journey and Lantea: Stargates, e.g. { 26, 6, 14, 31, 11, 29 }
+--            (6 to 8 symbols, 1-38; the point of origin 0 is added when dialing)
+--   letters  SGCraft: a string of 7 or 9 letters/digits, e.g. "WLDQDQBMT"
+--   names    Just Stargate Mod: symbol names, e.g. { "Crater", "Virgo", "Bootes", ... }
+--            (the point of origin is added when dialing)
 --
 
 local A = {}
 
--- "sgjourney", "sgcraft" or nil
+local function trim(s)
+    return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function isOriginName(s)
+    s = trim(s):lower()
+    -- Milky Way, Pegasus (JSG "Subido") and Universe (JSG "G17") points of origin
+    return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17"
+end
+
+-- "serpens caput" -> "Serpens Caput"
+local function titleCase(s)
+    return (trim(s):lower():gsub("(%a)([%w']*)", function(a, b) return a:upper() .. b end))
+end
+
+-- "numbers", "letters", "names" or nil
 function A.kind(address)
-    if type(address) == "table" and #address > 0 then return "sgjourney" end
-    if type(address) == "string" and #address > 0 then return "sgcraft" end
+    if type(address) == "string" and #address > 0 then return "letters" end
+    if type(address) == "table" and #address > 0 then
+        return type(address[1]) == "string" and "names" or "numbers"
+    end
     return nil
 end
 
--- copy of a Stargate Journey address without the trailing point of origin
+-- copy of an address without the trailing point of origin
 function A.strip(address)
     if type(address) == "string" then return address end
     local out = {}
     if type(address) ~= "table" then return out end
     for i, s in ipairs(address) do out[i] = s end
-    if out[#out] == 0 then out[#out] = nil end
+    local last = out[#out]
+    if last == 0 or (type(last) == "string" and isOriginName(last)) then out[#out] = nil end
     return out
 end
 
@@ -32,22 +52,30 @@ function A.same(a, b)
     a, b = A.strip(a), A.strip(b)
     if #a ~= #b or #a == 0 then return false end
     for i = 1, #a do
-        if a[i] ~= b[i] then return false end
+        local x, y = a[i], b[i]
+        if type(x) == "string" and type(y) == "string" then
+            if x:lower() ~= y:lower() then return false end
+        elseif x ~= y then
+            return false
+        end
     end
     return true
 end
 
 function A.format(address)
-    if type(address) == "string" then
-        if #address == 0 then return "-" end
+    local kind = A.kind(address)
+    if kind == "letters" then
         if #address <= 4 then return address end
         return address:sub(1, 4) .. "-" .. address:sub(5, 7) .. (#address > 7 and ("-" .. address:sub(8)) or "")
+    elseif kind == "names" then
+        return table.concat(address, ", ")
+    elseif kind == "numbers" then
+        return "-" .. table.concat(address, "-") .. "-"
     end
-    if type(address) ~= "table" or #address == 0 then return "-" end
-    return "-" .. table.concat(address, "-") .. "-"
+    return "-"
 end
 
--- the symbols as a list (numbers, or one-letter strings for SGCraft)
+-- the symbols as a list (numbers, letters or names)
 function A.symbols(address)
     local out = {}
     if type(address) == "string" then
@@ -58,14 +86,29 @@ function A.symbols(address)
     return out
 end
 
--- accepts "-26-6-14-31-11-29-", "26 6 14 31 11 29", "26,6,14,..." (Stargate Journey)
--- or "WLDQ-DQB-MT", "wldqdqbmt" (SGCraft)
+-- accepts
+--   "-26-6-14-31-11-29-", "26 6 14 31 11 29", "26,6,14,..."   numbers
+--   "WLDQ-DQB-MT", "wldqdqbmt"                                 letters (SGCraft)
+--   "Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput"   names (JSG), comma separated
 function A.parse(text)
     text = tostring(text or "")
+    if text:find("%a") and text:find(",") then
+        local names, seen = {}, {}
+        for part in (text .. ","):gmatch("([^,]*),") do
+            local name = titleCase(part)
+            if name ~= "" and not isOriginName(name) then
+                if seen[name:lower()] then return nil, name .. " is used twice" end
+                seen[name:lower()] = true
+                names[#names + 1] = name
+            end
+        end
+        if #names < 6 or #names > 8 then return nil, "Address needs 6 to 8 symbol names (without the point of origin)" end
+        return names
+    end
     if text:find("%a") then
         local s = text:upper():gsub("[^A-Z0-9]", "")
         if #s ~= 7 and #s ~= 9 then
-            return nil, "SGCraft addresses have 7 or 9 letters/digits"
+            return nil, "SGCraft addresses have 7 or 9 letters/digits; JSG symbol names need commas"
         end
         return s
     end
@@ -88,12 +131,18 @@ function A.parse(text)
     return address
 end
 
--- reads an address from a gate event / method result (table or string)
+-- reads an address from a gate event / method result / saved entry
 function A.fromValue(v)
     if type(v) == "table" then
         local out = {}
+        local names = false
         for _, s in ipairs(v) do
-            if type(s) == "number" then out[#out + 1] = s end
+            if type(s) == "string" and s:find("%a") then
+                names = true
+                out[#out + 1] = trim(s)
+            elseif type(s) == "number" and not names then
+                out[#out + 1] = s
+            end
         end
         out = A.strip(out)
         return #out > 0 and out or nil
@@ -104,4 +153,17 @@ function A.fromValue(v)
     return nil
 end
 
+-- which mods dial which address format
+A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", jsg = "names" }
+A.KIND_LABEL = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft", names = "a Just Stargate Mod" }
+
+-- true if a gate of that mod can dial the address; otherwise false and a message
+function A.dialableBy(address, mod)
+    local kind = A.kind(address)
+    if not kind then return false, "No address" end
+    if A.MOD_KIND[mod] == kind then return true end
+    return false, "That is " .. A.KIND_LABEL[kind] .. " address, this gate needs " .. (A.KIND_LABEL[A.MOD_KIND[mod]] or "a different") .. " one"
+end
+
+A.isOriginName = isOriginName
 return A

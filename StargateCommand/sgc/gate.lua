@@ -2,7 +2,9 @@
 -- sgc.gate - one interface for every stargate a computer can talk to
 --
 --   Stargate Journey (Minecraft 1.20.1+): basic, crystal and advanced crystal interface
---   SGCraft (Greg Ewing, Minecraft 1.7.10 - 1.12.2): the "stargate" computer interface
+--   SGCraft (Greg Ewing's, and the 1.12.2 SGCraft 2.x): the "stargate" computer interface
+--   Lantea: Stargates (1.20.1 / 1.21.1, 0.7.7.0+): a gate controller with a Power Coupler Kit
+--   Just Stargate Mod (1.20.1): the stargate base block
 --
 -- local gate = require("sgc.gate").find()
 -- gate:poll()                       re-read the gate state
@@ -24,7 +26,27 @@ G.INTERFACE_NAMES = {
     crystal_interface = "Crystal interface",
     basic_interface = "Basic interface",
     stargate = "SGCraft interface",
+    lantea = "Lantea gate controller",
+    jsg = "JSG stargate",
 }
+
+-- mods that share the "stargate" peripheral type, told apart by their methods
+local IMPL = {}
+local function impl(mod)
+    if IMPL[mod] == nil then
+        local ok, m = pcall(require, "sgc." .. mod)
+        IMPL[mod] = ok and m or false
+    end
+    return IMPL[mod] or nil
+end
+
+function G.modFor(p, ptype)
+    if ptype ~= "stargate" then return "sgjourney" end
+    if type(p.stargateState) == "function" then return "sgcraft" end
+    if type(p.getChevronsLocked) == "function" then return "lantea" end
+    if type(p.getGateStatus) == "function" then return "jsg" end
+    return "sgcraft"
+end
 
 G.TYPES = {
     { match = "milky_way", id = "milky_way", name = "Milky Way", symbols = 39 },
@@ -114,10 +136,15 @@ function G.isInterfaceType(t)
 end
 
 function G.new(p, name, ptype)
+    local mod = G.modFor(p, ptype)
     local self = setmetatable({
         p = p, name = name, ptype = ptype,
-        mod = ptype == "stargate" and "sgcraft" or "sgjourney",
-        interfaceName = G.INTERFACE_NAMES[ptype] or tostring(ptype),
+        mod = mod,
+        impl = impl(mod),
+        interfaceName = G.INTERFACE_NAMES[mod ~= "sgjourney" and mod or ptype] or G.INTERFACE_NAMES[ptype] or tostring(ptype),
+        -- the point of origin as the gate names it (nil: SGCraft addresses have none)
+        originSymbol = (mod == "sgcraft") and nil or 0,
+        energyUnit = (mod == "sgcraft") and "SU" or "FE",
         state = "IDLE", chevrons = 0, connected = false, outgoing = false,
         engaged = {},          -- symbols locked so far (for display)
         remote = nil,          -- address on the other side, if known
@@ -174,6 +201,7 @@ end
 ---------------------------------------------------------------------------
 
 function G:detect()
+    if self.impl then return self.impl.detect(self) end
     if self.mod == "sgcraft" then
         self.typeId, self.typeName, self.symbolCount = "sgcraft", "SGCraft", 36
         self.variant = nil
@@ -206,6 +234,7 @@ end
 
 -- re-reads the state from the gate (events can be missed)
 function G:poll()
+    if self.impl then return self.impl.poll(self) end
     if self.mod == "sgcraft" then return self:pollSGCraft() end
     local wasConnected = self.connected
     self.chevrons = self:call("getChevronsEngaged") or 0
@@ -303,6 +332,7 @@ end
 
 -- ring rotation in degrees (rotating gates only)
 function G:rotation()
+    if self.impl then return self.impl.rotation(self) end
     if self.mod ~= "sgjourney" or not self:has("getRotationDegrees") then return nil end
     local d = self:call("getRotationDegrees")
     return type(d) == "number" and d or nil
@@ -319,6 +349,14 @@ G.EVENTS = {
     stargate_message_received = true, iris_thud = true,
     sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgChevronUnset = true, sgStargateStateChange = true,
     sgIrisStateChange = true, sgMessageReceived = true,
+    -- Lantea: Stargates
+    stargate_ring_stopped = true, stargate_chevron_locked = true, stargate_incoming = true, stargate_wormhole_open = true,
+    stargate_wormhole_closed = true, stargate_dial_failed = true, stargate_iris = true, stargate_iris_struck = true,
+    -- Just Stargate Mod
+    stargate_spin_start = true, stargate_spin_stop = true, stargate_wormhole_incoming = true,
+    stargate_wormhole_open_unstable = true, stargate_wormhole_open_fully = true, stargate_wormhole_close_unstable = true,
+    stargate_wormhole_close_fully = true, stargate_attempt_open_failed = true, stargate_event_horizon_traveler = true,
+    stargate_iris_state_changed = true, stargate_iris_hit = true,
 }
 
 local function eventAddress(e, offset)
@@ -337,6 +375,11 @@ function G:event(e)
     if type(e[2]) == "string" then
         if e[2] ~= self.name then return nil end
         o = 3
+    end
+    if self.impl then
+        local info = self.impl.event(self, name, e, o)
+        self:poll()
+        return info
     end
     local info
 
@@ -454,6 +497,7 @@ end
 ---------------------------------------------------------------------------
 
 function G:close()
+    if self.impl then return self.impl.close(self) end
     if self.mod == "sgcraft" then
         local ok, err = self:try("disconnect")
         return ok, not ok and G.sgcraftError(err) or nil
@@ -464,10 +508,12 @@ function G:close()
 end
 
 function G:openIris()
+    if self.impl and self.impl.openIris then return self.impl.openIris(self) end
     return self:try("openIris")
 end
 
 function G:closeIris()
+    if self.impl and self.impl.closeIris then return self.impl.closeIris(self) end
     return self:try("closeIris")
 end
 
@@ -491,13 +537,12 @@ local Fail = {}
 -- returns true, or false + reason ("aborted" when stopped)
 function G:dial(address, opts)
     opts = opts or {}
-    local kind = A.kind(address)
-    if not kind then return false, "No address" end
-    if kind == "sgcraft" and self.mod ~= "sgcraft" then return false, "SGCraft address, but this is a Stargate Journey gate" end
-    if kind == "sgjourney" and self.mod ~= "sgjourney" then return false, "Stargate Journey address, but this is an SGCraft gate" end
+    local dialable, why = A.dialableBy(address, self.mod)
+    if not dialable then return false, why end
 
     self.dialing = true
-    local ok, err = pcall(self.mod == "sgcraft" and self.dialSGCraft or self.dialJourney, self, address, opts)
+    local fn = self.impl and self.impl.dial or (self.mod == "sgcraft" and self.dialSGCraft or self.dialJourney)
+    local ok, err = pcall(fn, self, address, opts)
     self.dialing = false
     if ok then return true end
     if err == "Terminated" then error(err, 0) end
@@ -511,6 +556,7 @@ function G:dial(address, opts)
 end
 
 function G:abortCleanup()
+    if self.impl then return self.impl.abort(self) end
     if self.mod == "sgcraft" then
         self:try("disconnect")
         return
@@ -521,6 +567,7 @@ function G:abortCleanup()
 end
 
 local function fail(reason) error({ Fail, reason }, 0) end
+G.fail = fail
 
 local function waitUntil(opts, predicate, timeout)
     local deadline = now() + timeout
@@ -536,6 +583,7 @@ local function pause(opts, t)
     if t and t > 0 then sleep(t) end
     if opts.abort and opts.abort() then error({ Abort }, 0) end
 end
+G.waitUntil, G.pause = waitUntil, pause
 
 function G:checkFeedback(fb, allowed)
     if type(fb) ~= "number" or fb >= 0 then return end

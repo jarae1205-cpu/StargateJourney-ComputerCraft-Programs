@@ -104,23 +104,41 @@ local function wrap(text, width)
     return lines
 end
 
--- Stargate Journey addresses are tables of numbers, SGCraft addresses are
--- strings of 7 or 9 letters/digits ("WLDQDQBMT"), planned entries have none
+-- Addresses:
+--   Stargate Journey and Lantea: tables of numbers, { 26, 6, 14, 31, 11, 29 }
+--   SGCraft: strings of 7 or 9 letters/digits, "WLDQDQBMT"
+--   Just Stargate Mod: tables of symbol names, { "Crater", "Virgo", ... }
+-- Planned entries have no address.
+
+-- the point of origin as a JSG gate names it (set when the gate is detected)
+local jsgOrigin = "Point of Origin"
+
+local function isOriginName(s)
+    s = trim(s):lower()
+    return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17"
+end
+
+local function isNames(address)
+    return type(address) == "table" and type(address[1]) == "string"
+end
+
 local function formatAddress(address)
     if type(address) == "string" and #address > 0 then
         return address:sub(1, 4) .. "-" .. address:sub(5, 7) .. (#address > 7 and ("-" .. address:sub(8)) or "")
     end
     if type(address) ~= "table" or #address == 0 then return "-" end
+    if isNames(address) then return table.concat(address, ", ") end
     return "-" .. table.concat(address, "-") .. "-"
 end
 
--- copies an address and drops the point of origin (0) from the end
+-- copies an address and drops the point of origin from the end
 local function stripOrigin(address)
     if type(address) == "string" then return address end
     local out = {}
     if type(address) ~= "table" then return out end
     for i, s in ipairs(address) do out[i] = s end
-    if out[#out] == 0 then out[#out] = nil end
+    local last = out[#out]
+    if last == 0 or (type(last) == "string" and isOriginName(last)) then out[#out] = nil end
     return out
 end
 
@@ -131,12 +149,17 @@ local function sameAddress(a, b)
     a, b = stripOrigin(a), stripOrigin(b)
     if #a ~= #b or #a == 0 then return false end
     for i = 1, #a do
-        if a[i] ~= b[i] then return false end
+        local x, y = a[i], b[i]
+        if type(x) == "string" and type(y) == "string" then
+            if x:lower() ~= y:lower() then return false end
+        elseif x ~= y then
+            return false
+        end
     end
     return true
 end
 
--- symbols shown on the chevron bar: the point of origin is added for Stargate Journey
+-- symbols shown on the chevron bar, with the point of origin (SGCraft has none)
 local function chevronSymbols(address)
     local out = {}
     if type(address) == "string" then
@@ -144,11 +167,11 @@ local function chevronSymbols(address)
         return out
     end
     out = stripOrigin(address)
-    out[#out + 1] = 0
+    out[#out + 1] = isNames(address) and jsgOrigin or 0
     return out
 end
 
--- reads an address from an interface result or event (table or SGCraft string)
+-- reads an address from an interface result, event or saved entry
 local function toAddress(v)
     if type(v) == "string" then
         v = v:upper():gsub("[^A-Z0-9]", "")
@@ -156,23 +179,44 @@ local function toAddress(v)
     end
     if type(v) ~= "table" then return nil end
     local out = {}
+    local names = false
     for _, s in ipairs(v) do
-        if type(s) == "number" then out[#out + 1] = s end
+        if type(s) == "string" and s:find("%a") then
+            names = true
+            out[#out + 1] = trim(s)
+        elseif type(s) == "number" and not names then
+            out[#out + 1] = s
+        end
     end
     out = stripOrigin(out)
     return #out > 0 and out or nil
 end
 
 -- accepts "-26-6-14-31-11-29-", "26 6 14 31 11 29", "26,6,14,..."
--- and SGCraft addresses like "WLDQ-DQB-MT"
+-- SGCraft addresses like "WLDQ-DQB-MT"
+-- and JSG symbol names separated by commas: "Crater, Virgo, Bootes, ..."
 local function parseAddress(text)
-    if tostring(text or ""):find("%a") then
-        local s = tostring(text):upper():gsub("[^A-Z0-9]", "")
-        if #s ~= 7 and #s ~= 9 then return nil, "SGCraft addresses have 7 or 9 letters/digits" end
+    text = tostring(text or "")
+    if text:find("%a") and text:find(",") then
+        local names, seen = {}, {}
+        for part in (text .. ","):gmatch("([^,]*),") do
+            local name = trim(part):lower():gsub("(%a)([%w']*)", function(a, b) return a:upper() .. b end)
+            if name ~= "" and not isOriginName(name) then
+                if seen[name:lower()] then return nil, name .. " is used twice" end
+                seen[name:lower()] = true
+                names[#names + 1] = name
+            end
+        end
+        if #names < 6 or #names > 8 then return nil, "Address needs 6 to 8 symbol names (without the point of origin)" end
+        return names
+    end
+    if text:find("%a") then
+        local s = text:upper():gsub("[^A-Z0-9]", "")
+        if #s ~= 7 and #s ~= 9 then return nil, "SGCraft addresses have 7 or 9 letters/digits; JSG names need commas" end
         return s
     end
     local address = {}
-    for num in tostring(text or ""):gmatch("%d+") do
+    for num in text:gmatch("%d+") do
         address[#address + 1] = tonumber(num)
     end
     if address[#address] == 0 then
@@ -375,7 +419,7 @@ local function sgcraftInterface(p)
         if ok then return s, tonumber(chevrons) or 0, direction end
         return "Offline", 0, ""
     end
-    local w = { sgcraft = true }
+    local w = { sgcraft = true, kindName = "SGCraft", energyUnit = " SU" }
     function w.getStargateType() return "sgcraft:stargate" end
     function w.getChevronsEngaged() local _, c = state() return c end
     function w.isStargateConnected() return (state()) == "Connected" end
@@ -403,9 +447,116 @@ local function sgcraftInterface(p)
     return w
 end
 
+-- Lantea: Stargates (0.7.7.0+): a gate controller with a Power Coupler Kit
+local LANTEA_IRIS = { open = 0, opening = 40, closing = 60, closed = 100 }
+local function lanteaInterface(p)
+    local w = { lantea = true, kindName = "Lantea", energyUnit = " EU", raw = p }
+    -- Milky Way gates have 39 symbols, Pegasus gates 36 (and can't be dialed by a computer)
+    w.canDial = pcall(p.getSymbolName, 38) or not pcall(p.getSymbolName, 0)
+    local function state()
+        local ok, s = pcall(p.getState)
+        return ok and s or "fault"
+    end
+    w.state = state
+    function w.getStargateType() return w.canDial and "lantea:milky_way" or "lantea:pegasus" end
+    function w.getChevronsEngaged() return p.getChevronsLocked() end
+    function w.isStargateConnected() return state() == "open" end
+    function w.isStargateDialingOut()
+        local s = state()
+        if s == "dialing" or s == "connecting" then return true end
+        if s == "incoming" then return false end
+        if s == "open" and w.role then return w.role == "outgoing" end
+        return nil
+    end
+    function w.disconnectStargate()
+        local s = state()
+        if s == "open" or s == "connecting" then return p.close() end
+        if s == "dialing" then return p.abort() end
+    end
+    function w.getLocalAddress() return p.getLocalAddress() end
+    function w.getStargateEnergy() return p.getEnergy() end
+    function w.getIris()
+        local s = p.getIrisState()
+        if s ~= "none" then return p.getIrisMaterial() or s end
+        return nil
+    end
+    function w.getIrisProgressPercentage() return LANTEA_IRIS[p.getIrisState()] end
+    function w.openIris() return p.openIris() end
+    function w.closeIris() return p.closeIris() end
+    return w
+end
+
+-- Just Stargate Mod (1.20.1): the gate's base block. Its methods answer (ok, code, message).
+local JSG_IRIS = { OPENED = 0, OPENING = 40, CLOSING = 60, CLOSED = 100 }
+local function jsgInterface(p)
+    local w = { jsg = true, kindName = "JSG", energyUnit = " FE", raw = p }
+    local function status()
+        local ok, a, b, c = pcall(p.getGateStatus)
+        if not ok or a == false then return "not_merged" end
+        return type(b) == "string" and b:lower() or "", c
+    end
+    w.status = status
+    local gtype = ""
+    pcall(function() gtype = tostring(p.getGateType()):lower() end)
+    local typeId = gtype:find("pegasus") and "pegasus" or gtype:find("universe") and "universe"
+        or gtype:find("tollan") and "tollan" or "milky_way"
+    w.origin = typeId == "pegasus" and "Subido" or typeId == "universe" and "G17" or "Point of Origin"
+    local function cmd(method, ...)
+        local ok, a, code, msg = pcall(p[method], ...)
+        if not ok then error(a, 0) end
+        if a == false then error(msg or code, 0) end
+        return true
+    end
+    w.cmd = cmd
+    function w.getStargateType() return "jsg:" .. typeId end
+    function w.getStargateVariant() return gtype:find("movie") and "jsg:movie" or nil end
+    function w.getChevronsEngaged()
+        local d = p.getDialedAddress()
+        return type(d) == "table" and #d or 0
+    end
+    function w.isStargateConnected() return status() == "open" end
+    function w.isStargateDialingOut()
+        local s, initiating = status()
+        if s == "open" then return initiating == true end
+        if s:find("dialing", 1, true) then return true end
+        if s == "incoming" then return false end
+        return nil
+    end
+    function w.disconnectStargate()
+        if status() == "open" then return cmd("disengageGate") end
+        return cmd("abortDialing")
+    end
+    function w.getLocalAddress()
+        local map, symbolType = p.getStargateAddress(), p.getSymbolType()
+        if type(map) == "table" then return map[symbolType] or select(2, next(map)) end
+    end
+    function w.getStargateEnergy() return p.getEnergyStored() end
+    function w.getIris()
+        local t = p.getIrisType()
+        if t ~= "NULL" then return t end
+        return nil
+    end
+    function w.getIrisProgressPercentage() return JSG_IRIS[p.getIrisState()] end
+    -- JSG toggles the iris (its iris mode must be set to OC / computer)
+    function w.openIris()
+        local st = p.getIrisState()
+        if st == "CLOSED" or st == "CLOSING" then return cmd("toggleIris") end
+    end
+    function w.closeIris()
+        local st = p.getIrisState()
+        if st == "OPENED" or st == "OPENING" then return cmd("toggleIris") end
+    end
+    return w
+end
+
 local function wrapInterface(name, t)
     local p = peripheral.wrap(name)
-    if t == "stargate" then return sgcraftInterface(p), name, t end
+    if t == "stargate" then
+        -- SGCraft, Lantea and JSG all call their peripheral "stargate"
+        if p.getChevronsLocked then return lanteaInterface(p), name, t end
+        if p.getGateStatus then return jsgInterface(p), name, t end
+        return sgcraftInterface(p), name, t
+    end
     return p, name, t
 end
 
@@ -490,6 +641,7 @@ local function detectGate()
         end
     end
     gate.localAddress = toAddress(call("getLocalAddress"))
+    if iface and iface.jsg then jsgOrigin = iface.origin end
 end
 
 local function refreshGate()
@@ -592,9 +744,134 @@ local function runDialSGCraft()
     dialSuccess()
 end
 
+-- reason text for Lantea (stargate_dial_failed) and JSG (stargate_attempt_open_failed) failures
+local FAILURE_TEXT = {
+    unknown_address = "No gate at that address", other_galaxy = "That gate is in another galaxy (needs a Range Crystal)",
+    insufficient_power = "Not enough power", not_enough_power = "Not enough power", source_busy = "The gate is busy",
+    destination_busy = "The gate at that address is busy", self_dial = "A gate can't dial itself",
+    needs_zero_point_module = "That address needs a ZPM", aborted = "Dialing aborted",
+}
+local function failureText(r)
+    r = tostring(r or ""):lower():gsub("^stargate_", "")
+    if FAILURE_TEXT[r] then return FAILURE_TEXT[r] end
+    r = r:gsub("_", " ")
+    return (r:gsub("^%l", string.upper))
+end
+
+local function cleanError(err)
+    return (tostring(err):gsub("^.-:%d+: ", ""))
+end
+
+local function runDialLantea()
+    if not iface.canDial then fail("Lantea Pegasus gates can't be dialed by a computer") end
+    local p = iface.raw
+    if iface.state() ~= "idle" then fail("The gate is busy") end
+    local address = stripOrigin(dial.address)
+    address[#address + 1] = 0
+    iface.lastFailure = nil
+    local function failed()
+        if iface.lastFailure then fail(iface.lastFailure) end
+    end
+    for i, symbol in ipairs(address) do
+        if dial.abort then return end
+        setMessage("Encoding chevron " .. i .. "  (symbol " .. symbol .. ")", colors.lightGray)
+        redrawLater()
+        -- wait until the ring is still and a chevron can lock
+        if not waitUntil(function()
+            failed()
+            local okT, turning = pcall(p.isRingTurning)
+            local okN, nextChevron = pcall(p.getNextChevron)
+            return okT and not turning and okN and (nextChevron or 0) > 0
+        end, CONFIG.stepTimeout) then
+            if dial.abort then return end
+            fail("The gate is not ready for chevron " .. i)
+        end
+        -- turns the ring and locks the symbol; the point of origin reaches out
+        local ok, err = pcall(p.encodeSymbol, symbol)
+        if not ok then fail(cleanError(err)) end
+        if i < #address then
+            if not waitUntil(function()
+                failed()
+                gate.chevrons = call("getChevronsEngaged") or 0
+                return gate.chevrons >= i
+            end, CONFIG.stepTimeout) then
+                if dial.abort then return end
+                fail("Chevron " .. i .. " did not lock")
+            end
+            redrawLater()
+        end
+    end
+    if not waitUntil(function()
+        failed()
+        local st = iface.state()
+        if st == "idle" or st == "fault" then fail("No connection was established") end
+        return st == "open"
+    end, CONFIG.stepTimeout + CONFIG.connectTimeout) then
+        if dial.abort then return end
+        fail("No connection was established")
+    end
+    iface.role = "outgoing"
+    dialSuccess()
+end
+
+local function runDialJSG()
+    if iface.status() ~= "idle" then fail("The gate is busy") end
+    local list = stripOrigin(dial.address)
+    list[#list + 1] = iface.origin
+    iface.lastFailure = nil
+    local ok, err = pcall(iface.cmd, "dialAddress", list)
+    if not ok then fail(cleanError(err)) end
+    -- the gate dials the symbols itself
+    local opened, seen = false, 0
+    if not waitUntil(function()
+        if iface.lastFailure then fail(iface.lastFailure) end
+        local st = iface.status()
+        local count = call("getChevronsEngaged") or 0
+        if count ~= gate.chevrons then
+            gate.chevrons = count
+            redrawLater()
+        end
+        seen = math.max(seen, count)
+        if st == "open" or st:find("unstable_opening", 1, true) then
+            opened = true
+            return true
+        end
+        if st == "idle" and count >= #list then return true end
+        if st == "idle" and seen > 0 and count == 0 then fail("The gate stopped dialing") end
+        return false
+    end, CONFIG.stepTimeout + 8 * #list) then
+        if dial.abort then return end
+        fail("The gate did not finish dialing")
+    end
+    if dial.abort then return end
+    -- a fully dialed gate is opened with engageGate
+    if not opened then
+        ok, err = pcall(iface.cmd, "engageGate")
+        if not ok then fail(cleanError(err)) end
+    end
+    if not waitUntil(function()
+        if iface.lastFailure then fail(iface.lastFailure) end
+        local st = iface.status()
+        if st == "idle" then fail("No connection was established") end
+        return st == "open" or st:find("unstable_opening", 1, true) ~= nil
+    end, CONFIG.connectTimeout) then
+        if dial.abort then return end
+        fail("No connection was established")
+    end
+    dialSuccess()
+end
+
+local ADDRESS_KIND_TEXT = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft", names = "a JSG" }
+
 local function runDial()
+    local kind = type(dial.address) == "string" and "letters" or isNames(dial.address) and "names" or "numbers"
+    local need = iface.sgcraft and "letters" or iface.jsg and "names" or "numbers"
+    if kind ~= need then
+        fail("That is " .. ADDRESS_KIND_TEXT[kind] .. " address, this gate needs " .. ADDRESS_KIND_TEXT[need] .. " one")
+    end
     if iface.sgcraft then return runDialSGCraft() end
-    if type(dial.address) == "string" then fail("That is an SGCraft address, this gate is Stargate Journey") end
+    if iface.lantea then return runDialLantea() end
+    if iface.jsg then return runDialJSG() end
     local address = stripOrigin(dial.address)
     address[#address + 1] = 0
 
@@ -701,6 +978,7 @@ local function dialerTask()
             setMessage("Dialing failed: " .. reason, colors.red)
         end
 
+        dial.failedReason = (not ok and not dial.abort) or nil
         dial.active, dial.abort, dial.interrupted = false, false, false
         dial.endedAt = os.clock()
         refreshGate()
@@ -1176,8 +1454,8 @@ local function openInfo()
         if not iface then
             add("Interface", "none found", colors.red)
         else
-            local kind = ({ basic_interface = "Basic", crystal_interface = "Crystal",
-                advanced_crystal_interface = "Advanced crystal", stargate = "SGCraft" })[ifaceType] or tostring(ifaceType)
+            local kind = iface.kindName or ({ basic_interface = "Basic", crystal_interface = "Crystal",
+                advanced_crystal_interface = "Advanced crystal" })[ifaceType] or tostring(ifaceType)
             add("Interface", kind)
             add("Peripheral", ifaceName)
             local gen = call("getStargateGeneration")
@@ -1188,7 +1466,7 @@ local function openInfo()
             local open = call("getOpenTime")
             if gate.connected and type(open) == "number" then add("Open for", math.floor(open / 20) .. " s") end
             local se = call("getStargateEnergy")
-            if se then add("Gate energy", commas(se) .. (iface.sgcraft and " SU" or " FE")) end
+            if se then add("Gate energy", commas(se) .. (iface.energyUnit or " FE")) end
             local zpm, zpms = call("getZpmEnergy")
             if type(zpms) == "number" and zpms > 0 then add("ZPM", zpms .. " x, " .. commas(zpm) .. " SU") end
             local ie, cap = call("getEnergy"), call("getEnergyCapacity")
@@ -1416,8 +1694,19 @@ local function drawChevrons(L, th)
     label = " " .. label .. " "
 
     local space = L.w - #label - 2
+    -- labels under the chevrons: numbers, SGCraft letters, or JSG names cut to 3 letters
+    local labels
     local cell = 4
-    if not symbols or total * cell > space then symbols, cell = nil, 2 end
+    if symbols then
+        labels = {}
+        for i, sym in ipairs(symbols) do
+            local t = tostring(sym)
+            if type(sym) == "string" and #t > 2 then t = isOriginName(t) and "PoO" or t:sub(1, 3) end
+            labels[i] = t
+            cell = math.max(cell, #t + 2)
+        end
+    end
+    if not labels or total * cell > space then labels, cell = nil, 2 end
 
     local x = 2
     for i = 1, total do
@@ -1425,8 +1714,8 @@ local function drawChevrons(L, th)
         local pending = dial.active and i == lit + 1
         local c = on and chevronColor(th, i, total) or (pending and colors.lightGray or colors.gray)
         writeAt(x, y, "\31", c, colors.black)
-        if symbols and symbols[i] then
-            writeAt(x + 1, y, tostring(symbols[i]), on and colors.white or colors.gray, colors.black)
+        if labels and labels[i] then
+            writeAt(x + 1, y, labels[i], on and colors.white or colors.gray, colors.black)
         end
         x = x + cell
     end
@@ -1712,6 +2001,13 @@ local GATE_EVENTS = {
     -- SGCraft
     sgDialIn = true, sgDialOut = true, sgChevronEngaged = true, sgChevronUnset = true, sgStargateStateChange = true,
     sgIrisStateChange = true,
+    -- Lantea: Stargates
+    stargate_chevron_locked = true, stargate_incoming = true, stargate_wormhole_open = true, stargate_wormhole_closed = true,
+    stargate_dial_failed = true, stargate_ring_stopped = true, stargate_iris = true,
+    -- Just Stargate Mod
+    stargate_wormhole_incoming = true, stargate_wormhole_open_unstable = true, stargate_wormhole_open_fully = true,
+    stargate_wormhole_close_unstable = true, stargate_wormhole_close_fully = true, stargate_attempt_open_failed = true,
+    stargate_event_horizon_traveler = true, stargate_iris_state_changed = true,
 }
 
 local function interruptDial()
@@ -1780,6 +2076,50 @@ local function gateEvent(e)
         if gate.remote then gate.lastIncoming = gate.remote end
         local who = describeRemote(gate.remote)
         setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+    -- Lantea: Stargates and Just Stargate Mod
+    elseif name == "stargate_incoming" or name == "stargate_wormhole_incoming" then
+        gate.outgoing, gate.incomingChevrons = false, true
+        if iface then iface.role = "incoming" end
+        interruptDial()
+        setMessage("Incoming wormhole", colors.red)
+    elseif name == "stargate_wormhole_open" or name == "stargate_wormhole_open_unstable" then
+        local outgoing
+        if name == "stargate_wormhole_open" then
+            outgoing = e[o] == "outgoing"
+        else
+            outgoing = dial.active or (gate.outgoing and not gate.incomingChevrons)
+            local addr = toAddress(e[o])
+            if addr then gate.remote = addr end
+        end
+        if iface then iface.role = outgoing and "outgoing" or "incoming" end
+        gate.outgoing = outgoing
+        if outgoing then
+            local who = (dial.entry and dial.active and dial.entry.name) or describeRemote(gate.remote)
+            setMessage("Wormhole open" .. (who and (" to " .. who) or ""), colors.lightBlue)
+            if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
+        else
+            if gate.remote then gate.lastIncoming = gate.remote end
+            local who = describeRemote(gate.remote)
+            setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+        end
+    elseif name == "stargate_wormhole_closed" or name == "stargate_wormhole_close_unstable" then
+        disarmAutoClose()
+        if iface then iface.role = nil end
+        gate.outgoing, gate.remote, gate.incomingChevrons = false, nil, false
+        if not dial.active and os.clock() - dial.endedAt > 2 and os.clock() - autoClose.closedAt > 2 then
+            setMessage("Gate closed", colors.lightGray)
+        end
+    elseif name == "stargate_dial_failed" or name == "stargate_attempt_open_failed" then
+        local reason = failureText(e[o])
+        if iface then iface.lastFailure = reason end
+        if os.clock() - dial.endedAt < 2 and dial.failedReason then
+            -- the gate's own reason for the dial that just failed
+            if e[o] ~= "aborted" then setMessage("Dialing failed: " .. reason, colors.red) end
+        elseif not dial.active then
+            setMessage((e[o] == "aborted" and "" or "Dialing failed: ") .. reason, e[o] == "aborted" and colors.orange or colors.red)
+        end
+    elseif name == "stargate_event_horizon_traveler" then
+        if gate.state == "OPEN" and db.settings.autoClose then armAutoClose(CONFIG.autoCloseDelay) end
     elseif name == "sgDialOut" then
         gate.outgoing, gate.incomingChevrons = true, false
         gate.remote = toAddress(e[o]) or gate.remote

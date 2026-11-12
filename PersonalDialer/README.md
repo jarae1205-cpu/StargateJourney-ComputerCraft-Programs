@@ -2,7 +2,11 @@
 
 An address book you can dial from. Save gates with a name and a note, find them with a live search, and dial with a double-click. The wormhole closes behind you after you step through.
 
-Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works with SGCraft through its ComputerCraft interface: Greg Ewing's original and the 1.12.2 SGCraft 2.x line (2.3 shows ZPMs in the gate info panel). SGCraft doesn't tell the computer the gate type, so pick the Pegasus or Universe theme by hand for those gates.
+Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works with:
+
+- **SGCraft** through its ComputerCraft interface: Greg Ewing's original and the 1.12.2 SGCraft 2.x line (2.3 shows ZPMs in the gate info panel). SGCraft doesn't tell the computer the gate type, so pick the Pegasus or Universe theme by hand for those gates.
+- **Lantea: Stargates** 0.7.7.0+ (1.20.1 / 1.21.1): a gate controller with a Stargate Power Coupler Kit. Milky Way gates dial; Pegasus gates can't be dialed by a computer.
+- **Just Stargate Mod** (1.20.1): the gate's base block. Addresses are symbol names, typed with commas: `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput`.
 
 ![Personal Dialer screens](../imgs/PersonalDialer.png)
 
@@ -32,7 +36,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 
 - Minecraft 1.20.1, Stargate Journey 0.6.x, CC: Tweaked
 - A basic, crystal or advanced crystal interface next to the computer or on a wired modem network. The local address in the title bar needs an advanced crystal interface.
-- Or: SGCraft (original or 2.x) with its ComputerCraft stargate interface.
+- Or: SGCraft (original or 2.x) with its ComputerCraft stargate interface, a Lantea: Stargates controller with a Power Coupler Kit, or a JSG gate base.
 - An advanced computer is recommended for mouse support and colour. Keyboard controls also work on a basic computer.
 
 ## Installation
@@ -75,7 +79,7 @@ To start it automatically, create `startup.lua` containing `shell.run("dialer")`
 | `[x] Auto-close` | Ctrl+A | toggle auto-close |
 | `QUIT` | Ctrl+Q or Ctrl+T | exit |
 
-Typing anywhere on the main screen goes into the search box. Addresses can be typed as `26 6 14 31 11 29`, `26,6,14,31,11,29` or `-26-6-14-31-11-29-`. The point of origin is added automatically when dialing. SGCraft addresses are typed as letters and digits: `WLDQ-DQB-MT` or `wldqdqbmt`. Leave the address empty to keep a planned entry.
+Typing anywhere on the main screen goes into the search box. Addresses can be typed as `26 6 14 31 11 29`, `26,6,14,31,11,29` or `-26-6-14-31-11-29-`. The point of origin is added automatically when dialing. SGCraft addresses are typed as letters and digits: `WLDQ-DQB-MT` or `wldqdqbmt`. JSG addresses are symbol names separated by commas. Leave the address empty to keep a planned entry.
 
 ![Personal Dialer gate picture](../imgs/PersonalDialerGate.png)
 

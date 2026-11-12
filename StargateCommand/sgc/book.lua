@@ -6,7 +6,8 @@
 --
 -- entry = {
 --   name    = "Abydos",
---   address = { 26, 6, 14, 31, 11, 29 } or "WLDQDQBMT" (SGCraft) or nil (planned, no address yet),
+--   address = { 26, 6, 14, 31, 11, 29 } (Stargate Journey, Lantea), "WLDQDQBMT" (SGCraft),
+--             { "Crater", "Virgo", ... } (Just Stargate Mod) or nil (planned, no address yet),
 --   note    = "free text",
 --   group   = "Milky Way",   -- hub tab
 --   color   = "blue",        -- hub portal colour, a key of the colors API
@@ -33,17 +34,7 @@ end
 
 function B.clean(e)
     if type(e) ~= "table" then return nil end
-    local address
-    if type(e.address) == "table" then
-        address = {}
-        for _, s in ipairs(e.address) do
-            if type(s) == "number" then address[#address + 1] = s end
-        end
-        address = A.strip(address)
-        if #address == 0 then address = nil end
-    elseif type(e.address) == "string" then
-        address = A.fromValue(e.address)
-    end
+    local address = A.fromValue(e.address)
     local name = trim(e.name)
     if not address and name == "" then return nil end
     local color = type(e.color) == "string" and colors[e.color] and e.color or nil

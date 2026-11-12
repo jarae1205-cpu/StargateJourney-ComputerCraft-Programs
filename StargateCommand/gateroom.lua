@@ -7,8 +7,9 @@
 --   Hybrid, SGCraft): chevrons lock one by one, the inner ring turns, the
 --   wormhole forms with a kawoosh and the iris closes over it.
 --
---   Works with Stargate Journey (basic, crystal and advanced crystal interface)
---   and with Greg's SGCraft (stargate computer interface).
+--   Works with Stargate Journey (basic, crystal and advanced crystal interface),
+--   SGCraft (Greg's and SGCraft 2.x), Lantea: Stargates (0.7.7.0+, Milky Way
+--   gates dial) and Just Stargate Mod (1.20.1).
 --
 --   Usage:
 --     gateroom              draw on the first advanced monitor (or this screen if there is none)
@@ -99,7 +100,7 @@ local gate = Gate.find(CONFIG.interfaceName)
 local style
 local canvas, ring, L
 local overlay = nil -- { page = 1 } while the destination list is shown
-local dial = { active = false, abort = false, entry = nil, address = nil }
+local dial = { active = false, abort = false, entry = nil, address = nil, endedAt = -10, failed = false }
 local message = { text = "", color = colors.lightGray }
 local manual = ""
 local rotating, rotation, lastRotationRead = false, 0, 0
@@ -152,7 +153,7 @@ end
 -- symbols to show, chevrons in the address, chevrons locked
 local function chevronPlan()
     if not gate then return {}, 7, 0 end
-    local sj = gate.mod == "sgjourney"
+    local origin = gate.originSymbol
     local syms
     if dial.active and dial.address then
         syms = A.symbols(dial.address)
@@ -161,13 +162,15 @@ local function chevronPlan()
     end
     local lit = gate.connected and 99 or gate.chevrons
     if syms then
-        if sj then syms[#syms + 1] = 0 end
+        if origin ~= nil then syms[#syms + 1] = origin end
         return syms, #syms, math.min(lit, #syms)
     end
     syms = {}
     for i, s in ipairs(gate.engaged) do syms[i] = s end
     local total = math.max(7, #syms)
-    if sj and #syms >= 7 and syms[#syms] ~= 0 and not gate.connected then total = #syms + 1 end
+    local last = syms[#syms]
+    local lastIsOrigin = last == 0 or (type(last) == "string" and A.isOriginName(last))
+    if origin ~= nil and #syms >= 7 and not lastIsOrigin and not gate.connected then total = #syms + 1 end
     return syms, total, math.min(lit, total)
 end
 
@@ -182,13 +185,13 @@ end
 
 local function updateRotation(t)
     if not gate then return end
+    local moving = gate.state == "DIALING" or gate.state == "INCOMING" and not gate.connected
     if gate.mod == "sgcraft" then
-        if gate.state == "DIALING" or gate.state == "INCOMING" and not gate.connected then
-            rotation = (rotation + (t - lastFrame) * 70) % 360
-        end
+        -- SGCraft doesn't report the ring position: turn it while the gate dials
+        if moving then rotation = (rotation + (t - lastFrame) * 70) % 360 end
         return
     end
-    if (rotating or dial.active) and gate:has("getRotationDegrees") and t - lastRotationRead > 0.05 then
+    if (rotating or dial.active or moving) and t - lastRotationRead > 0.05 then
         lastRotationRead = t
         rotation = gate:rotation() or rotation
     end
@@ -201,9 +204,9 @@ local function startDial(entry, address)
     if dial.active then setMessage("Already dialing - CLOSE aborts", colors.orange) return end
     gate:poll()
     if gate.state ~= "IDLE" then setMessage("The gate is busy", colors.red) return end
-    local kind = A.kind(address)
-    if kind == "sgcraft" and gate.mod ~= "sgcraft" or kind == "sgjourney" and gate.mod ~= "sgjourney" then
-        setMessage("That address is for " .. (kind == "sgcraft" and "SGCraft" or "Stargate Journey") .. " gates", colors.red)
+    local dialable, why = A.dialableBy(address, gate.mod)
+    if not dialable then
+        setMessage(why, colors.red)
         return
     end
     dial.active, dial.abort, dial.entry, dial.address = true, false, entry, address
@@ -276,6 +279,7 @@ local STATUS = {
 
 local function statusLine(t, total, lit)
     if not gate then return "NO STARGATE", colors.white, colors.gray end
+    if gate.fault then return "GATE FAULT", colors.white, colors.red end
     local st = gate.state
     local flash = math.floor(t * 2) % 2 == 0
     if st == "INCOMING" then
@@ -293,8 +297,8 @@ local function statusLine(t, total, lit)
     return s[1], s[2], s[3]
 end
 
-local function symbolText(s, sj)
-    if sj and s == 0 then return "PoO" end
+local function symbolText(s)
+    if s == 0 or (type(s) == "string" and A.isOriginName(s)) then return "PoO" end
     return tostring(s)
 end
 
@@ -314,9 +318,12 @@ local function drawPanel(t)
         ui:write(x, y, pad(" " .. s, w), fg or colors.white, b or bg)
         y = y + 1
     end
-    local sj = gate and gate.mod == "sgjourney"
     local syms, total, lit = chevronPlan()
     local tall = H >= 30
+    -- JSG symbols are names: give them a wider column
+    local names = false
+    for _, s in ipairs(syms) do if type(s) == "string" and #s > 1 then names = true end end
+    local symW = names and math.max(4, math.min(14, w - 19)) or 4
 
     line("DIALING COMPUTER", colors.orange)
     if gate then
@@ -345,8 +352,8 @@ local function drawPanel(t)
             ui:write(x, y, pad("", w), colors.white, bg)
             ui:write(x + 1, y, num, colors.lightGray, bg)
             ui:write(x + 3, y, "\31", i <= total and chev or colors.black, bg)
-            if s ~= nil and i <= total then ui:write(x + 5, y, symbolText(s, sj), on and colors.white or colors.lightGray, bg) end
-            ui:write(x + 10, y, fit(status, w - 11), sc, bg)
+            if s ~= nil and i <= total then ui:write(x + 5, y, fit(symbolText(s), symW), on and colors.white or colors.lightGray, bg) end
+            ui:write(x + 6 + symW, y, fit(status, w - 7 - symW), sc, bg)
             y = y + 1
         end
     else
@@ -354,7 +361,9 @@ local function drawPanel(t)
         local parts = {}
         for i = 1, total do
             local s = syms[i]
-            parts[#parts + 1] = { "\31" .. (s ~= nil and symbolText(s, sj) or ""), i <= lit and colors.orange or colors.gray }
+            local text = s ~= nil and symbolText(s) or ""
+            if names then text = text:sub(1, 3) end
+            parts[#parts + 1] = { "\31" .. text, i <= lit and colors.orange or colors.gray }
         end
         for row = 1, 2 do
             ui:fill(x, y, w, 1, bg)
@@ -393,7 +402,7 @@ local function drawPanel(t)
             if autoCloseTimer then timer = timer .. "  closing soon" end
         end
         line(timer, colors.lightBlue)
-        local energy = "Energy " .. (gate.energy and (UI.energy(gate.energy) .. (gate.mod == "sgcraft" and " SU" or " FE")) or "?")
+        local energy = "Energy " .. (gate.energy and (UI.energy(gate.energy) .. " " .. (gate.energyUnit or "FE")) or "?")
         if gate.zpmCount and gate.zpmCount > 0 then energy = energy .. "  ZPM x" .. gate.zpmCount end
         line(energy, colors.lightGray)
         local iris = "none"
@@ -488,8 +497,8 @@ end
 local function drawGate(t)
     local syms, total, lit = chevronPlan()
     local glyphs = {}
-    local sj = gate and gate.mod == "sgjourney"
-    if gate and sj then
+    -- numbered symbols can be lit on the ring (Pegasus / Universe looks)
+    if gate and gate.originSymbol == 0 then
         for _, s in ipairs(gate.engaged) do glyphs[s] = true end
         if gate.connected and gate.remote then for _, s in ipairs(A.symbols(gate.remote)) do glyphs[s] = true end end
     end
@@ -518,7 +527,9 @@ local function drawNative()
         { "", colors.white },
         { "Touch the monitor to dial, close or use the iris.", colors.lightGray },
         { "Or type an address here and press Enter:", colors.lightGray },
-        { "  26 6 14 31 11 29   or   WLDQ-DQB-MT (SGCraft)", colors.gray },
+        { "  26 6 14 31 11 29        Stargate Journey, Lantea", colors.gray },
+        { "  WLDQ-DQB-MT             SGCraft", colors.gray },
+        { "  Crater, Virgo, Bootes.. JSG (names, commas)", colors.gray },
         { "", colors.white },
         { "> " .. manual, colors.orange },
         { "", colors.white },
@@ -530,7 +541,7 @@ local function drawNative()
         native.setTextColor(l[2])
         native.write(l[1])
     end
-    native.setCursorPos(3 + #manual, 7)
+    native.setCursorPos(3 + #manual, 9)
     native.setTextColor(colors.white)
     native.setCursorBlink(true)
 end
@@ -592,6 +603,7 @@ local function dialerTask()
         end
         if entry then book:save() end
         dial.active, dial.abort = false, false
+        dial.endedAt, dial.failed = os.clock(), not ok
         gate:poll()
         os.queueEvent("gateroom_redraw")
     end
@@ -620,7 +632,10 @@ local function onGateEvent(info)
         setMessage("Wormhole established" .. (who and (" to " .. who) or ""), colors.lightBlue)
     elseif ty == "closed" or ty == "reset" then
         if autoCloseTimer then os.cancelTimer(autoCloseTimer) autoCloseTimer = nil end
-        if not dial.active then
+        if os.clock() - dial.endedAt < 2 then
+            -- the gate resetting after our own dial: keep its result, with the gate's reason if it has one
+            if dial.failed and info.error and info.reason then setMessage("Dialing failed: " .. info.reason, colors.red) end
+        elseif not dial.active then
             if info.error then setMessage("Gate reset: " .. tostring(info.reason), colors.red)
             else setMessage("Wormhole closed" .. (info.reason and (": " .. info.reason) or ""), colors.lightGray) end
         end

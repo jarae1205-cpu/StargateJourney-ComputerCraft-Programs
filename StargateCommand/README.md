@@ -5,7 +5,14 @@ Two monitor programs and a shared library for ComputerCraft stargates:
 - **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it.
 - **Gate Network Hub**: a touch screen of destination cards. Each card has its own portal colour and a tab (Milky Way, Pegasus, Crossover...). Tap a card to dial it.
 
-Both work with **Stargate Journey** (Minecraft 1.20.1, CC: Tweaked) and with **SGCraft**: Greg Ewing's original (Minecraft 1.7.10 to 1.10.2) and the 1.12.2 SGCraft 2.x line (written against 2.3). They share one address book with the [Personal Dialer](../PersonalDialer/).
+They share one address book with the [Personal Dialer](../PersonalDialer/) and work with these mods:
+
+| Mod | Minecraft | What the computer needs | Dials |
+|---|---|---|---|
+| **Stargate Journey** | 1.20.1 | a basic, crystal or advanced crystal interface | every gate type |
+| **SGCraft** (Greg Ewing's, and SGCraft 2.x, the "Stargate Network" mod) | 1.7.10 to 1.12.2 | the ComputerCraft stargate interface | every gate |
+| **Lantea: Stargates** 0.7.7.0+ | 1.20.1 (Forge), 1.21.1 (NeoForge) | a Stargate Power Coupler Kit on the gate controller | Milky Way gates (Pegasus gates can be watched, not dialed) |
+| **Just Stargate Mod** (JSG) | 1.20.1 | the gate's base block (it is a CC: Tweaked peripheral) | every gate |
 
 ![Gate Room](../imgs/GateRoom.png)
 
@@ -37,10 +44,12 @@ Variants from resource packs are matched by name, so a variant called `lantea_ga
 
 - **Stargate Journey**: a basic, crystal or advanced crystal interface next to the computer or on a wired modem network. Pegasus, Universe, Tollan and Classic gates need a crystal interface to dial. The local address and the caller's address need an advanced crystal interface.
 - **SGCraft**: the ComputerCraft stargate interface under the gate base.
+- **Lantea: Stargates**: right-click a Stargate Power Coupler Kit onto the finished controller, then put the computer against the controller (or connect it with a wired modem). Needs Lantea 0.7.7.0 or newer.
+- **Just Stargate Mod**: put the computer against the gate's base block, or connect it with a wired modem. To open and close the iris from a computer, set the iris mode to OC/computer in the gate's GUI.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
 
-Mods without a ComputerCraft interface can't be driven by these programs.
+Mods without a ComputerCraft interface can't be driven by these programs. The Gate Room and the Hub find the gate by itself; SGCraft, Lantea and JSG all call their peripheral `stargate`, and the programs tell them apart by the methods they have.
 
 ## Installation
 
@@ -73,7 +82,7 @@ A 4x3 or 5x3 advanced monitor gives the best picture. 3x2 works with a compact p
 | Touch | Computer | Action |
 |---|---|---|
 | `DIAL` | Ctrl+D | pick a destination from the address book |
-| | type an address, Enter | dial it (`26 6 14 31 11 29` or `WLDQ-DQB-MT`) |
+| | type an address, Enter | dial it (see [address formats](#addresses)) |
 | `CLOSE` / `ABORT` | Ctrl+X | close the wormhole or stop dialing |
 | `IRIS` or the gate | Ctrl+I | open or close the iris |
 | `STYLE` | Ctrl+S | next gate look (Auto, then every style) |
@@ -114,12 +123,24 @@ hub chart        add the planned destinations from the crossover network chart
 
 A 4x3 monitor shows 12 cards per page, a 3x2 monitor 6. Smaller screens use compact cards.
 
+## Addresses
+
+Each mod writes addresses its own way. Type them like this; the point of origin is added when dialing:
+
+| Mod | Example |
+|---|---|
+| Stargate Journey, Lantea | `26 6 14 31 11 29` or `-26-6-14-31-11-29-` (symbols 1-38; Lantea's 7th symbol is the galaxy) |
+| SGCraft | `WLDQ-DQB-MT` (7 or 9 letters/digits) |
+| Just Stargate Mod | `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput` (symbol names, separated by commas) |
+
+A gate only dials addresses in its own format; the programs say so if you pick the wrong one.
+
 ## Shared address book
 
 The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. On an advanced computer you can run the Gate Room on the monitor and the dialer in a second tab (`bg dialer`). Each entry has:
 
 - `name`, `note`
-- `address`: a list of numbers for Stargate Journey, a string of 7 or 9 letters/digits for SGCraft, or nothing for a planned destination
+- `address`: numbers (Stargate Journey, Lantea), a string of letters (SGCraft), a list of symbol names (JSG), or nothing for a planned destination
 - `group` and `color` (used by the Hub)
 
 ## The sgc library
@@ -128,8 +149,9 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 
 | Module | What it does |
 |---|---|
-| `sgc.gate` | finds the gate interface (Stargate Journey or SGCraft), reads its state, turns events into simple messages, dials (Milky Way ring rotation or direct engaging), iris |
-| `sgc.address` | parses, formats and compares both address formats |
+| `sgc.gate` | finds the gate interface (Stargate Journey, SGCraft, Lantea or JSG), reads its state, turns events into simple messages, dials, iris |
+| `sgc.lantea`, `sgc.jsg` | the Lantea and JSG parts of `sgc.gate` |
+| `sgc.address` | parses, formats and compares the three address formats |
 | `sgc.book` | the shared address book |
 | `sgc.styles` | the gate looks and their palettes |
 | `sgc.pixels` | a pixel canvas drawn with teletext characters (2x3 pixels per character) |
@@ -149,9 +171,22 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - Incoming wormholes are recognised from the gate's dialing direction, which 2.3 reports instead of the old `sgDialIn`/`sgDialOut` events.
 - Dialing errors are shown as text ("No stargate at that address", "Not enough energy to dial"...) instead of SGCraft's message keys.
 
+## Lantea notes
+
+- Lantea numbers its Milky Way symbols like Stargate Journey (1-38, point of origin 0), so the same address works in both mods' notation. A same-galaxy address is the first six symbols; another galaxy needs all seven and a Range Crystal.
+- The program turns the ring to each symbol and locks it (`encodeSymbol`); locking the point of origin reaches out.
+- Pegasus gates have no ring to turn, so Lantea doesn't let computers dial them. The Gate Room still shows them, their chevrons and wormholes.
+- Energy is shown in EU, as Lantea reports it.
+
+## Just Stargate Mod notes
+
+- JSG addresses are symbol names. The program sends the whole address to the gate (`dialAddress`), lets the gate dial it, then opens it (`engageGate`) if it did not open by itself.
+- JSG's iris can only be toggled by a computer when its mode is OC/computer.
+- JSG Movie gates get the Movie look; Pegasus, Universe and Tollan gates get theirs.
+
 ## Notes
 
 - Dialing reads the gate state from events and also polls it, so a missed event does not leave the screen stuck.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Not tested in a live game yet. The programs were run against simulated Stargate Journey, SGCraft (original) and SGCraft 2.3 interfaces built from each mod's source code.
+- Not tested in a live game yet. The programs were run against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
