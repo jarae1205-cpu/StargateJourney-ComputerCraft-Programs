@@ -1,0 +1,42 @@
+# Publishes a GitHub release with the built mod jars (*/dist/*.jar) and the variant pack zip.
+#
+# Write the notes first in .github/release-notes/<tag>.md: the first line ("# Title") is the
+# release title, the rest is the text. Then either
+#   - run this workflow from the Actions tab ("Run workflow") with the tag, e.g. v1.0.1:
+#     it creates the tag on the commit it runs on, or
+#   - push the tag yourself: git tag v1.0.1 && git push origin v1.0.1
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version tag to create, e.g. v1.0.1
+        required: true
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "not a version tag: $TAG"; exit 1; fi
+          notes=".github/release-notes/$TAG.md"
+          if [ ! -f "$notes" ]; then echo "missing $notes"; exit 1; fi
+          title=$(head -n 1 "$notes" | sed 's/^#* *//')
+          tail -n +2 "$notes" > "$RUNNER_TEMP/notes.md"
+          shopt -s nullglob
+          files=( */dist/*.jar StargateJourneyVariants/*.zip )
+          if [ ${#files[@]} -eq 0 ]; then echo "nothing to attach"; exit 1; fi
+          printf 'attaching %s\n' "${files[@]}"
+          gh release create "$TAG" "${files[@]}" --target "$GITHUB_SHA" --title "$title" --notes-file "$RUNNER_TEMP/notes.md"
