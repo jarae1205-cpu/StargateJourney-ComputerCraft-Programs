@@ -61,6 +61,47 @@ function Ring.new(canvas, cx, cy, radius)
     return self
 end
 
+-- pixels just outside the ring (1.09 to 1.35 radii), for light shining out of the gate
+function Ring:halo()
+    if self.haloPixels then return self.haloPixels end
+    local hp, hd, ha = {}, {}, {}
+    local w, R, cx, cy = self.canvas.w, self.R, self.cx, self.cy
+    local reach = R * 1.35
+    for y = math.max(1, floor(cy - reach)), math.min(self.canvas.h, floor(cy + reach) + 1) do
+        for x = math.max(1, floor(cx - reach)), math.min(w, floor(cx + reach) + 1) do
+            local dx, dy = (x - 0.5) - cx, (y - 0.5) - cy
+            local d = sqrt(dx * dx + dy * dy) / R
+            if d > 1.09 and d <= 1.35 then
+                hp[#hp + 1] = (y - 1) * w + x
+                hd[#hd + 1] = d
+                ha[#ha + 1] = math.deg(atan2(dx, -dy)) % 360
+            end
+        end
+    end
+    self.haloPixels = { hp, hd, ha }
+    return self.haloPixels
+end
+
+-- light rays around the ring while the wormhole is open (the Ark of Truth look)
+function Ring:drawRays(view, t)
+    local hp, hd, ha = table.unpack(self:halo())
+    local px = self.canvas.px
+    local open = view.openedAt ~= nil
+    local strength = open and math.min(1, (t - view.openedAt) / 1.2) or 0
+    local black, dim, bright = IDX[colors.black], IDX[colors.brown], IDX[colors.orange]
+    for j = 1, #hp do
+        local c = black
+        if strength > 0 then
+            local d, a = hd[j], rad(ha[j])
+            -- narrow spokes of light that turn slowly and breathe
+            local ray = (0.5 + 0.5 * sin(a * 16 + t * 0.7)) ^ 4 * (0.65 + 0.35 * sin(a * 5 - t * 0.4))
+            local v = ray * strength * (1.35 - d) / 0.26 * 1.7
+            if v > 0.62 then c = bright elseif v > 0.34 then c = dim end
+        end
+        px[hp[j]] = c
+    end
+end
+
 -- a fixed starfield for space backgrounds (the Ori supergate): colour or nil
 function Ring.starAt(x, y)
     local h = (x * 7919 + y * 104729 + (x * y) % 131) % 1009
@@ -265,6 +306,7 @@ function Ring:draw(style, view)
         arcs = count > 0 and (not view.openedAt or t - view.openedAt < 1.6)
     end
     local LIT, HOT, ARC, WHITE = IDX[colors.orange], IDX[colors.yellow], IDX[colors.lightBlue], IDX[colors.white]
+    if style.rays then self:drawRays(view, t) end
 
     for j = 1, #pi do
         local z = zone[j]

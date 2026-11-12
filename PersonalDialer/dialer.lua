@@ -250,6 +250,7 @@ local THEMES = {
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
     sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
     continuum = { name = "Continuum",     header = colors.gray,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.red,       button = colors.lightBlue },
+    ark       = { name = "Ark of Truth",  header = colors.brown, title = colors.yellow,    address = colors.yellow,    lit = colors.yellow,    master = colors.white,     button = colors.yellow },
     origins   = { name = "Origins",       header = colors.brown, title = colors.orange,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
     -- a ring of separate segments that light one after another (gate picture only)
     ori       = { name = "Ori Supergate", header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
@@ -257,7 +258,7 @@ local THEMES = {
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -271,6 +272,7 @@ local GATE_TYPES = {
 -- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
 local VARIANT_THEMES = {
     { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
+    { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" },
@@ -1586,6 +1588,7 @@ local RING_COLORS = {
     movie    = { colors.lightGray, colors.brown, colors.gray, colors.lightGray },
     origins  = { colors.lightGray, colors.brown, colors.brown, colors.lightGray },
     continuum = { colors.lightGray, colors.gray, colors.gray, colors.white },
+    ark      = { colors.brown, colors.gray, colors.gray, colors.orange },
     pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
 }
@@ -1637,7 +1640,12 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     elseif open then
                         local v = 0.24 + 0.46 * (1 - hh) ^ 1.4
                             + 0.17 * math.sin(hh * 15 - t * 3 + 1.3 * hh * math.sin(math.rad(a) * 2 + t * 0.6))
-                        c = v < 0.36 and colors.blue or v < 0.56 and colors.cyan or v < 0.8 and colors.lightBlue or colors.white
+                        if themeId == "ark" then
+                            -- the Ark's golden light
+                            c = v < 0.36 and colors.brown or v < 0.56 and colors.orange or v < 0.8 and colors.yellow or colors.white
+                        else
+                            c = v < 0.36 and colors.blue or v < 0.56 and colors.cyan or v < 0.8 and colors.lightBlue or colors.white
+                        end
                     end
                 elseif supergate then
                     -- 40 segments with gaps; lit ones glow orange with a hot seam

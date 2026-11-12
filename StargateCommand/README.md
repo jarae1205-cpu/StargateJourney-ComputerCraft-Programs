@@ -30,6 +30,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | SG-1 | the `milky_way_sg-1` and `milky_way_promo` variants |
 | Movie | the `milky_way_movie` variant: sand coloured stone, big amber chevrons |
 | Continuum | variants with "continuum" or "arctic" in their name: the gate found frozen in the Arctic in Stargate: Continuum, frosted blue-grey stone flecked with ice, an icy horizon |
+| Ark of Truth | variants named with the word "ark" or "truth" (e.g. `ark_of_truth`): an Ancient gate in aged gold, white-hot gold chevrons, a golden wormhole whose light shines out in rays around the ring |
 | Origins | variants with "origins" or "1939" in their name: the Giza gate of Stargate Origins, weathered dusty stone, amber chevrons, a faded film-toned horizon |
 | Pegasus | Stargate Journey Pegasus gates: slate ring, the dialed symbols light up |
 | Atlantis | the `pegasus_atlantis` variant, and any variant with "lantea" in its name |

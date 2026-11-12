@@ -90,6 +90,19 @@ S.LIST = {
         }),
     },
     {
+        -- Stargate: The Ark of Truth (2008): an Ancient gate in aged gold; the wormhole
+        -- is a pool of the Ark's golden light that shines out in rays around the ring
+        id = "ark", room = "ARK OF TRUTH", name = "Ark of Truth", series = "Stargate: The Ark of Truth",
+        shape = "v", track = true, rays = true,
+        palette = palette({
+            [colors.black] = 0x0B0803, [colors.white] = 0xFFF8E6,
+            [colors.lightGray] = 0xB08D4F, [colors.gray] = 0x56401F, [colors.brown] = 0x8A6B38, [colors.pink] = 0xE9CF8C,
+            [colors.magenta] = 0x5C3D1A, [colors.orange] = 0xFFC94D, [colors.yellow] = 0xFFF4CF,
+            [colors.blue] = 0x7A4A0E, [colors.cyan] = 0xD08A1E, [colors.lightBlue] = 0xFFD36B,
+            [colors.green] = 0xC9A764, [colors.purple] = 0x6E5328,
+        }),
+    },
+    {
         id = "pegasus", room = "GATE ROOM", name = "Pegasus", series = "Stargate Journey",
         shape = "v", track = true, glyphLight = true,
         palette = palette({
@@ -185,6 +198,7 @@ end
 -- picks the style for a gate from its type and variant
 local VARIANT_MATCH = {
     { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
+    { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
