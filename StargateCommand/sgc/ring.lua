@@ -166,6 +166,12 @@ function Ring:zonesFor(style)
         if z == Z_STONE and not style.track and style.shape == "light" and d > rimR + 0.05 and d < 0.84 then
             z = Z_BAND
         end
+        -- weathered stone: worn, darker specks
+        if style.weathered and (z == Z_STONE or z == Z_TRACK) then
+            local p = self.pi[j]
+            local x, y = (p - 1) % self.canvas.w + 1, floor((p - 1) / self.canvas.w) + 1
+            if (x * 3571 + y * 2909 + (x * y) % 97) % 61 < 6 then z = Z_SHADE end
+        end
         -- chevrons
         if d >= r0 and d <= r1 then
             local slot = floor(a / 40 + 0.5) % 9

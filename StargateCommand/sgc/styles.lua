@@ -64,6 +64,19 @@ S.LIST = {
         }),
     },
     {
+        -- the Giza gate in 1939 (Stargate Origins): weathered, dusty stone, amber
+        -- lamp-lit chevrons and a faded, film-toned horizon
+        id = "origins", room = "GIZA, 1939", name = "Origins", series = "Stargate Origins", place = "Giza, Egypt",
+        shape = "v", track = true, chevronWidth = 1.15, weathered = true,
+        palette = palette({
+            [colors.black] = 0x0D0A07, [colors.white] = 0xF2E8D5,
+            [colors.lightGray] = 0x8F826F, [colors.gray] = 0x483E33, [colors.brown] = 0x6B5F50, [colors.pink] = 0xBBAD93,
+            [colors.magenta] = 0x4D3925, [colors.orange] = 0xE8963A, [colors.yellow] = 0xFFD89C,
+            [colors.blue] = 0x1E3D63, [colors.cyan] = 0x40739B, [colors.lightBlue] = 0xA2C2D3,
+            [colors.green] = 0xA59A86, [colors.purple] = 0x5B5144,
+        }),
+    },
+    {
         id = "pegasus", room = "GATE ROOM", name = "Pegasus", series = "Stargate Journey",
         shape = "v", track = true, glyphLight = true,
         palette = palette({
@@ -158,6 +171,7 @@ end
 
 -- picks the style for a gate from its type and variant
 local VARIANT_MATCH = {
+    { "origins", "origins" }, { "1939", "origins" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
