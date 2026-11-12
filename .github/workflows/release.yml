@@ -1,0 +1,37 @@
+# Publishes a GitHub release when a version tag is pushed, e.g.
+#   git tag -a v1.0.1 -F notes.md --cleanup=whitespace && git push origin v1.0.1
+# The tag message's first line is the release title, the rest its notes. The built mod jars (*/dist/*.jar) and the
+# variant pack zip are attached as they are in the repository at that tag.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make sure the tag message is fetched
+        run: git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          files=( */dist/*.jar StargateJourneyVariants/*.zip )
+          if [ ${#files[@]} -eq 0 ]; then echo "nothing to attach"; exit 1; fi
+          printf 'attaching %s\n' "${files[@]}"
+          # first line of the tag message = title, the rest = notes
+          git tag -l --format='%(contents:body)' "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" --verify-tag \
+            --title "$(git tag -l --format='%(contents:subject)' "$GITHUB_REF_NAME")" \
+            --notes-file "$RUNNER_TEMP/notes.md"
