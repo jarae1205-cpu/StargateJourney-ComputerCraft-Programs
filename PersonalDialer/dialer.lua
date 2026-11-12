@@ -267,6 +267,7 @@ local GATE_TYPES = {
     { match = "tollan",    name = "Tollan",    theme = "tollan" },
     { match = "classic",   name = "Classic",   theme = "classic" },
     { match = "sgcraft",   name = "SGCraft",   theme = "sgcraft" },
+    { match = "chevron7",  name = "Chevron Seven", theme = "milky_way" },
 }
 
 -- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
@@ -575,7 +576,7 @@ local function findInterface()
         end
         return nil
     end
-    for _, t in ipairs({ "advanced_crystal_interface", "crystal_interface", "basic_interface", "stargate" }) do
+    for _, t in ipairs({ "advanced_crystal_interface", "crystal_interface", "basic_interface", "chevron7_stargate", "stargate" }) do
         local p = peripheral.find(t)
         if p then return wrapInterface(peripheral.getName(p), t) end
     end
@@ -1463,7 +1464,7 @@ local function openInfo()
             add("Interface", "none found", colors.red)
         else
             local kind = iface.kindName or ({ basic_interface = "Basic", crystal_interface = "Crystal",
-                advanced_crystal_interface = "Advanced crystal" })[ifaceType] or tostring(ifaceType)
+                advanced_crystal_interface = "Advanced crystal", chevron7_stargate = "Chevron Seven gate" })[ifaceType] or tostring(ifaceType)
             add("Interface", kind)
             add("Peripheral", ifaceName)
             local gen = call("getStargateGeneration")

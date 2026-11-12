@@ -5,6 +5,7 @@
 --   SGCraft (Greg Ewing's, and the 1.12.2 SGCraft 2.x): the "stargate" computer interface
 --   Lantea: Stargates (1.20.1 / 1.21.1, 0.7.7.0+): a gate controller with a Power Coupler Kit
 --   Just Stargate Mod (1.20.1): the stargate base block
+--   Chevron Seven (1.20.1): any block of the gate ring
 --
 -- local gate = require("sgc.gate").find()
 -- gate:poll()                       re-read the gate state
@@ -20,11 +21,13 @@ local A = require("sgc.address")
 local G = {}
 G.__index = G
 
-G.SJ_INTERFACES = { "advanced_crystal_interface", "crystal_interface", "basic_interface" }
+-- Chevron Seven's gate speaks the same language as Stargate Journey's crystal interface
+G.SJ_INTERFACES = { "advanced_crystal_interface", "crystal_interface", "basic_interface", "chevron7_stargate" }
 G.INTERFACE_NAMES = {
     advanced_crystal_interface = "Advanced crystal interface",
     crystal_interface = "Crystal interface",
     basic_interface = "Basic interface",
+    chevron7_stargate = "Chevron Seven gate",
     stargate = "SGCraft interface",
     lantea = "Lantea gate controller",
     jsg = "JSG stargate",
@@ -54,6 +57,7 @@ G.TYPES = {
     { match = "universe",  id = "universe",  name = "Universe",  symbols = 36 },
     { match = "tollan",    id = "tollan",    name = "Tollan",    symbols = 39 },
     { match = "classic",   id = "classic",   name = "Classic",   symbols = 39 },
+    { match = "chevron7",  id = "milky_way", name = "Chevron Seven", symbols = 39 },
 }
 
 -- Stargate Journey feedback codes, used when the interface gives no description

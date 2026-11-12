@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "chevron7:block/dhd"
+    },
+    "facing=east": {
+      "model": "chevron7:block/dhd",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "chevron7:block/dhd",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "chevron7:block/dhd",
+      "y": 270
+    }
+  }
+}
