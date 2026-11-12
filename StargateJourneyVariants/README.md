@@ -57,4 +57,4 @@ Each variant is a few colour ramps in that script, so new ones are easy to add.
 
 The textures are recoloured from Stargate Journey's textures, which are CC BY-NC-SA 4.0 (Povstalec and contributors). This pack is shared under the same license; see [LICENSE.txt](LICENSE.txt).
 
-Not tested in a live game yet: the files follow the format of Stargate Journey's own variants (checked against its 1.20.1 source), but nobody has loaded them in Minecraft.
+Partly tested: inside the [Stargate Command Addon](../StargateCommandAddon/), the four variants and their crystallizer recipes loaded on a dedicated Forge 1.20.1 server with Stargate Journey 0.6.54. The textures have not been seen in a game client yet.
