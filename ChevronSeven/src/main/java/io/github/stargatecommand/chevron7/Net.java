@@ -17,7 +17,8 @@ public final class Net
 {
 	private Net() {}
 
-	private static final String VERSION = "1";
+	// 2: a key press names the gate picked on the DHD
+	private static final String VERSION = "2";
 	public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(Chevron7.id("main"), () -> VERSION, VERSION::equals, VERSION::equals);
 
 	public static final int DIAL_BUTTON = -1;
@@ -29,18 +30,27 @@ public final class Net
 				.encoder(DhdPress::encode).decoder(DhdPress::decode).consumerMainThread(DhdPress::handle).add();
 	}
 
-	/** A key of the DHD was pressed: a symbol (0-38), the dial button or the iris button. */
-	public record DhdPress(BlockPos dhd, int key)
+	/**
+	 * A key of the DHD was pressed: a symbol (0-38), the dial button or the iris button.
+	 * {@code gate} is the gate picked on the DHD's screen when several are in range (or null).
+	 */
+	public record DhdPress(BlockPos dhd, int key, @javax.annotation.Nullable BlockPos gate)
 	{
 		void encode(FriendlyByteBuf buffer)
 		{
 			buffer.writeBlockPos(dhd);
 			buffer.writeVarInt(key);
+			buffer.writeBoolean(gate != null);
+			if(gate != null)
+				buffer.writeBlockPos(gate);
 		}
 
 		static DhdPress decode(FriendlyByteBuf buffer)
 		{
-			return new DhdPress(buffer.readBlockPos(), buffer.readVarInt());
+			BlockPos dhd = buffer.readBlockPos();
+			int key = buffer.readVarInt();
+			BlockPos gate = buffer.readBoolean() ? buffer.readBlockPos() : null;
+			return new DhdPress(dhd, key, gate);
 		}
 
 		void handle(Supplier<NetworkEvent.Context> context)
@@ -49,7 +59,7 @@ public final class Net
 			if(player == null || player.distanceToSqr(dhd.getX() + 0.5, dhd.getY() + 0.5, dhd.getZ() + 0.5) > 64
 					|| !player.level().getBlockState(dhd).is(Chevron7.DHD.get()))
 				return;
-			StargateBlockEntity gate = GateShape.nearestGate(player.level(), dhd, DHDBlock.RANGE);
+			StargateBlockEntity gate = GateShape.chosenGate(player.level(), dhd, DHDBlock.RANGE, this.gate);
 			if(gate == null)
 			{
 				player.displayClientMessage(Component.translatable("message.chevron7.no_gate"), true);

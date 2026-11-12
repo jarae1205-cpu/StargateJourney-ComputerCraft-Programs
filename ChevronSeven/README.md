@@ -22,8 +22,20 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
-| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
+| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
 | **Gate Iris** | Use it on a gate to fit an iris. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
+
+## Gate fields
+
+![Gate field](../imgs/GateField.jpg)
+
+*A gate field in a Minecraft 1.20.1 client: five gates around a clearing, with the DHD in the middle choosing which gate dials. Bottom right: the middle gate has dialed the leftmost one.*
+
+A gate field is five gates on an arc around a clearing, each at the end of a dirt path, with one DHD in the middle that can dial from any of them. The outer gates turn towards the middle as far as a gate can (gates face north, east, south or west).
+
+- They appear by themselves, rarely, in plains, sunflower plains, meadows and savannas, on flat dry ground. Every gate has its own address.
+- An operator can build one anywhere: `/chevron7 field <pos> [direction] [gates]`, e.g. `/chevron7 field ~ ~ ~ north 5`. The gates stand 13 blocks from `<pos>` in that direction; 1 to 7 gates.
+- Turn the natural ones off with `gate_fields = false` in the config.
 
 ## Computers (CC: Tweaked)
 
@@ -58,6 +70,7 @@ For operators:
 /chevron7 dial <pos> <address>          dial, e.g. /chevron7 dial ~ ~ ~5 12-5-30-21-7-1
 /chevron7 close <pos>
 /chevron7 iris <pos> open|close
+/chevron7 field <pos> [direction] [gates]   build a gate field (see above)
 ```
 
 `<pos>` can be any block of the ring.
@@ -71,6 +84,7 @@ For operators:
 | `max_open_seconds` | 300 | how long a wormhole stays open (10 to 2280) |
 | `kawoosh_kills` | true | the kawoosh destroys what stands in front of the gate |
 | `incoming_can_close` | false | the receiving gate can close the wormhole too |
+| `gate_fields` | true | gate fields appear in plains, meadows and savannas |
 
 ## Install
 
@@ -85,6 +99,11 @@ Put [`dist/chevron7-1.0.0.jar`](dist/chevron7-1.0.0.jar) in the `mods` folder (c
   - A closed iris bounced a traveler back.
   - Breaking the stargate block, or any block of the ring, removed the whole gate.
 - **Minecraft 1.20.1 client** with software rendering (no graphics card): the screenshots on this page come from it. The gate was dialed with `/chevron7 dial`, and then by clicking six symbol keys and the big button on the DHD screen, which opened the wormhole to the other gate.
+
+- **Gate fields**:
+  - Built with `/chevron7 field` and with `/place feature chevron7:gate_field` on the server.
+  - In a newly generated normal world, with a test data pack that put a field in every eligible chunk: 237 gates around spawn, with no errors and no world-generation warnings.
+  - In the client, the DHD's arrows picked the middle gate, and clicking an address on the DHD opened its wormhole to the leftmost gate.
 
 Not tested: playing with several people, and the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
 

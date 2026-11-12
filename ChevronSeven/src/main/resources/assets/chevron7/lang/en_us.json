@@ -46,5 +46,8 @@
   "screen.chevron7.iris_open": "Iris open",
   "screen.chevron7.iris_closed": "Iris shut",
   "screen.chevron7.point_of_origin": "Point of origin (dial it last)",
-  "screen.chevron7.symbol": "Symbol %s"
+  "screen.chevron7.symbol": "Symbol %s",
+  "screen.chevron7.gate_n": "Gate %s of %s",
+  "message.chevron7.bad_direction": "The direction is north, east, south or west",
+  "message.chevron7.field_built": "Built a gate field of %s gates"
 }

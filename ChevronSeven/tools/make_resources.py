@@ -313,6 +313,9 @@ LANG = {
     "screen.chevron7.iris_closed": "Iris shut",
     "screen.chevron7.point_of_origin": "Point of origin (dial it last)",
     "screen.chevron7.symbol": "Symbol %s",
+    "screen.chevron7.gate_n": "Gate %s of %s",
+    "message.chevron7.bad_direction": "The direction is north, east, south or west",
+    "message.chevron7.field_built": "Built a gate field of %s gates",
 }
 
 
@@ -388,6 +391,26 @@ def data_files():
     write_json(os.path.join(tags, "blocks", "needs_iron_tool.json"),
                {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame"]})
     write_json(os.path.join(tags, "damage_type", "bypasses_armor.json"), {"replace": False, "values": ["chevron7:kawoosh"]})
+    # gate fields: a feature added to plains, meadows and savannas by a Forge biome modifier
+    write_json(os.path.join(DATA, "worldgen", "configured_feature", "gate_field.json"),
+               {"type": "chevron7:gate_field", "config": {}})
+    write_json(os.path.join(DATA, "worldgen", "placed_feature", "gate_field.json"), {
+        "feature": "chevron7:gate_field",
+        "placement": [
+            {"type": "minecraft:rarity_filter", "chance": 600},
+            {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"},
+            {"type": "minecraft:biome"},
+        ],
+    })
+    write_json(os.path.join(DATA, "tags", "worldgen", "biome", "has_gate_field.json"), {"values": [
+        "minecraft:plains", "minecraft:sunflower_plains", "minecraft:meadow", "minecraft:savanna",
+    ]})
+    write_json(os.path.join(DATA, "forge", "biome_modifier", "gate_field.json"), {
+        "type": "forge:add_features",
+        "biomes": "#chevron7:has_gate_field",
+        "features": "chevron7:gate_field",
+        "step": "surface_structures",
+    })
     write_json(os.path.join(DATA, "damage_type", "kawoosh.json"),
                {"exhaustion": 0.0, "message_id": "chevron7.kawoosh", "scaling": "never"})
 

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#chevron7:has_gate_field",
+  "features": "chevron7:gate_field",
+  "step": "surface_structures"
+}

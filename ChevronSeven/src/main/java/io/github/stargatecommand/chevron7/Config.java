@@ -10,6 +10,7 @@ public final class Config
 	public static final ForgeConfigSpec.IntValue MAX_OPEN_SECONDS;
 	public static final ForgeConfigSpec.BooleanValue KAWOOSH_KILLS;
 	public static final ForgeConfigSpec.BooleanValue INCOMING_CAN_CLOSE;
+	public static final ForgeConfigSpec.BooleanValue GATE_FIELDS;
 
 	static
 	{
@@ -21,6 +22,10 @@ public final class Config
 				.define("kawoosh_kills", true);
 		INCOMING_CAN_CLOSE = builder.comment("The receiving gate can close a wormhole too (normally only the dialing gate can)")
 				.define("incoming_can_close", false);
+		builder.pop();
+		builder.push("world");
+		GATE_FIELDS = builder.comment("Gate fields (five gates around a clearing) appear in plains, meadows and savannas")
+				.define("gate_fields", true);
 		builder.pop();
 		SPEC = builder.build();
 	}

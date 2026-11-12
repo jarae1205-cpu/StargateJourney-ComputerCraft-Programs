@@ -78,6 +78,43 @@ public final class GateShape
 		return new Vec3(facing.getStepX(), 0, facing.getStepZ());
 	}
 
+	/**
+	 * Every gate within the radius among the loaded chunks, in a steady order (west to east,
+	 * then north to south) so a DHD's list doesn't jump around.
+	 */
+	public static List<StargateBlockEntity> gatesNear(Level level, BlockPos pos, int radius)
+	{
+		List<StargateBlockEntity> gates = new ArrayList<>();
+		double max = (double) radius * radius;
+		for(int chunkX = (pos.getX() - radius) >> 4; chunkX <= (pos.getX() + radius) >> 4; chunkX++)
+		{
+			for(int chunkZ = (pos.getZ() - radius) >> 4; chunkZ <= (pos.getZ() + radius) >> 4; chunkZ++)
+			{
+				if(!level.hasChunk(chunkX, chunkZ))
+					continue;
+				for(BlockEntity blockEntity : level.getChunk(chunkX, chunkZ).getBlockEntities().values())
+				{
+					if(blockEntity instanceof StargateBlockEntity gate && !gate.isRemoved() && blockEntity.getBlockPos().distSqr(pos) <= max)
+						gates.add(gate);
+				}
+			}
+		}
+		gates.sort((a, b) -> a.getBlockPos().getX() != b.getBlockPos().getX()
+				? Integer.compare(a.getBlockPos().getX(), b.getBlockPos().getX())
+				: Integer.compare(a.getBlockPos().getZ(), b.getBlockPos().getZ()));
+		return gates;
+	}
+
+	/** The gate at a position if it is within the radius, otherwise the nearest one. */
+	@Nullable
+	public static StargateBlockEntity chosenGate(Level level, BlockPos pos, int radius, @Nullable BlockPos choice)
+	{
+		if(choice != null && choice.distSqr(pos) <= (double) radius * radius && level.isLoaded(choice)
+				&& level.getBlockEntity(choice) instanceof StargateBlockEntity gate && !gate.isRemoved())
+			return gate;
+		return nearestGate(level, pos, radius);
+	}
+
 	/** The nearest gate to a position, among the loaded chunks. */
 	@Nullable
 	public static StargateBlockEntity nearestGate(Level level, BlockPos pos, int radius)
