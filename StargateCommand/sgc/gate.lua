@@ -5,6 +5,7 @@
 --   SGCraft (Greg Ewing's, and the 1.12.2 SGCraft 2.x): the "stargate" computer interface
 --   Lantea: Stargates (1.20.1 / 1.21.1, 0.7.7.0+): a gate controller with a Power Coupler Kit
 --   Just Stargate Mod (1.20.1): the stargate base block
+--   Just Stargate Mod (1.12.2, OpenComputers): the stargate base block
 --   Chevron Seven (1.20.1): any block of the gate ring
 --
 -- local gate = require("sgc.gate").find()
@@ -32,6 +33,7 @@ G.INTERFACE_NAMES = {
     stargate = "SGCraft interface",
     lantea = "Lantea gate controller",
     jsg = "JSG stargate",
+    jsg112 = "JSG stargate (1.12.2)",
 }
 
 -- mods that share the "stargate" peripheral type, told apart by their methods
@@ -48,7 +50,11 @@ function G.modFor(p, ptype)
     if ptype ~= "stargate" then return "sgjourney" end
     if type(p.stargateState) == "function" then return "sgcraft" end
     if type(p.getChevronsLocked) == "function" then return "lantea" end
-    if type(p.getGateStatus) == "function" then return "jsg" end
+    if type(p.getGateStatus) == "function" then
+        -- JSG 1.12.2 (OpenComputers) dials symbol by symbol; 1.20.1 has dialAddress
+        if type(p.dialAddress) ~= "function" and type(p.engageSymbol) == "function" then return "jsg112" end
+        return "jsg"
+    end
     return "sgcraft"
 end
 
@@ -362,6 +368,10 @@ G.EVENTS = {
     stargate_wormhole_open_unstable = true, stargate_wormhole_open_fully = true, stargate_wormhole_close_unstable = true,
     stargate_wormhole_close_fully = true, stargate_attempt_open_failed = true, stargate_event_horizon_traveler = true,
     stargate_iris_state_changed = true, stargate_iris_hit = true,
+    -- Just Stargate Mod 1.12.2 (OpenComputers)
+    stargate_spin_chevron_engaged = true, stargate_dhd_chevron_engaged = true, stargate_open = true,
+    stargate_wormhole_stabilized = true, stargate_close = true, stargate_wormhole_closed_fully = true,
+    stargate_failed = true, stargate_traveler = true, stargate_event_iris_hit = true, received_code = true,
 }
 
 local function eventAddress(e, offset)

@@ -45,6 +45,8 @@ end
 function L:add(e)
     e.day = os.day()
     local t = os.time()
+    -- CC: Tweaked gives the hour of the day; OpenOS gives in-game seconds
+    if t > 24 then t = (t % 86400) / 3600 end
     e.time = string.format("%02d:%02d", math.floor(t), math.floor((t % 1) * 60))
     if e.address then e.address = A.fromValue(e.address) end
     table.insert(self.entries, 1, e)
@@ -67,6 +69,8 @@ function L.describe(e)
     if e.address and not (e.name and e.name == A.format(e.address)) then parts[#parts + 1] = A.format(e.address) end
     if e.text then parts[#parts + 1] = e.text end
     if e.seconds then parts[#parts + 1] = "open " .. duration(e.seconds) end
+    -- some mods do not say which gate dialed in
+    if #parts == 0 and e.kind == "in" then parts[1] = "Unknown gate" end
     return when, L.LABELS[e.kind] or "?", table.concat(parts, "  ")
 end
 

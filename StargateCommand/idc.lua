@@ -8,8 +8,15 @@
 --
 -- The Gate Room opens the iris when the gate that dialed in sends a trusted code.
 -- To send your own code when you dial out, give the address book entry a code
--- in the Personal Dialer (its edit form has an "Iris code" field).
+-- in the Personal Dialer (its edit form has an "Iris code" field), or in gatedial
+-- on OpenComputers (its E edit asks for one).
 --
+-- Runs on ComputerCraft and on OpenComputers.
+--
+
+-- on OpenComputers the sgc library runs through its compatibility layer
+if not fs then require("sgc.oc").install() end
+local printError = printError or function(s) io.stderr:write(tostring(s) .. "\n") end
 
 local IDC = require("sgc.idc")
 local CallLog = require("sgc.calllog")
