@@ -1,0 +1,10 @@
+Stargate Journey Variants (this folder)
+
+The textures in pack/ are recoloured from Stargate Journey's Milky Way stargate
+textures by Povstalec and contributors (https://github.com/Povstalec/StargateJourney),
+which are licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International (CC BY-NC-SA 4.0). The recoloured textures and the rest of this pack
+are shared under the same license: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Changes: the stone, chevron light, event horizon and kawoosh textures were recoloured
+(and the stone given weathering, frost or posterised shading) by tools/make_variants.py.

@@ -1,0 +1,28 @@
+{
+	"type": "sgjourney:crystallizing",
+	"crystal_base": {
+		"item": "sgjourney:stargate_variant_crystal",
+		"amount": 1
+	},
+	"primary_ingredient": {
+		"item": "minecraft:chiseled_sandstone",
+		"amount": 1
+	},
+	"secondary_ingredient": {
+		"item": "sgjourney:naquadah",
+		"amount": 1
+	},
+	"deplete_primary": true,
+	"deplete_secondary": true,
+	"output": {
+		"item": "sgjourney:stargate_variant_crystal",
+		"nbt": {
+			"Variant": "sgcvariants:milky_way_origins"
+		}
+	},
+	"progress": 100,
+	"input_fluid": {
+		"id": "sgjourney:liquid_naquadah",
+		"amount": 100
+	}
+}
