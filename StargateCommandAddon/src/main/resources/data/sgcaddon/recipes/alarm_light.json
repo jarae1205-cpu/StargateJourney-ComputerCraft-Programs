@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " D ",
+    "GLG",
+    " I "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:red_dye"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "sgcaddon:alarm_light",
+    "count": 1
+  }
+}

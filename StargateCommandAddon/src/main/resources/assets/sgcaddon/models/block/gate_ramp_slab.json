@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/slab",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "bottom": "sgcaddon:block/gate_ramp",
+    "top": "sgcaddon:block/gate_ramp",
+    "side": "sgcaddon:block/gate_ramp"
+  }
+}

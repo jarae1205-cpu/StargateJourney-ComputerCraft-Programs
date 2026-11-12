@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "incoming=false,open=false": {
+      "model": "sgcaddon:block/gate_monitor"
+    },
+    "incoming=true,open=false": {
+      "model": "sgcaddon:block/gate_monitor_incoming"
+    },
+    "incoming=false,open=true": {
+      "model": "sgcaddon:block/gate_monitor_open"
+    },
+    "incoming=true,open=true": {
+      "model": "sgcaddon:block/gate_monitor_incoming"
+    }
+  }
+}

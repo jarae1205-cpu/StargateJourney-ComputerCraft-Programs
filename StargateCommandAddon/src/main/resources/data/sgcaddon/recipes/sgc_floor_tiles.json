@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GL",
+    "LG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gray_concrete"
+    },
+    "L": {
+      "item": "minecraft:light_gray_concrete"
+    }
+  },
+  "result": {
+    "item": "sgcaddon:sgc_floor_tiles",
+    "count": 4
+  }
+}

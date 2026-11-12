@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "sgcaddon:block/gate_ramp_slab"
+    },
+    "type=top": {
+      "model": "sgcaddon:block/gate_ramp_slab_top"
+    },
+    "type=double": {
+      "model": "sgcaddon:block/gate_ramp"
+    }
+  }
+}

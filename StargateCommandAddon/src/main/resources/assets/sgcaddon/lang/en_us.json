@@ -1,0 +1,11 @@
+{
+  "itemGroup.sgcaddon": "Stargate Command",
+  "block.sgcaddon.alarm_light": "Gate Room Alarm Light",
+  "block.sgcaddon.gate_monitor": "Gate Monitor",
+  "block.sgcaddon.gate_ramp": "Gate Ramp Grating",
+  "block.sgcaddon.gate_ramp_stairs": "Gate Ramp Stairs",
+  "block.sgcaddon.gate_ramp_slab": "Gate Ramp Slab",
+  "block.sgcaddon.sgc_wall_panel": "SGC Wall Panel",
+  "block.sgcaddon.sgc_hazard_stripes": "SGC Hazard Stripes",
+  "block.sgcaddon.sgc_floor_tiles": "SGC Floor Tiles"
+}
