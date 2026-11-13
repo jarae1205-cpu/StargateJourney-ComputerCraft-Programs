@@ -25,6 +25,7 @@ local FILES = {
     { "StargateCommand/sgc/idc.lua",     "sgc/idc.lua" },
     { "StargateCommand/sgc/gate.lua",    "sgc/gate.lua" },
     { "StargateCommand/sgc/lantea.lua",  "sgc/lantea.lua" },
+    { "StargateCommand/sgc/lanteacraft.lua", "sgc/lanteacraft.lua" },
     { "StargateCommand/sgc/jsg.lua",     "sgc/jsg.lua" },
     { "StargateCommand/sgc/pixels.lua",  "sgc/pixels.lua" },
     { "StargateCommand/sgc/ring.lua",    "sgc/ring.lua" },

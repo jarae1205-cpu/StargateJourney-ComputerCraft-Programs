@@ -215,18 +215,37 @@ end
 
 local function sendCode(entry)
     if not (entry and entry.idc) then return end
+    if gate.mod == "lanteacraft" then
+        -- LanteaCraft codes go from a traveller's GDO, not from a computer
+        setMessage("Wormhole established to " .. entry.name .. " - send code " .. entry.idc .. " with your GDO", colors.lightBlue)
+        return
+    end
     local ok, why = gate:sendMessage(IDC.message(entry.idc))
     if ok then setMessage("Wormhole established to " .. entry.name .. " - iris code sent", colors.lightBlue)
     else setMessage("Wormhole established to " .. entry.name .. " - could not send the iris code: " .. tostring(why), colors.orange) end
 end
 
-local function onCode(code)
+local function onCode(code, info)
     if not CONFIG.irisCodes or gate.outgoing then return end
+    if info and info.gateAccepted then
+        -- LanteaCraft: the gate checked the code against its own GDO code and moves the iris itself
+        local what = info.action == "close" and " - it closes the iris" or " - it opens the iris"
+        setMessage("Iris code " .. code .. " accepted by the gate" .. what, colors.lime)
+        logCall({ kind = "code", text = code .. " accepted by the gate" })
+        return
+    end
     local trusted = IDC.check(IDC.load(CONFIG.codesFile), code)
     if trusted then
         local who = trusted.name ~= "" and trusted.name or ("code " .. code)
-        local opening = gate.hasIris and (gate.iris or 0) > 0
-        if opening then gate:openIris() end
+        local opening = gate.hasIris and (gate.iris or 0) > 0 and not (info and info.action == "close")
+        if opening then
+            local ok, why = gate:openIris()
+            if ok == false then
+                setMessage("Iris code " .. code .. " accepted: " .. who .. " - but the iris won't open: " .. tostring(why), colors.orange)
+                logCall({ kind = "code", text = code .. " accepted (" .. who .. ")" })
+                return
+            end
+        end
         gate:sendMessage("IDC:ACCEPTED " .. who)
         setMessage("Iris code " .. code .. " accepted: " .. who .. (opening and " - opening the iris" or ""), colors.lime)
         logCall({ kind = "code", text = code .. " accepted (" .. who .. ")" })
@@ -277,7 +296,7 @@ local function onGateEvent(info)
         setMessage("Something hit the iris", colors.red)
     elseif ty == "message" then
         local kind, value = IDC.parse(info.text)
-        if kind == "code" then onCode(value)
+        if kind == "code" then onCode(value, info)
         elseif kind == "accepted" then
             setMessage("Iris code accepted" .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
             logCall({ kind = "code", text = "our code accepted" })
