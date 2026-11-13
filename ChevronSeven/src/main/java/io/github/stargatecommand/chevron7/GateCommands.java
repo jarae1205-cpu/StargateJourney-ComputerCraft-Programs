@@ -39,7 +39,8 @@ public final class GateCommands
 				.then(Commands.literal("address").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.executes(context -> {
 							StargateBlockEntity gate = gate(context);
-							String text = GateAddress.format(gate.getAddress()) + " " + gate.getState().name().toLowerCase();
+							String text = GateAddress.format(gate.getAddress()) + " " + gate.getState().name().toLowerCase()
+									+ (gate.hasIris() ? (gate.isIrisClosing() ? ", iris closed" : ", iris open") : "");
 							context.getSource().sendSuccess(() -> Component.literal(text), false);
 							return 1;
 						})))
@@ -105,6 +106,7 @@ public final class GateCommands
 			context.getSource().sendFailure(Component.translatable("message.chevron7.no_iris"));
 			return 0;
 		}
+		context.getSource().sendSuccess(() -> Component.translatable(closed ? "message.chevron7.iris_closing" : "message.chevron7.iris_opening"), true);
 		return 1;
 	}
 

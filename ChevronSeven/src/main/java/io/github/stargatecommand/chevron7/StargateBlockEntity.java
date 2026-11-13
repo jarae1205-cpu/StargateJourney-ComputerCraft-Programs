@@ -3,13 +3,17 @@ package io.github.stargatecommand.chevron7;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -119,6 +123,13 @@ public class StargateBlockEntity extends BlockEntity
 	private BlockPos remotePos;
 	private int[] remoteAddress = new int[0];
 
+	/**
+	 * This gate's chunk is force-loaded (Forge's chunk manager) while it is connected. A region
+	 * ticket alone keeps a chunk loaded, but a dimension with no players in it stops ticking its
+	 * block entities: the gate on the Moon would never finish opening or closing.
+	 */
+	private boolean forced;
+
 	// iris
 	private boolean irisInstalled, irisClosed;
 	private long irisTick = -1000;
@@ -126,6 +137,13 @@ public class StargateBlockEntity extends BlockEntity
 
 	private int feedback;
 	private String feedbackText = "";
+
+	/**
+	 * Which side of the event horizon each entity near it was last seen on (true: in front).
+	 * A player's previous position is no help here: the server moves players between ticks,
+	 * so by the time the gate looks, where they were and where they are are the same.
+	 */
+	private final Map<UUID, Boolean> sides = new HashMap<>();
 
 	private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
 	/** The ComputerCraft peripheral of this gate, made when a computer first asks for it. */
@@ -481,6 +499,8 @@ public class StargateBlockEntity extends BlockEntity
 				}
 			}
 		}
+		if(forced && !state.connected())
+			force(false);
 		if(state.connected())
 		{
 			if(now % 20 == 0 && !remoteStillConnected())
@@ -602,6 +622,8 @@ public class StargateBlockEntity extends BlockEntity
 			fail(INVALID_ADDRESS, "invalid_address", now);
 			return;
 		}
+		// a gate in a dimension nobody is in hasn't ticked: let it catch up before calling it busy
+		other.settle(targetLevel.getGameTime());
 		if(other.state.connected() || other.state == State.CLOSING)
 		{
 			fail(TARGET_BUSY, "target_busy", now);
@@ -618,6 +640,8 @@ public class StargateBlockEntity extends BlockEntity
 		feedback(CONNECTED, "connected");
 		keepLoaded(level);
 		other.acceptIncoming(this, targetLevel.getGameTime());
+		force(true);
+		other.force(true);
 		fire("stargate_outgoing_wormhole", GateAddress.list(target));
 		sound(SoundEvents.GENERIC_EXPLODE, 1.2F, 0.6F);
 		sync();
@@ -660,6 +684,8 @@ public class StargateBlockEntity extends BlockEntity
 	private void closeLocal(int code, String text)
 	{
 		long now = now();
+		force(false);
+		sides.clear();
 		feedback(code, text);
 		remoteDimension = null;
 		remotePos = null;
@@ -751,6 +777,49 @@ public class StargateBlockEntity extends BlockEntity
 		}
 	}
 
+	/** Force-loads this gate's chunk, or lets it go. The ticket is saved, so a wormhole survives a restart. */
+	private void force(boolean on)
+	{
+		if(on == forced || !(level instanceof ServerLevel server))
+			return;
+		ChunkPos chunk = new ChunkPos(worldPosition);
+		ForgeChunkManager.forceChunk(server, Chevron7.MOD_ID, worldPosition, chunk.x, chunk.z, on, true);
+		forced = on;
+		setChanged();
+	}
+
+	/**
+	 * Does what the gate would have done had it been ticking: a gate in a dimension with no
+	 * players in it stands still, so it can be left closing, or open to a gate that has gone.
+	 */
+	private void settle(long now)
+	{
+		if(state == State.CLOSING && now - stateTick >= CLOSE_TICKS)
+		{
+			encoded.clear();
+			remoteAddress = new int[0];
+			setState(State.IDLE, now);
+			sync();
+		}
+		else if(state == State.RESETTING && now - stateTick >= RESET_TICKS)
+		{
+			setState(State.IDLE, now);
+			sync();
+		}
+		else if(state.connected() && !remoteStillConnected())
+		{
+			force(false);
+			feedback(CONNECTION_LOST, "connection_lost");
+			remoteDimension = null;
+			remotePos = null;
+			remoteAddress = new int[0];
+			encoded.clear();
+			setState(State.IDLE, now);
+			fire("stargate_disconnected", CONNECTION_LOST, "connection_lost");
+			sync();
+		}
+	}
+
 	//============================================================================================
 	// kawoosh and travel
 	//============================================================================================
@@ -781,36 +850,46 @@ public class StargateBlockEntity extends BlockEntity
 		Vec3 normal = GateShape.normal(facing);
 		AABB box = new AABB(center, center).inflate(GateShape.HORIZON_RADIUS + 0.5).inflate(Math.abs(normal.x) * 2, 0, Math.abs(normal.z) * 2);
 		List<Entity> travelers = new ArrayList<>();
+		Map<Entity, Boolean> fromFront = new HashMap<>();
+		Map<UUID, Boolean> seen = new HashMap<>();
 		for(Entity entity : level.getEntities((Entity) null, box, e -> e.isAlive() && !e.isSpectator() && !e.isPassenger()))
 		{
+			Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0);
+			double depthNow = middle.subtract(center).dot(normal);
+			Boolean side = sides.get(entity.getUUID());
+			if(side == null)
+			{
+				Vec3 before = new Vec3(entity.xo, entity.yo + entity.getBbHeight() / 2, entity.zo);
+				side = before.subtract(center).dot(normal) > 0;
+			}
+			// remembered while clear of the horizon; inside it, the side they came from counts
+			seen.put(entity.getUUID(), Math.abs(depthNow) >= 0.35 ? depthNow > 0 : side);
 			if(now - entity.getPersistentData().getLong("chevron7_arrived") < 10)
 				continue;
-			Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0);
-			Vec3 before = new Vec3(entity.xo, entity.yo + entity.getBbHeight() / 2, entity.zo);
-			double depthNow = middle.subtract(center).dot(normal);
-			double depthBefore = before.subtract(center).dot(normal);
-			boolean crossed = Math.abs(depthNow) < 0.35 || (depthBefore > 0) != (depthNow > 0) && Math.abs(depthBefore) < 3;
+			boolean crossed = Math.abs(depthNow) < 0.35 || side != (depthNow > 0);
 			if(!crossed)
 				continue;
 			Vec3 flat = middle.subtract(center).subtract(normal.scale(depthNow));
 			if(flat.length() > GateShape.HORIZON_RADIUS - 0.1)
 				continue;
 			travelers.add(entity);
+			fromFront.put(entity, side);
 		}
+		sides.clear();
+		sides.putAll(seen);
 		if(travelers.isEmpty())
 			return;
 		StargateBlockEntity remote = remote();
 		if(remote == null)
 			return;
 		for(Entity entity : travelers)
-			send(level, entity, remote, center, normal, now);
+			send(level, entity, remote, center, normal, fromFront.get(entity), now);
 	}
 
-	private void send(ServerLevel level, Entity entity, StargateBlockEntity remote, Vec3 center, Vec3 normal, long now)
+	private void send(ServerLevel level, Entity entity, StargateBlockEntity remote, Vec3 center, Vec3 normal, boolean fromFront, long now)
 	{
-		Vec3 before = new Vec3(entity.xo, entity.yo, entity.zo).subtract(center);
 		// moving in from the front goes against the normal
-		Vec3 travel = before.dot(normal) >= 0 ? normal.scale(-1) : normal;
+		Vec3 travel = fromFront ? normal.scale(-1) : normal;
 		Vec3 travelRight = new Vec3(-travel.z, 0, travel.x);
 		Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0).subtract(center);
 		double across = middle.dot(travelRight);
@@ -822,13 +901,23 @@ public class StargateBlockEntity extends BlockEntity
 
 		if(remote.irisProgress(remote.now()) > 0.5F)
 		{
-			// the iris is closed on the other side
-			Vec3 back = travel.scale(-0.9).add(0, 0.25, 0);
-			entity.setDeltaMovement(back);
+			// the iris is closed on the other side: back out of the horizon the way they came, every
+			// time they try (no grace ticks, or someone who keeps walking ends up behind the gate)
+			double past = entity.position().subtract(center).dot(travel);
+			Vec3 out = entity.position().subtract(travel.scale(past + 0.6 + entity.getBbWidth() / 2));
+			if(entity instanceof ServerPlayer player)
+				player.connection.teleport(out.x, out.y, out.z, player.getYRot(), player.getXRot()); // the client has to agree
+			else
+				entity.teleportTo(out.x, out.y, out.z);
+			entity.setDeltaMovement(travel.scale(-0.6).add(0, 0.2, 0));
 			entity.hurtMarked = true;
-			entity.getPersistentData().putLong("chevron7_arrived", now);
-			remote.fire("iris_thud", type, name, uuid);
-			remote.sound(SoundEvents.ANVIL_LAND, 0.7F, 0.5F);
+			long lastThud = entity.getPersistentData().getLong("chevron7_thud");
+			if(now - lastThud > 20 || now < lastThud)
+			{
+				entity.getPersistentData().putLong("chevron7_thud", now);
+				remote.fire("iris_thud", type, name, uuid);
+				remote.sound(SoundEvents.ANVIL_LAND, 0.7F, 0.5F);
+			}
 			return;
 		}
 
@@ -925,6 +1014,7 @@ public class StargateBlockEntity extends BlockEntity
 	{
 		if(!(level instanceof ServerLevel server))
 			return;
+		force(false);
 		if(state.connected())
 		{
 			StargateBlockEntity remote = remote();
@@ -996,6 +1086,7 @@ public class StargateBlockEntity extends BlockEntity
 			tag.putLong("RemotePos", remotePos.asLong());
 		}
 		tag.putIntArray("RemoteAddress", remoteAddress);
+		tag.putBoolean("Forced", forced);
 		tag.putBoolean("Iris", irisInstalled);
 		tag.putBoolean("IrisClosed", irisClosed);
 		tag.putLong("IrisTick", irisTick);
@@ -1038,6 +1129,7 @@ public class StargateBlockEntity extends BlockEntity
 		remoteDimension = dimension == null ? null : ResourceKey.create(Registries.DIMENSION, dimension);
 		remotePos = tag.contains("RemotePos") ? BlockPos.of(tag.getLong("RemotePos")) : null;
 		remoteAddress = tag.getIntArray("RemoteAddress");
+		forced = tag.getBoolean("Forced");
 		irisInstalled = tag.getBoolean("Iris");
 		irisClosed = tag.getBoolean("IrisClosed");
 		irisTick = tag.contains("IrisTick") ? tag.getLong("IrisTick") : -1000;

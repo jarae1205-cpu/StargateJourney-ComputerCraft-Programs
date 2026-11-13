@@ -38,12 +38,12 @@ public class GateFieldFeature extends Feature<NoneFeatureConfiguration>
 		int[] range = GateField.groundRange(level, center, opens, GATES, heightmap);
 		if(range[1] - range[0] > 4)
 			return false;
-		int y = level.getHeight(heightmap, center.getX(), center.getZ());
+		int y = GateField.groundY(level, center.getX(), center.getZ(), heightmap);
 		if(!level.getFluidState(new BlockPos(center.getX(), y - 1, center.getZ())).isEmpty())
 			return false;
 		for(GateField.Site site : GateField.plan(center, opens, GATES))
 		{
-			int gy = level.getHeight(heightmap, site.core().getX(), site.core().getZ());
+			int gy = GateField.groundY(level, site.core().getX(), site.core().getZ(), heightmap);
 			if(!level.getFluidState(new BlockPos(site.core().getX(), gy - 1, site.core().getZ())).isEmpty())
 				return false;
 		}

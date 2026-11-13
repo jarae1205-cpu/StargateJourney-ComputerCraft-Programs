@@ -96,6 +96,8 @@ public class Chevron7
 		context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 		Net.register();
 		MinecraftForge.EVENT_BUS.addListener(GateCommands::register);
+		// open wormholes force-load their gates' chunks; the gates let go themselves once closed
+		net.minecraftforge.common.world.ForgeChunkManager.setForcedChunkLoadingCallback(MOD_ID, (level, tickets) -> {});
 		if(ModList.get().isLoaded("computercraft"))
 			runSafely(() -> io.github.stargatecommand.chevron7.compat.CCIntegration::init);
 	}

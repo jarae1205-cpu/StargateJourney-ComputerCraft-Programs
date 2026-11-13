@@ -297,6 +297,8 @@ LANG = {
     "message.chevron7.iris_installed": "Iris fitted",
     "message.chevron7.iris_already": "This gate already has an iris",
     "message.chevron7.no_iris": "That gate has no iris",
+    "message.chevron7.iris_closing": "Closing the iris",
+    "message.chevron7.iris_opening": "Opening the iris",
     "message.chevron7.no_gate": "No stargate within 16 blocks of this DHD",
     "message.chevron7.not_a_gate": "There is no stargate there",
     "message.chevron7.dialing": "Dialing %s: %s",
@@ -435,7 +437,7 @@ def data_files():
         "type": "forge:add_features",
         "biomes": "#chevron7:has_gate_field",
         "features": "chevron7:gate_field",
-        "step": "surface_structures",
+        "step": "top_layer_modification",
     })
     # planet gates: one site at chunk 0, 0 of every dimension made of these biomes (Ad Astra's planets).
     # The entries are optional, so the tag loads without Ad Astra.

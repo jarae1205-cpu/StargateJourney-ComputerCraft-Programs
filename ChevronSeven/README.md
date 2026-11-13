@@ -11,7 +11,7 @@ A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own g
 - The wormhole opens with a kawoosh. The vortex vaporises anything standing in front of the gate (you can turn this off).
 - Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back. The bottom of the ring is a solid block. Gates in gate fields and at the planet sites have a step in front, so you can walk in; for a gate you place yourself, put stairs in front of it, or jump in.
 - The wormhole closes by itself after five minutes (configurable, up to 38 minutes). Only the dialing gate can close it, unless you allow it in the config.
-- Both gates keep their chunks loaded while they are connected.
+- Both gates keep their chunks loaded while they are connected, so a wormhole to a planet nobody is on still opens and closes, and an open wormhole survives a server restart.
 - The ring lights up its surroundings while a wormhole is open.
 - A comparator next to the stargate block reads how many chevrons are locked.
 
@@ -106,7 +106,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.1.2.jar`](dist/chevron7-1.1.2.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.1.3.jar`](dist/chevron7-1.1.3.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -146,6 +146,17 @@ Put [`dist/chevron7-1.1.2.jar`](dist/chevron7-1.1.2.jar) in the `mods` folder (c
   - Dialing plays a sound as the ring turns and each chevron locks, the kawoosh is the loudest, and closing plays a sound that fades out.
   - The hum of an open wormhole was silent beyond 7 blocks, because Minecraft's beacon hum only carries that far. 1.1.2 plays it louder so it carries about 17 blocks; it was heard at 10, 15 and 20 blocks.
 
+- **Forests, planets and restarts (1.1.3)**, in a Minecraft 1.20.1 client on a server with Ad Astra and CC: Tweaked, starting in a dark forest. 1.1.2 had these problems, all fixed:
+  - **Gate fields in a forest** went by the treetops. `/chevron7 field` set gates down on the canopy, left trunks and giant mushrooms in front of them, put the DHD on a bump and left the path too steep to walk. 1.1.3 finds the real ground under the trees, clears trees and mushrooms around each gate and along the paths (whole trees, so no trunk is left hanging), and levels the clearing and the ground in front of each step. In the same forest, a player walked from the DHD up the path into the middle gate and came out at the gate it had dialed. Natural gate fields now generate after trees; on a test world with them made very common, they generated in plains with no errors.
+  - **A closed iris didn't stop a player.** The gate couldn't tell which side a player had come from (the server moves players between ticks, so where they were and where they are looked the same), so a player walked straight through the open wormhole and out behind the gate they had dialed from, with the iris at the other end shut. 1.1.3 remembers which side each player is on. A player who kept walking into the gate was held in front of it, and with the iris open the same walk took them through.
+  - **A gate on a planet nobody was on never finished opening or closing.** A dimension without players stops running its gates, so the Moon's gate stayed "opening" after its wormhole closed, and every later dial to the Moon failed with "target busy". Connected gates now force-load their chunks, so both ends keep running, and a gate that was left like that is set right the next time it is dialed.
+  - **An open wormhole was lost when the server restarted.** It now carries on: both gates were still open after a restart, and their open time kept counting with no player online.
+  - `/chevron7 iris` now says what it is doing, and `/chevron7 address` shows whether the gate's iris is open or closed.
+
+![A gate field in a forest, before and after](../imgs/GateFieldForest.jpg)
+
+*Gate fields built with `/chevron7 field` in a dark forest, in a Minecraft 1.20.1 client. Left: 1.1.2, with gates up the hillside among the trunks and the DHD on a block of grass. Right: 1.1.3, with the trees cleared and the clearing level, the DHD on the path and every gate on its step.*
+
 ## Build
 
 ```
@@ -153,7 +164,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.1.2.jar`.
+The jar is `build/libs/chevron7-1.1.3.jar`.
 
 ## License
 
