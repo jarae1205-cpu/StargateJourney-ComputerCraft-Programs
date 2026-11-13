@@ -1353,8 +1353,14 @@ local function closeGate()
     refreshGate()
     if gate.connected or gate.chevrons > 0 then
         disarmAutoClose()
-        call("disconnectStargate")
-        setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
+        local ok, err = true, nil
+        if has("disconnectStargate") then ok, err = pcall(iface.disconnectStargate) end
+        if not ok then
+            -- e.g. LanteaCraft: only the gate that dialed can close the wormhole
+            setMessage(cleanError(err), colors.orange)
+        else
+            setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
+        end
     else
         setMessage("The gate is already idle", colors.gray)
     end

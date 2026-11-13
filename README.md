@@ -28,7 +28,7 @@
 
 ## [Personal Dialer](./PersonalDialer/)
  - Address book with live search: add, edit, remove and reorder gates
- - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates and Just Stargate Mod gates
+ - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates, LanteaCraft and Just Stargate Mod gates
  - Chevron progress bar, gate state, incoming caller lookup and a gate picture
  - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid...)
  - Runs on the computer screen or an advanced monitor
@@ -38,17 +38,18 @@
 ## [Stargate Command: Gate Room and Network Hub](./StargateCommand/)
  - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
- - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+) and Just Stargate Mod (1.20.1)
+ - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)
+ - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
  - Shares its address book with the Personal Dialer; one installer for all three
 
 ![Gate Room image](./imgs/GateRoom.png)
 
 ## [gatedial for OpenComputers](./OpenComputers/)
- - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x) and Just Stargate Mod for 1.12.2
+ - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x), Just Stargate Mod for 1.12.2 and LanteaCraft
  - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
  - Shares its address book, iris codes and gate log files with the ComputerCraft programs
- - Tested in a Minecraft 1.12.2 world with OpenComputers 1.8.10 and JSG, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
+ - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
 
 ![gatedial in a Minecraft 1.12.2 world](./imgs/OpenComputersInGame.jpg)
 

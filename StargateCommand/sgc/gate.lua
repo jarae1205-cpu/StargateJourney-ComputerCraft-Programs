@@ -704,16 +704,25 @@ function G:dialSGCraft(address, opts)
     if not ok then fail(G.sgcraftError(err)) end
     local total = #address
     local seen = 0
+    -- the timeout is per chevron: SGCraft 2.x turns its ring to every symbol, and a
+    -- nine-symbol dial can take well over a minute
+    local stepTimeout = opts.stepTimeout or 60
+    local lastLock = now()
     local done = waitUntil(opts, function()
         local s, chevrons = self:call("stargateState")
         chevrons = tonumber(chevrons) or 0
         while seen < chevrons and seen < total do
             seen = seen + 1
+            lastLock = now()
             if opts.onStep then opts.onStep(seen, address:sub(seen, seen), total) end
         end
         if s == "Idle" then fail("The gate stopped dialing") end
-        return s == "Connected" or s == "Opening"
-    end, opts.stepTimeout or 60)
+        if s == "Connected" or s == "Opening" then return true end
+        if now() - lastLock > stepTimeout then
+            fail(seen < total and ("Chevron " .. (seen + 1) .. " did not lock") or "No connection was established")
+        end
+        return false
+    end, stepTimeout * (total + 1))
     if not done then fail("No connection was established") end
 end
 

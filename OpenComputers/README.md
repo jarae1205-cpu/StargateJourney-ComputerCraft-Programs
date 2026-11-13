@@ -4,6 +4,7 @@ A stargate dialing computer for **OpenComputers** (OpenOS), for the gate mods th
 
 - **SGCraft**: Greg Ewing's original (1.7.10) and SGCraft 2.x (1.12.2)
 - **Just Stargate Mod** for Minecraft 1.12.2 (JSG), Milky Way, Pegasus and Universe gates
+- **LanteaCraft** 0.2.5+ for Minecraft 1.21.1, with an OpenComputers port for 1.21.1 (see the note under [Connect the gate](#connect-the-gate))
 
 It is the OpenComputers version of the [Personal Dialer](../PersonalDialer/) and the [Gate Room](../StargateCommand/). It keeps the same address book, trusted iris codes and gate log, so a book written on one computer works on the other. It does not need the Auspex Gate Systems programs.
 
@@ -36,8 +37,9 @@ This puts `gatedial` and `idc` in `/home/bin` and the `sgc` library in `/home/li
 
 ## Connect the gate
 
-- **SGCraft**: place SGCraft's OpenComputers interface block against the gate's base and connect it to the computer with cable. It shows up as a `stargate` component.
+- **SGCraft**: place SGCraft's OpenComputers interface block directly under the gate's base and connect it to the computer with cable. It shows up as a `stargate` component.
 - **JSG 1.12.2**: connect the gate's base block to the computer with cable. It is a `stargate` component too. To open and close the iris from the computer, set the iris mode to OC in the gate's GUI.
+- **LanteaCraft**: connect the gate's base block to the computer with cable. gatedial handles LanteaCraft the same way as the ComputerCraft programs do; see the [LanteaCraft notes](../StargateCommand/README.md#lanteacraft-notes). But LanteaCraft 0.2.5 can't load alongside OpenComputers: Modernized 1.10.0 to 1.10.7, the OpenComputers port for 1.21.1: the game stops at startup with "Please register all drivers in the init phase". LanteaCraft adds its OpenComputers driver after OpenComputers has closed its driver list, so this needs a fix in LanteaCraft. Until then, use the ComputerCraft programs with LanteaCraft. gatedial's LanteaCraft support has only been tested against a simulated gate.
 
 JSG closes a wormhole by itself when no player has been nearby for 5 seconds ("Autoclose" in JSG's `stargates.cfg`). gatedial logs that as a close with the reason Autoclose. Raise the time or turn it off in that config if your computers should keep wormholes open on their own.
 
@@ -101,7 +103,7 @@ At the top of `gatedial.lua`:
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 
-- The installer, typed into OpenOS on a computer with an internet card, downloaded all 12 files from GitHub.
+- The installer, typed into OpenOS on a computer with an internet card, downloaded every file from GitHub.
 - gatedial found the gate and showed its address, state and energy. It dialed the other gate one symbol at a time; the wormhole opened and the iris code was sent.
 - At the other gate, gatedial showed the incoming wormhole. The code arrived through JSG's GDO and was accepted, after `idc add 1234 SG-1`.
 - Closing worked from either computer, and both gate logs recorded the calls.
@@ -120,5 +122,17 @@ At the top of `gatedial.lua`:
   - gatedial showed a tenth chevron on SGCraft gates.
   - Editing an entry blanked the fields you didn't retype. Now each question shows the current value.
   - X and I did nothing while the gate log was open.
+
+**In a Minecraft 1.12.2 world** with SGCraft 2.3.0 and OpenComputers 1.8.10. Two gates were built with SGCraft's test spawner, each with an OpenComputers interface under its base, cabled to a computer:
+
+- gatedial found each gate by its address, `H999-OVA-IA` and `K448-MUB-SH`.
+- It dialed the other gate's nine symbols, and the iris code was sent and accepted.
+- At the other gate, the incoming wormhole was recognised from the dialing direction. SGCraft 2.3 sends no `sgDialIn`.
+- Closing worked from the receiving side, and the gate log recorded the call, the code and the close.
+- SGCraft 2.3 turns its ring to every symbol, so this dial took about 50 seconds. gatedial gave the whole dial 60 seconds, so a slower gate or a longer trip would have given up halfway. The limit is now 60 seconds per chevron.
+
+![gatedial on SGCraft 2.3.0](../imgs/OpenComputersSGCraft2.jpg)
+
+*SGCraft 2.3.0 in a Minecraft 1.12.2 world. Left: the dialing computer, with all nine chevrons locked, the wormhole open and the code accepted. Right: the computer at the other gate, with the incoming wormhole and the code it accepted.*
 
 Please open an issue if a gate behaves differently.

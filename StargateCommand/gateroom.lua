@@ -658,7 +658,7 @@ local function drawNative()
         { "Touch the monitor to dial, close or use the iris.", colors.lightGray },
         { "Or type an address here and press Enter:", colors.lightGray },
         { "  26 6 14 31 11 29        Stargate Journey, Lantea", colors.gray },
-        gate and gate.mod == "lanteacraft" and { "  K3-+QPA                 LanteaCraft (- and + are glyphs)", colors.gray }
+        gate and gate.mod == "lanteacraft" and { "  K3-+QPA                 LanteaCraft (as shown)", colors.gray }
             or { "  WLDQ-DQB-MT             SGCraft", colors.gray },
         { "  Crater, Virgo, Bootes.. JSG (names, commas)", colors.gray },
         { "", colors.white },
