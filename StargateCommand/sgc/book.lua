@@ -37,7 +37,7 @@ end
 
 function B.clean(e)
     if type(e) ~= "table" then return nil end
-    local address = A.fromValue(e.address)
+    local address = A.fromStored(e.address)
     local name = trim(e.name)
     if not address and name == "" then return nil end
     local color = type(e.color) == "string" and colors[e.color] and e.color or nil

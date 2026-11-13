@@ -4,11 +4,19 @@
 --   numbers  Stargate Journey and Lantea: Stargates, e.g. { 26, 6, 14, 31, 11, 29 }
 --            (6 to 8 symbols, 1-38; the point of origin 0 is added when dialing)
 --   letters  SGCraft: a string of 7 or 9 letters/digits, e.g. "WLDQDQBMT"
+--            LanteaCraft: 7 to 9 glyphs, where "-" and "+" are glyphs too, e.g. "K3-+QPA"
+--            (SGCraft and LanteaCraft never share a world: plainLetters is set when a
+--            LanteaCraft gate is found, and then letters are kept exactly as typed)
 --   names    Just Stargate Mod: symbol names, e.g. { "Crater", "Virgo", "Bootes", ... }
 --            (the point of origin is added when dialing)
 --
 
 local A = {}
+
+-- true in a LanteaCraft world: no SGCraft dashes, "-" and "+" are glyphs
+A.plainLetters = false
+
+local LANTEA_GLYPHS = "^[A-Z0-9%-%+]+$"
 
 local function trim(s)
     return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
@@ -65,7 +73,7 @@ end
 function A.format(address)
     local kind = A.kind(address)
     if kind == "letters" then
-        if #address <= 4 then return address end
+        if A.plainLetters or address:find("[%-%+]") or #address <= 4 then return address end
         return address:sub(1, 4) .. "-" .. address:sub(5, 7) .. (#address > 7 and ("-" .. address:sub(8)) or "")
     elseif kind == "names" then
         return table.concat(address, ", ")
@@ -92,6 +100,14 @@ end
 --   "Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput"   names (JSG), comma separated
 function A.parse(text)
     text = tostring(text or "")
+    if not text:find(",") and (A.plainLetters or text:find("+", 1, true)) then
+        -- LanteaCraft: every character is a glyph, typed as the gate shows it
+        local s = text:upper():gsub("%s", "")
+        if not s:find(LANTEA_GLYPHS) or #s < 7 or #s > 9 then
+            return nil, "LanteaCraft addresses have 7 to 9 glyphs: A-Z, 0-9, - and +"
+        end
+        return s
+    end
     if text:find("%a") and text:find(",") then
         local names, seen = {}, {}
         for part in (text .. ","):gmatch("([^,]*),") do
@@ -147,15 +163,26 @@ function A.fromValue(v)
         out = A.strip(out)
         return #out > 0 and out or nil
     elseif type(v) == "string" then
-        local s = v:upper():gsub("[^A-Z0-9]", "")
+        local s = v:upper():gsub(A.plainLetters and "[^A-Z0-9%-%+]" or "[^A-Z0-9]", "")
         return #s > 0 and s or nil
     end
     return nil
 end
 
+-- reads an address saved in the address book. Saved letters are already in the form
+-- A.parse gave them, so they are kept as they are: a LanteaCraft "-" or "+" is a glyph,
+-- and the book is read before the program knows which mod its gate is from.
+function A.fromStored(v)
+    if type(v) == "string" then
+        local s = v:upper():gsub("[^A-Z0-9%-%+]", "")
+        return #s > 0 and s or nil
+    end
+    return A.fromValue(v)
+end
+
 -- which mods dial which address format
-A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", jsg = "names", jsg112 = "names" }
-A.KIND_LABEL = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft", names = "a Just Stargate Mod" }
+A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", lanteacraft = "letters", jsg = "names", jsg112 = "names" }
+A.KIND_LABEL = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft / LanteaCraft", names = "a Just Stargate Mod" }
 
 -- true if a gate of that mod can dial the address; otherwise false and a message
 function A.dialableBy(address, mod)

@@ -8,6 +8,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 - **Lantea: Stargates** 0.7.7.0+ (1.20.1 / 1.21.1): a gate controller with a Stargate Power Coupler Kit. Milky Way gates dial; Pegasus gates can't be dialed by a computer.
 - **Just Stargate Mod** (1.20.1): the gate's base block. Addresses are symbol names, typed with commas: `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput`.
 - **[Chevron Seven](../ChevronSeven/)** (1.20.1): any block of the gate ring. Its gate behaves like a Stargate Journey gate with a crystal interface, numbers and all.
+- **LanteaCraft** 0.2.5+ (NeoForge 1.21.1): the gate's base block. Addresses are typed exactly as the gate shows them, such as `S9X-EGA`: `-` and `+` are glyphs. Tested in a live game.
 
 ![Personal Dialer screens](../imgs/PersonalDialer.png)
 
@@ -23,11 +24,12 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
   - **Milky Way:** rotates the ring, alternating direction like the show, then opens and closes each chevron. Fast mode engages symbols directly when the interface supports it.
   - **Pegasus, Universe, Tollan and Classic:** engages symbols directly.
   - **SGCraft:** dials letter addresses like `WLDQ-DQB-MT` (7 or 9 symbols); the gate does the chevron sequence itself.
+  - **LanteaCraft:** one call dials the whole address; the bar follows the gate as it locks each chevron. Only the gate that dialed can close the wormhole, and the dialer shows LanteaCraft's reason if you try from the other side.
 - **Chevron bar**: shows the address being dialed and which chevrons are locked, plus the gate state (IDLE, DIALING, OPEN or INCOMING).
 - **Auto-close**: closes your outgoing wormhole a few seconds after someone steps through, or after 30 s if nobody uses it. The countdown is shown on the OPEN badge.
 - **Incoming wormholes**: shows the caller by name if the address is in your book. The *Add* dialog is pre-filled with the caller's address.
 - **Last result marker**: green after a successful dial, red after a failed one.
-- **Iris codes**: give an entry an **Iris code** in its edit form and the dialer sends it through the gate as soon as the wormhole opens. A [Gate Room](../StargateCommand/#iris-codes-and-the-gate-log) at the other end that trusts the code opens its iris and answers; the answer ("accepted" or "rejected") is shown here.
+- **Iris codes**: give an entry an **Iris code** in its edit form and the dialer sends it through the gate as soon as the wormhole opens. A [Gate Room](../StargateCommand/#iris-codes-and-the-gate-log) at the other end that trusts the code opens its iris and answers; the answer ("accepted" or "rejected") is shown here. LanteaCraft gates take codes only from a GDO, so there the dialer reminds you to send it with yours, and shows when a GDO code reaches your own gate.
 - **One list per gate**: tick **Only list it at this gate** in the edit form, and the entry shows only on computers at this gate. Useful when a base has several gates sharing one address book. It needs an interface that tells the gate's own address (advanced crystal interface, SGCraft, Chevron Seven).
 - **Gate info panel**: gate type, local address, energy, iris open/close, colour theme and dial mode.
 - **Colour themes**: Auto (follows the gate type and its variant), Milky Way, SG-1, Movie, Origins (the weathered 1939 Giza gate), Continuum (the frozen Arctic gate), Ark of Truth (a gold gate with a golden wormhole), Pegasus, Atlantis, Universe, Tollan, Classic, Infinity (the cartoon gate of the animated series, with its lime light bars), Ori Supergate (the gate picture shows 40 separate segments that light up as it dials), Legacy Hybrid (amber, red and purple chevrons with a blue master chevron) and SGCraft. Auto picks SG-1, Movie or Atlantis from the gate's Stargate Journey variant, and matches resource pack variants by name ("lantea", "infinity", "hybrid", "legacy").

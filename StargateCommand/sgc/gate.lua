@@ -7,6 +7,7 @@
 --   Just Stargate Mod (1.20.1): the stargate base block
 --   Just Stargate Mod (1.12.2, OpenComputers): the stargate base block
 --   Chevron Seven (1.20.1): any block of the gate ring
+--   LanteaCraft (1.21.1, 0.2.5+): the stargate base block
 --
 -- local gate = require("sgc.gate").find()
 -- gate:poll()                       re-read the gate state
@@ -34,6 +35,7 @@ G.INTERFACE_NAMES = {
     lantea = "Lantea gate controller",
     jsg = "JSG stargate",
     jsg112 = "JSG stargate (1.12.2)",
+    lanteacraft = "LanteaCraft stargate",
 }
 
 -- mods that share the "stargate" peripheral type, told apart by their methods
@@ -48,6 +50,7 @@ end
 
 function G.modFor(p, ptype)
     if ptype ~= "stargate" then return "sgjourney" end
+    if type(p.getGdoCode) == "function" and type(p.dial) == "function" then return "lanteacraft" end
     if type(p.stargateState) == "function" then return "sgcraft" end
     if type(p.getChevronsLocked) == "function" then return "lantea" end
     if type(p.getGateStatus) == "function" then
@@ -372,6 +375,8 @@ G.EVENTS = {
     stargate_spin_chevron_engaged = true, stargate_dhd_chevron_engaged = true, stargate_open = true,
     stargate_wormhole_stabilized = true, stargate_close = true, stargate_wormhole_closed_fully = true,
     stargate_failed = true, stargate_traveler = true, stargate_event_iris_hit = true, received_code = true,
+    -- LanteaCraft
+    stargate_event = true, stargate_idc_received = true,
 }
 
 local function eventAddress(e, offset)
@@ -699,16 +704,25 @@ function G:dialSGCraft(address, opts)
     if not ok then fail(G.sgcraftError(err)) end
     local total = #address
     local seen = 0
+    -- the timeout is per chevron: SGCraft 2.x turns its ring to every symbol, and a
+    -- nine-symbol dial can take well over a minute
+    local stepTimeout = opts.stepTimeout or 60
+    local lastLock = now()
     local done = waitUntil(opts, function()
         local s, chevrons = self:call("stargateState")
         chevrons = tonumber(chevrons) or 0
         while seen < chevrons and seen < total do
             seen = seen + 1
+            lastLock = now()
             if opts.onStep then opts.onStep(seen, address:sub(seen, seen), total) end
         end
         if s == "Idle" then fail("The gate stopped dialing") end
-        return s == "Connected" or s == "Opening"
-    end, opts.stepTimeout or 60)
+        if s == "Connected" or s == "Opening" then return true end
+        if now() - lastLock > stepTimeout then
+            fail(seen < total and ("Chevron " .. (seen + 1) .. " did not lock") or "No connection was established")
+        end
+        return false
+    end, stepTimeout * (total + 1))
     if not done then fail("No connection was established") end
 end
 

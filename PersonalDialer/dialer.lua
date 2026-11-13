@@ -122,7 +122,12 @@ local function isNames(address)
     return type(address) == "table" and type(address[1]) == "string"
 end
 
+-- true once a LanteaCraft gate is found: "-" and "+" are glyphs there, not separators
+-- (SGCraft and LanteaCraft never share a world)
+local plainLetters = false
+
 local function formatAddress(address)
+    if type(address) == "string" and #address > 0 and (plainLetters or address:find("[%-%+]")) then return address end
     if type(address) == "string" and #address > 0 then
         return address:sub(1, 4) .. "-" .. address:sub(5, 7) .. (#address > 7 and ("-" .. address:sub(8)) or "")
     end
@@ -174,7 +179,7 @@ end
 -- reads an address from an interface result, event or saved entry
 local function toAddress(v)
     if type(v) == "string" then
-        v = v:upper():gsub("[^A-Z0-9]", "")
+        v = v:upper():gsub(plainLetters and "[^A-Z0-9%-%+]" or "[^A-Z0-9]", "")
         return #v > 0 and v or nil
     end
     if type(v) ~= "table" then return nil end
@@ -197,6 +202,14 @@ end
 -- and JSG symbol names separated by commas: "Crater, Virgo, Bootes, ..."
 local function parseAddress(text)
     text = tostring(text or "")
+    if not text:find(",") and (plainLetters or text:find("+", 1, true)) then
+        -- LanteaCraft: every character is a glyph, typed as the gate shows it
+        local s = text:upper():gsub("%s", "")
+        if not s:find("^[A-Z0-9%-%+]+$") or #s < 7 or #s > 9 then
+            return nil, "LanteaCraft addresses have 7 to 9 glyphs: A-Z, 0-9, - and +"
+        end
+        return s
+    end
     if text:find("%a") and text:find(",") then
         local names, seen = {}, {}
         for part in (text .. ","):gmatch("([^,]*),") do
@@ -268,6 +281,7 @@ local GATE_TYPES = {
     { match = "classic",   name = "Classic",   theme = "classic" },
     { match = "sgcraft",   name = "SGCraft",   theme = "sgcraft" },
     { match = "chevron7",  name = "Chevron Seven", theme = "milky_way" },
+    { match = "lanteacraft", name = "LanteaCraft", theme = "sgcraft" },
 }
 
 -- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
@@ -340,7 +354,8 @@ end
 -- entries without an address are "planned" gates (from the Network Hub)
 local function cleanEntry(e)
     if type(e) ~= "table" then return nil end
-    local address = toAddress(e.address)
+    local address = type(e.address) == "string" and e.address:upper():gsub("[^A-Z0-9%-%+]", "") or toAddress(e.address)
+    if address == "" then address = nil end
     local name = trim(e.name)
     if not address and name == "" then return nil end
     return {
@@ -571,10 +586,66 @@ local function jsgInterface(p)
     return w
 end
 
+-- LanteaCraft (0.2.5+, Minecraft 1.21.1): the gate's base block. One dial() call dials the
+-- whole address and the gate locks the chevrons itself. Iris codes come from a GDO.
+local function lanteacraftInterface(p)
+    local w = { lanteacraft = true, kindName = "LanteaCraft", energyUnit = "", raw = p }
+    local function status()
+        local ok, st = pcall(p.getStatus)
+        return ok and type(st) == "table" and st or nil
+    end
+    w.status = status
+    function w.getStargateType() return "lanteacraft:stargate" end
+    function w.getChevronsEngaged()
+        local st = status()
+        if not st then return 0 end
+        local a = st.dialingAddress or st.remoteAddress
+        local n = type(a) == "string" and #a or 7
+        if st.dialing then return math.floor((tonumber(st.dialProgress) or 0) * n + 0.001) end
+        return st.connected and n or 0
+    end
+    function w.isStargateConnected()
+        local st = status()
+        return st ~= nil and st.connected == true and not st.dialing
+    end
+    function w.isStargateDialingOut()
+        local st = status()
+        if not st then return nil end
+        if st.direction == "incoming" then return false end
+        if st.direction == "outgoing" then return true end
+        return nil
+    end
+    function w.disconnectStargate()
+        local r = p.disconnect()
+        if type(r) == "table" and r.success == false and r.code ~= "not_connected" then
+            error((tostring(r.message or r.code):gsub("%.$", "")), 0)
+        end
+        return true
+    end
+    function w.getLocalAddress() return p.getAddress() end
+    function w.getConnectedAddress()
+        local st = status()
+        return st and (st.remoteAddress or st.dialingAddress)
+    end
+    function w.getIris()
+        local s = p.getIrisState()
+        if s ~= "none" then return p.getIrisType() or s end
+        return nil
+    end
+    function w.getIrisProgressPercentage() return LANTEA_IRIS[p.getIrisState()] end
+    function w.openIris() return p.openIris() end
+    function w.closeIris() return p.closeIris() end
+    return w
+end
+
 local function wrapInterface(name, t)
     local p = peripheral.wrap(name)
     if t == "stargate" then
-        -- SGCraft, Lantea and JSG all call their peripheral "stargate"
+        -- SGCraft, Lantea, LanteaCraft and JSG all call their peripheral "stargate"
+        if p.getGdoCode and p.dial then
+            plainLetters = true
+            return lanteacraftInterface(p), name, t
+        end
         if p.getChevronsLocked then return lanteaInterface(p), name, t end
         if p.getGateStatus then return jsgInterface(p), name, t end
         return sgcraftInterface(p), name, t
@@ -745,7 +816,9 @@ local function dialSuccess()
     -- the entry's iris code goes through the gate, for the gate room on the other side
     local code = dial.entry and dial.entry.idc
     if code then
-        if not has("sendStargateMessage") then
+        if iface and iface.lanteacraft then
+            setMessage("Connection established - send iris code " .. code .. " with your GDO", colors.lightBlue)
+        elseif not has("sendStargateMessage") then
             setMessage("Connection established - this gate can't send the iris code", colors.orange)
         elseif pcall(iface.sendStargateMessage, "IDC:" .. code) then
             setMessage("Connection established, iris code " .. code .. " sent", colors.lightBlue)
@@ -894,15 +967,42 @@ local function runDialJSG()
     dialSuccess()
 end
 
-local ADDRESS_KIND_TEXT = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft", names = "a JSG" }
+local function runDialLanteaCraft()
+    local address = dial.address
+    local st = iface.status()
+    if not st then fail("The gate isn't complete") end
+    if st.dialing or st.connected then fail("The gate is busy") end
+    redrawLater()
+    local ok, r = pcall(iface.raw.dial, address)
+    if not ok then fail(cleanError(r)) end
+    if type(r) == "table" and r.success == false then fail((tostring(r.message or r.code):gsub("%.$", ""))) end
+    local started = os.clock()
+    local connected = waitUntil(function()
+        local s = iface.status()
+        if not s then fail("Lost the gate") end
+        local n = iface.getChevronsEngaged()
+        if n ~= gate.chevrons then
+            gate.chevrons = n
+            redrawLater()
+        end
+        if not s.dialing and not s.connected and os.clock() - started > 2 then fail("No connection was established") end
+        return s.connected == true and not s.dialing
+    end, CONFIG.stepTimeout + #address * 4)
+    if dial.abort then return end
+    if not connected then fail("No connection was established") end
+    dialSuccess()
+end
+
+local ADDRESS_KIND_TEXT = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft / LanteaCraft", names = "a JSG" }
 
 local function runDial()
     local kind = type(dial.address) == "string" and "letters" or isNames(dial.address) and "names" or "numbers"
-    local need = iface.sgcraft and "letters" or iface.jsg and "names" or "numbers"
+    local need = (iface.sgcraft or iface.lanteacraft) and "letters" or iface.jsg and "names" or "numbers"
     if kind ~= need then
         fail("That is " .. ADDRESS_KIND_TEXT[kind] .. " address, this gate needs " .. ADDRESS_KIND_TEXT[need] .. " one")
     end
     if iface.sgcraft then return runDialSGCraft() end
+    if iface.lanteacraft then return runDialLanteaCraft() end
     if iface.lantea then return runDialLantea() end
     if iface.jsg then return runDialJSG() end
     local address = stripOrigin(dial.address)
@@ -1253,8 +1353,14 @@ local function closeGate()
     refreshGate()
     if gate.connected or gate.chevrons > 0 then
         disarmAutoClose()
-        call("disconnectStargate")
-        setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
+        local ok, err = true, nil
+        if has("disconnectStargate") then ok, err = pcall(iface.disconnectStargate) end
+        if not ok then
+            -- e.g. LanteaCraft: only the gate that dialed can close the wormhole
+            setMessage(cleanError(err), colors.orange)
+        else
+            setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
+        end
     else
         setMessage("The gate is already idle", colors.gray)
     end
@@ -2150,6 +2256,8 @@ local GATE_EVENTS = {
     stargate_wormhole_incoming = true, stargate_wormhole_open_unstable = true, stargate_wormhole_open_fully = true,
     stargate_wormhole_close_unstable = true, stargate_wormhole_close_fully = true, stargate_attempt_open_failed = true,
     stargate_event_horizon_traveler = true, stargate_iris_state_changed = true,
+    -- LanteaCraft
+    stargate_event = true, stargate_idc_received = true,
 }
 
 local function interruptDial()
@@ -2275,6 +2383,43 @@ local function gateEvent(e)
         end
     elseif name == "stargate_event_horizon_traveler" then
         if gate.state == "OPEN" and db.settings.autoClose then armAutoClose(CONFIG.autoCloseDelay) end
+    -- LanteaCraft: one event with a details table, and the GDO's codes
+    elseif name == "stargate_event" then
+        local d = e[o]
+        if type(d) == "table" then
+            local remote = toAddress(d.remoteAddress)
+            if d.type == "dialing" and d.direction == "incoming" then
+                gate.outgoing, gate.incomingChevrons = false, true
+                interruptDial()
+                gate.remote = remote or gate.remote
+                if gate.remote then gate.lastIncoming = gate.remote end
+                local who = describeRemote(gate.remote)
+                setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+            elseif d.type == "opened" then
+                gate.outgoing = d.direction ~= "incoming"
+                gate.remote = remote or gate.remote
+                if gate.outgoing then
+                    local who = (dial.entry and dial.active and dial.entry.name) or describeRemote(gate.remote)
+                    setMessage("Wormhole open" .. (who and (" to " .. who) or ""), colors.lightBlue)
+                    if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
+                end
+            elseif d.type == "closed" then
+                disarmAutoClose()
+                gate.outgoing, gate.remote, gate.incomingChevrons = false, nil, false
+                if not dial.active and os.clock() - dial.endedAt > 2 and os.clock() - autoClose.closedAt > 2 then
+                    setMessage("Gate closed", colors.lightGray)
+                end
+            elseif d.type == "entity_transit" then
+                if gate.state == "OPEN" and db.settings.autoClose then armAutoClose(CONFIG.autoCloseDelay) end
+            end
+        end
+    elseif name == "stargate_idc_received" then
+        local code = tostring(e[o + 1] or "")
+        if e[o + 2] == true then
+            setMessage("Iris code " .. code .. " accepted by the gate", colors.lime)
+        else
+            setMessage("Iris code " .. code .. " refused by the gate", colors.red)
+        end
     elseif name == "sgDialOut" then
         gate.outgoing, gate.incomingChevrons = true, false
         gate.remote = toAddress(e[o]) or gate.remote

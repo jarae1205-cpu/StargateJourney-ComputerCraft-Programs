@@ -62,10 +62,11 @@ The supergate has no chevrons. Its segments light up one after another, clockwis
 - **Lantea: Stargates**: right-click a Stargate Power Coupler Kit onto the finished controller, then put the computer against the controller (or connect it with a wired modem). Needs Lantea 0.7.7.0 or newer.
 - **Just Stargate Mod**: put the computer against the gate's base block, or connect it with a wired modem. To open and close the iris from a computer, set the iris mode to OC/computer in the gate's GUI.
 - **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem.
+- **LanteaCraft** (NeoForge 1.21.1, 0.2.5 or newer): put the computer against the gate's base block, or connect it with a wired modem.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
 
-Mods without a ComputerCraft interface can't be driven by these programs. The Gate Room and the Hub find the gate by itself; SGCraft, Lantea and JSG all call their peripheral `stargate`, and the programs tell them apart by the methods they have. Chevron Seven's gate (`chevron7_stargate`) speaks the same language as Stargate Journey's crystal interface.
+Mods without a ComputerCraft interface can't be driven by these programs. The Gate Room and the Hub find the gate by itself; SGCraft, Lantea, LanteaCraft and JSG all call their peripheral `stargate`, and the programs tell them apart by the methods they have. Chevron Seven's gate (`chevron7_stargate`) speaks the same language as Stargate Journey's crystal interface.
 
 ## Installation
 
@@ -175,6 +176,7 @@ Each mod writes addresses its own way. Type them like this; the point of origin 
 |---|---|
 | Stargate Journey, Lantea, Chevron Seven | `26 6 14 31 11 29` or `-26-6-14-31-11-29-` (symbols 1-38; Lantea's 7th symbol is the galaxy) |
 | SGCraft | `WLDQ-DQB-MT` (7 or 9 letters/digits) |
+| LanteaCraft | `S9X-EGA` (7 to 9 glyphs, typed exactly as the gate shows them: `-` and `+` are glyphs) |
 | Just Stargate Mod | `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput` (symbol names, separated by commas) |
 
 A gate only dials addresses in its own format; the programs say so if you pick the wrong one.
@@ -184,7 +186,7 @@ A gate only dials addresses in its own format; the programs say so if you pick t
 The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. On an advanced computer you can run the Gate Room on the monitor and the dialer in a second tab (`bg dialer`). Each entry has:
 
 - `name`, `note`
-- `address`: numbers (Stargate Journey, Lantea), a string of letters (SGCraft), a list of symbol names (JSG), or nothing for a planned destination
+- `address`: numbers (Stargate Journey, Lantea), a string of letters (SGCraft, LanteaCraft), a list of symbol names (JSG), or nothing for a planned destination
 - `group` and `color` (used by the Hub)
 - `idc`: an [iris code](#iris-codes-and-the-gate-log) to send after the wormhole opens
 - `home`: the local address of one gate. The entry is listed only on computers at that gate, for bases with several gates. Set it with **Only list it at this gate** in the Personal Dialer's edit form
@@ -195,8 +197,8 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 
 | Module | What it does |
 |---|---|
-| `sgc.gate` | finds the gate interface (Stargate Journey, SGCraft, Lantea or JSG), reads its state, turns events into simple messages, dials, iris |
-| `sgc.lantea`, `sgc.jsg` | the Lantea and JSG parts of `sgc.gate` |
+| `sgc.gate` | finds the gate interface (Stargate Journey, SGCraft, Lantea, LanteaCraft or JSG), reads its state, turns events into simple messages, dials, iris |
+| `sgc.lantea`, `sgc.lanteacraft`, `sgc.jsg` | the Lantea, LanteaCraft and JSG parts of `sgc.gate` |
 | `sgc.address` | parses, formats and compares the three address formats |
 | `sgc.book` | the shared address book |
 | `sgc.styles` | the gate looks and their palettes |
@@ -224,6 +226,17 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - Pegasus gates have no ring to turn, so Lantea doesn't let computers dial them. The Gate Room still shows them, their chevrons and wormholes.
 - Energy is shown in EU, as Lantea reports it.
 
+## LanteaCraft notes
+
+- An address is 7 to 9 glyphs from A-Z, 0-9, `-` and `+`. The last glyph names the dimension (A the overworld, N the Nether, E the End). Because `-` is a glyph, LanteaCraft addresses are shown and typed without SGCraft's dashes.
+- The gate dials the whole address by itself, about 3 seconds a chevron. The programs follow its progress and light the chevrons.
+- Only the gate that dialed can close the wormhole. Closing from the other side shows LanteaCraft's reason instead.
+- The gate checks iris codes itself. Each gate has one GDO code, and using a GDO on a gate pairs it and gives that gate a new code. When a traveller's GDO sends that code through the wormhole, the gate opens or closes its iris on its own. The Gate Room logs it as "accepted by the gate".
+- A code the gate refuses still opens the iris if `idc` trusts it, so several teams can have codes of their own.
+- A computer can't send a code; when you dial an entry with an iris code, the programs remind you to send it with your GDO.
+- LanteaCraft reports no energy; the Gate Room shows whether the gate's GDO code is set instead (never the code itself).
+- LanteaCraft's kawoosh kills whatever stands in front of the gate (`kawooshDeath` in its config).
+
 ## Just Stargate Mod notes
 
 - JSG addresses are symbol names. The program sends the whole address to the gate (`dialAddress`), lets the gate dial it, then opens it (`engageGate`) if it did not open by itself.
@@ -235,4 +248,9 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - Dialing reads the gate state from events and also polls it, so a missed event does not leave the screen stuck.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Not tested in a live game yet. The programs were run against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
+- Tested in a live game with LanteaCraft 0.2.5 and CC: Tweaked 1.121.0 (NeoForge 1.21.1). The other mods were tested against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
+- LanteaCraft in a live game: the Gate Room and the Personal Dialer dialed each other's gates, including an address with a `-` glyph. Closing worked from the dialing side, and the receiving side was refused with LanteaCraft's reason. The iris closed from the Gate Room. A GDO code the gate accepted opened the iris by itself; a code the gate refused but `idc` trusted opened it through the Gate Room. A player who walked through was logged.
+
+![LanteaCraft in a Minecraft 1.21.1 world](../imgs/LanteaCraft.jpg)
+
+*LanteaCraft 0.2.5 with CC: Tweaked in a Minecraft 1.21.1 world. Top left: the Gate Room after dialing the other gate; behind the monitor the real gate is open. Top right: the Personal Dialer at the other gate, with the wormhole coming in. Bottom left: a traveller's GDO sent the gate's own code, so the gate opened its iris and the Gate Room says so. Bottom right: the gate refused another code, which `idc` trusts as SG-1, so the Gate Room opened the iris.*

@@ -141,6 +141,11 @@ end
 -- sends the entry's iris code through the wormhole we just opened
 local function sendCode(entry)
     if not (entry and entry.idc) then return end
+    if gate.mod == "lanteacraft" then
+        -- LanteaCraft codes go from a traveller's GDO, not from a computer
+        setMessage("Wormhole established to " .. entry.name .. " - send code " .. entry.idc .. " with your GDO", colors.lightBlue)
+        return
+    end
     local ok, why = gate:sendMessage(IDC.message(entry.idc))
     if ok then
         setMessage("Wormhole established to " .. entry.name .. " - iris code sent", colors.lightBlue)
@@ -150,13 +155,27 @@ local function sendCode(entry)
 end
 
 -- a code arrived from the gate that dialed us
-local function onCode(code)
+local function onCode(code, info)
     if not CONFIG.irisCodes or gate.outgoing then return end
+    if info and info.gateAccepted then
+        -- LanteaCraft: the gate checked the code against its own GDO code and moves the iris itself
+        local what = info.action == "close" and " - it closes the iris" or " - it opens the iris"
+        setMessage("Iris code " .. code .. " accepted by the gate" .. what, colors.lime)
+        logCall({ kind = "code", text = code .. " accepted by the gate" })
+        return
+    end
     local trusted = IDC.check(IDC.load(CONFIG.codesFile), code)
     if trusted then
         local who = trusted.name ~= "" and trusted.name or ("code " .. code)
-        local opening = gate.hasIris and (gate.iris or 0) > 0
-        if opening then gate:openIris() end
+        local opening = gate.hasIris and (gate.iris or 0) > 0 and not (info and info.action == "close")
+        if opening then
+            local ok, why = gate:openIris()
+            if ok == false then
+                setMessage("Iris code " .. code .. " accepted: " .. who .. " - but the iris won't open: " .. tostring(why), colors.orange)
+                logCall({ kind = "code", text = code .. " accepted (" .. who .. ")" })
+                return
+            end
+        end
         gate:sendMessage("IDC:ACCEPTED " .. who)
         setMessage("Iris code " .. code .. " accepted: " .. who .. (opening and " - opening the iris" or ""), colors.lime)
         logCall({ kind = "code", text = code .. " accepted (" .. who .. ")" })
@@ -470,6 +489,10 @@ local function drawPanel(t)
         end
         line(timer, colors.lightBlue)
         local energy = "Energy " .. (gate.energy and (UI.energy(gate.energy) .. " " .. (gate.energyUnit or "FE")) or "?")
+        if gate.mod == "lanteacraft" then
+            -- LanteaCraft reports no energy; whether its GDO code is set matters more (the code stays off the monitor)
+            energy = "GDO code " .. ((gate.gdoCode and gate.gdoCode ~= "") and "set" or "not set")
+        end
         if gate.zpmCount and gate.zpmCount > 0 then energy = energy .. "  ZPM x" .. gate.zpmCount end
         line(energy, colors.lightGray)
         local iris = "none"
@@ -635,7 +658,8 @@ local function drawNative()
         { "Touch the monitor to dial, close or use the iris.", colors.lightGray },
         { "Or type an address here and press Enter:", colors.lightGray },
         { "  26 6 14 31 11 29        Stargate Journey, Lantea", colors.gray },
-        { "  WLDQ-DQB-MT             SGCraft", colors.gray },
+        gate and gate.mod == "lanteacraft" and { "  K3-+QPA                 LanteaCraft (as shown)", colors.gray }
+            or { "  WLDQ-DQB-MT             SGCraft", colors.gray },
         { "  Crater, Virgo, Bootes.. JSG (names, commas)", colors.gray },
         { "", colors.white },
         { "> " .. manual, colors.orange },
@@ -781,7 +805,7 @@ local function onGateEvent(info)
     elseif ty == "message" then
         local kind, value = IDC.parse(info.text)
         if kind == "code" then
-            onCode(value)
+            onCode(value, info)
         elseif kind == "accepted" then
             setMessage("Iris code accepted" .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
             logCall({ kind = "code", text = "our code accepted" })
@@ -824,7 +848,7 @@ local function keyEvent(e, held)
         elseif k == keys.escape and overlay then overlay = nil paintBackground()
         end
     elseif (e[1] == "char" or e[1] == "paste") and not ctrl then
-        local s = tostring(e[2]):gsub("[^%w%s%-,]", "")
+        local s = tostring(e[2]):gsub("[^%w%s%-%+,]", "")
         manual = (manual .. s):sub(1, 40)
     end
 end
