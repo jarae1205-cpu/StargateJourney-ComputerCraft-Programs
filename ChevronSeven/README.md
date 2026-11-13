@@ -106,7 +106,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.1.1.jar`](dist/chevron7-1.1.1.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.1.2.jar`](dist/chevron7-1.1.2.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -142,7 +142,9 @@ Put [`dist/chevron7-1.1.1.jar`](dist/chevron7-1.1.1.jar) in the `mods` folder (c
 
 *Left: a gate in a gate field, with the path leading up to its step. Right: the gate on Mars, with its step on the paved pad. Both from a Minecraft 1.20.1 client.*
 
-Not tested: the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
+- **Sounds (1.1.2)**, in a Minecraft 1.20.1 client whose audio was recorded to a file:
+  - Dialing plays a sound as the ring turns and each chevron locks, the kawoosh is the loudest, and closing plays a sound that fades out.
+  - The hum of an open wormhole was silent beyond 7 blocks, because Minecraft's beacon hum only carries that far. 1.1.2 plays it louder so it carries about 17 blocks; it was heard at 10, 15 and 20 blocks.
 
 ## Build
 
@@ -151,7 +153,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.1.1.jar`.
+The jar is `build/libs/chevron7-1.1.2.jar`.
 
 ## License
 

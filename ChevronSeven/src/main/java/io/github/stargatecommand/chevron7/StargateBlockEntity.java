@@ -672,8 +672,10 @@ public class StargateBlockEntity extends BlockEntity
 	private void tickOpen(ServerLevel level, long now)
 	{
 		openTicks++;
+		// the beacon hum is only heard within 7 blocks at volume 1; above 1, the volume
+		// stretches that range instead of making it louder, so 2.5 carries about 17 blocks
 		if(openTicks % 80 == 1)
-			sound(SoundEvents.BEACON_AMBIENT, 1.0F, 0.7F);
+			sound(SoundEvents.BEACON_AMBIENT, 2.5F, 0.7F);
 		if(!outgoing)
 			return;
 		if(openTicks >= Config.MAX_OPEN_SECONDS.get() * 20)
