@@ -522,20 +522,30 @@ end
 -- Editing (typed on the computer)
 ---------------------------------------------------------------------------
 
-local function prompt(label, default)
+-- OpenOS can't put text in the input line to start with (term.read's first argument is
+-- a history), so the current value is shown in [brackets]: Enter keeps it, "-" clears it
+local function prompt(label, current)
+    if current == "" then current = nil end
+    if current then
+        local shown = unicode.len(current) > 40 and (unicode.sub(current, 1, 37) .. "...") or current
+        label = label .. " [" .. shown .. "]"
+    end
     fill(1, L.messageY, W, 1, colors.black)
     text(2, L.messageY, label .. ": ", colors.yellow, colors.black)
     term.setCursor(4 + unicode.len(label), L.messageY)
     setFg(colors.white)
-    local line = term.read({ default or "" }, false)
+    local line = term.read({ current }, false)
     if not line then return nil end
-    return (line:gsub("[\r\n]+$", ""))
+    line = line:gsub("[\r\n]+$", "")
+    if line == "" and current then return current end
+    if line == "-" then return "" end
+    return line
 end
 
 local function editEntry(entry)
     local name = prompt("Name", entry and entry.name)
     if not name then setMessage("Cancelled") return end
-    local addrText = prompt("Address (empty for a planned one)", entry and entry.address and A.format(entry.address))
+    local addrText = prompt(entry and entry.address and "Address" or "Address (empty for a planned one)", entry and entry.address and A.format(entry.address))
     if not addrText then setMessage("Cancelled") return end
     local address
     if addrText:match("%S") then
@@ -543,7 +553,7 @@ local function editEntry(entry)
         address, why = A.parse(addrText)
         if not address then setMessage(why, colors.red) return end
     end
-    local code = prompt("Iris code to send (empty for none)", entry and entry.idc)
+    local code = prompt(entry and entry.idc and "Iris code" or "Iris code to send (empty for none)", entry and entry.idc)
     if code == nil then setMessage("Cancelled") return end
     local data = { name = name ~= "" and name or (address and A.format(address)), address = address, note = entry and entry.note or "",
         group = entry and entry.group, color = entry and entry.color, idc = code, home = entry and entry.home }
@@ -587,6 +597,9 @@ local function onKey(char, code)
         if code == k.up or code == k.pageUp then logPage = logPage - 1
         elseif code == k.down or code == k.pageDown then logPage = logPage + 1
         elseif code == k.l or code == k.back then view = "list" full = true
+        -- the gate keys work here too: the log is often open when a wormhole comes in
+        elseif code == k.x then closeGate()
+        elseif code == k.i then toggleIris()
         elseif code == k.q then running = false end
         dirty = true
         return

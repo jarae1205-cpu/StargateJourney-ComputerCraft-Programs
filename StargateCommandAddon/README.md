@@ -48,7 +48,7 @@ In a Minecraft 1.20.1 client joined to that server, the blocks and the four gate
 
 *Stargate Journey 0.6.54 in a Minecraft 1.20.1 client. Left, from the left: the Infinity, Ark of Truth, Continuum and Origins looks and an ordinary Milky Way gate; all but the Ark of Truth gate have a wormhole open. In front: hazard stripes, wall panel, ramp slab, ramp stairs, ramp grating, the gate monitor and two alarm lights (the one with a redstone block behind it is lit). Right: the same blocks closer.*
 
-The ramp blocks are see-through grating, so a full block of it looks like a cage, the way other see-through blocks do. Not checked yet: the alarm light's flashing (seen only lit and unlit) and the klaxon sound (the test machine had no sound device).
+The ramp blocks are see-through grating, so a full block of it looks like a cage, the way other see-through blocks do. The klaxon was checked by recording the client's audio to a file: with the alarm lights next to a gate, the seconds while an incoming wormhole forms were 2 to 4 times louder than the same dial without them, and the klaxon stopped once the wormhole was stable. Not checked yet: the alarm light's flashing (seen only lit and unlit).
 
 ## Build
 

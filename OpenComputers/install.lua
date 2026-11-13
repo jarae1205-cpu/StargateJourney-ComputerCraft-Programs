@@ -76,5 +76,5 @@ for _, file in ipairs(downloaded) do
     f:write(file[2])
     f:close()
 end
-print("Installed. Run gatedial next to a stargate (SGCraft through an adapter, or a JSG gate base).")
+print("Installed. Cable the computer to a stargate (SGCraft's OpenComputers interface, or a JSG gate base), then run gatedial.")
 print("Trusted iris codes: idc add <code> [name]")
