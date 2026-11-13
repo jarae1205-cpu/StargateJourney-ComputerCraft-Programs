@@ -597,6 +597,9 @@ local function onKey(char, code)
         if code == k.up or code == k.pageUp then logPage = logPage - 1
         elseif code == k.down or code == k.pageDown then logPage = logPage + 1
         elseif code == k.l or code == k.back then view = "list" full = true
+        -- the gate keys work here too: the log is often open when a wormhole comes in
+        elseif code == k.x then closeGate()
+        elseif code == k.i then toggleIris()
         elseif code == k.q then running = false end
         dirty = true
         return

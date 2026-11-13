@@ -15,6 +15,14 @@ It is the OpenComputers version of the [Personal Dialer](../PersonalDialer/) and
 
 *In a Minecraft 1.12.2 world with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top left: the installer, downloaded with `wget` on an in-game computer. Top right: gatedial has dialed the other gate and sent its iris code. Bottom left: the computer at the other gate as that call comes in; the code 1234 is accepted. Bottom right: the gate with its wormhole open.*
 
+![The gate picture and the iris on a tier 3 screen](../imgs/OpenComputersIris.jpg)
+
+*A tier 3 screen in the same world, cabled to a JSG gate with a creative iris set to OC mode. Left: the gate picture beside the address book. Middle: the iris closed with the I key. Right: another gate dials in and sends a trusted code, and gatedial opens the iris by itself.*
+
+![gatedial on SGCraft in a Minecraft 1.7.10 world](../imgs/OpenComputersSGCraft.jpg)
+
+*SGCraft 1.13.3 and OpenComputers 1.8.10 in a Minecraft 1.7.10 world. Top left: one computer dials the other gate and sends the code 4321; the other side answers that it was accepted. Top right: at the other gate the iris was shut, so gatedial opens it for the trusted code. Bottom left: the same call with an unknown code; the iris stays shut. Bottom right: that gate with its iris closed over the wormhole.*
+
 ## Install
 
 You need an internet card. In the OpenOS shell:
@@ -50,6 +58,8 @@ A tier 2 screen and graphics card is enough. With tier 3 (160x50), gatedial also
 | N / E / D | new address, edit, delete |
 | L | the gate log |
 | Q | quit |
+
+X and I also work while the gate log is open.
 
 On a touch screen, tap an address to pick it and tap it again to dial. The buttons along the bottom do the same as the keys.
 
@@ -89,12 +99,26 @@ At the top of `gatedial.lua`:
 
 ## Tested
 
-**In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Two computers, each with a tier 2 screen, were cabled to the bases of two JSG Milky Way gates:
+**In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 
 - The installer, typed into OpenOS on a computer with an internet card, downloaded all 12 files from GitHub.
 - gatedial found the gate and showed its address, state and energy. It dialed the other gate one symbol at a time; the wormhole opened and the iris code was sent.
 - At the other gate, gatedial showed the incoming wormhole. The code arrived through JSG's GDO and was accepted, after `idc add 1234 SG-1`.
 - Closing worked from either computer, and both gate logs recorded the calls.
+- On a tier 3 screen the gate picture showed the chevrons locking, the wormhole and the iris.
+- With a creative iris in OC mode, the I key closed and opened it. When a trusted code came in while it was shut, gatedial opened it.
 - The test found two bugs, both fixed. JSG gives `dialedAddress` as a string, and a gate stays busy for a moment after each chevron locks. Before the fixes, every dial failed with "Chevron 1 did not lock".
 
-Not tried in a real world yet: SGCraft (tested only in a headless OpenOS emulator with a simulated gate), the gate picture on a tier 3 screen, and the iris (the test gates had none). Please open an issue if a gate behaves differently.
+**In a Minecraft 1.7.10 world** (Forge 10.13.4.1614) with SGCraft 1.13.3 and OpenComputers 1.8.10. Two gates each had an OpenComputers interface under the base, cabled to a computer with a tier 2 screen:
+
+- The installer worked, and gatedial found each gate by its SGCraft address.
+- It dialed the other gate's nine symbols, the wormhole opened and the iris code went across as a gate message.
+- The other computer accepted the code and answered, and the dialing side showed "Iris code accepted".
+- With an iris upgrade on the gate, the I key closed the iris. A trusted code opened it; an unknown code was rejected and the iris stayed shut, and both sides said so.
+- Closing worked from the receiving side, and the gate log recorded the call, the code and the close.
+- The test found three bugs, all fixed:
+  - gatedial showed a tenth chevron on SGCraft gates.
+  - Editing an entry blanked the fields you didn't retype. Now each question shows the current value.
+  - X and I did nothing while the gate log was open.
+
+Please open an issue if a gate behaves differently.
