@@ -8,7 +8,8 @@
 --                              | "unstable" | "failing" | "incoming" | "not_merged",
 --            getGateType(), getIrisState(), getIrisType(), toggleIris(), getEnergyStored(),
 --            sendIrisCode(code), sendMessageToIncoming(text),
---            stargateAddress and dialedAddress (fields)
+--            stargateAddress and dialedAddress (fields; dialedAddress is a string such as
+--            "[Eridanus, Crater]", and a symbol is listed once its chevron has locked)
 --   signals  (component address, caller, ...) stargate_spin_start, stargate_spin_chevron_engaged
 --            (count, final, symbol), stargate_dhd_chevron_engaged (count, final, symbol),
 --            stargate_incoming_wormhole (size), stargate_open (initiating),
@@ -51,11 +52,30 @@ local function failed(result)
 end
 
 -- calls a JSG method; returns true or false + a reason
+-- (a refusal comes back as nil, "stargate_failure_busy", "Stargate is busy, ...")
 local function command(g, method, ...)
-    local pc, result, extra = g:try(method, ...)
+    local pc, result, code, text = g:try(method, ...)
     if not pc then return false, (tostring(result):gsub("^.-:%d+: ", "")) end
-    if failed(result) then return false, type(extra) == "string" and extra or M.reason(result) end
+    if result == nil and type(code) == "string" then
+        return false, type(text) == "string" and text or M.reason(code)
+    end
+    if failed(result) then return false, type(code) == "string" and code or M.reason(result) end
     return true
+end
+
+-- the symbols dialed so far, from dialedAddress ("[Eridanus, Crater]" or a table)
+function M.dialedList(value)
+    local list = {}
+    if type(value) == "table" then
+        for i, s in ipairs(value) do list[i] = s end
+    elseif type(value) == "string" then
+        local inner = value:match("^%s*%[(.*)%]%s*$") or value
+        for name in inner:gmatch("[^,]+") do
+            name = name:match("^%s*(.-)%s*$")
+            if name ~= "" then list[#list + 1] = name end
+        end
+    end
+    return list
 end
 
 local function status(g)
@@ -124,13 +144,9 @@ function M.poll(g)
     end
     if g.dialing and not g.connected and g.state ~= "INCOMING" then g.state = "DIALING" end
     if st ~= "idle" then
-        local dialed = g:call("dialedAddress")
-        if type(dialed) == "table" then
-            local list = {}
-            for i, s in ipairs(dialed) do list[i] = s end
-            g.engaged = list
-            if not g.connected then g.chevrons = #list end
-        end
+        local list = M.dialedList(g:call("dialedAddress"))
+        g.engaged = list
+        if not g.connected then g.chevrons = #list end
     else
         g.chevrons = 0
     end
@@ -203,8 +219,7 @@ function M.dial(g, address, opts)
         if not ok then G.fail(why) end
         if not G.waitUntil(opts, function()
             if g.lastFailure then G.fail(g.lastFailure) end
-            local dialed = g:call("dialedAddress")
-            return type(dialed) == "table" and #dialed >= i
+            return #M.dialedList(g:call("dialedAddress")) >= i
         end, opts.stepTimeout or 60) then
             G.fail("Chevron " .. i .. " did not lock")
         end
