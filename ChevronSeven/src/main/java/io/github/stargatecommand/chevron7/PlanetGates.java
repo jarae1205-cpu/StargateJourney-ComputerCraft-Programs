@@ -90,41 +90,16 @@ public final class PlanetGates
 		return null;
 	}
 
-	/** Builds the site: a paved pad with the gate and a DHD, on the ground at chunk 0, 0. */
+	/** Builds the site: the gate on a stone platform with stairs, a DHD in front, on the ground at chunk 0, 0. */
 	public static boolean build(LevelAccessor level, long seed, ResourceKey<Level> dimension, Heightmap.Types heightmap)
 	{
-		int flags = Block.UPDATE_CLIENTS;
 		int y = level.getHeight(heightmap, SITE.getX(), SITE.getZ());
 		if(y <= level.getMinBuildHeight() + 1)
 			return false;
-		BlockPos core = new BlockPos(SITE.getX(), y, SITE.getZ());
-		Direction facing = Direction.SOUTH;
-
-		// the pad: 11 by 11, paved, with nothing above it
-		for(int dx = -5; dx <= 5; dx++)
-		{
-			for(int dz = -3; dz <= 7; dz++)
-			{
-				BlockPos floor = core.offset(dx, -1, dz);
-				boolean edge = Math.abs(dx) == 5 || dz == -3 || dz == 7;
-				level.setBlock(floor, (edge ? Blocks.STONE_BRICKS : Blocks.POLISHED_ANDESITE).defaultBlockState(), flags);
-				for(int below = 1; below <= 6 && level.getBlockState(floor.below(below)).canBeReplaced(); below++)
-					level.setBlock(floor.below(below), Blocks.STONE.defaultBlockState(), flags);
-				for(int up = 0; up < 9; up++)
-					level.setBlock(floor.above(up + 1), Blocks.AIR.defaultBlockState(), flags);
-			}
-		}
-
-		level.setBlock(core, Chevron7.STARGATE.get().defaultBlockState().setValue(StargateBlock.FACING, facing), flags);
-		for(int part = 0; part < GateShape.FRAME.length; part++)
-		{
-			level.setBlock(GateShape.frameCell(core, facing, part), Chevron7.GATE_FRAME.get().defaultBlockState()
-					.setValue(GateFrameBlock.FACING, facing).setValue(GateFrameBlock.PART, part), flags);
-		}
-		if(level.getBlockEntity(core) instanceof StargateBlockEntity gate)
+		StargateBlockEntity gate = GateBuildings.platform(level, new BlockPos(SITE.getX(), y, SITE.getZ()), Direction.SOUTH,
+				GateLook.SG1, GateBuildings.Style.STONE);
+		if(gate != null)
 			gate.presetAddress(addressFor(seed, dimension));
-		GateField.placeStep(level, core, facing, Blocks.POLISHED_ANDESITE_STAIRS, flags);
-		level.setBlock(core.relative(facing, 5), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), flags);
 		return true;
 	}
 }

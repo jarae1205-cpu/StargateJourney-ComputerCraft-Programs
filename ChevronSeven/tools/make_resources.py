@@ -130,13 +130,131 @@ def event_horizon():
 
 
 def iris():
-    img = noise_tile(32, 32, (150, 154, 160), 30, 21, grain=2)
+    """Brushed metal, light and neutral: the renderer tints it for each look and draws the blade edges."""
+    img = noise_tile(32, 32, (222, 224, 228), 26, 21, grain=2)
     d = ImageDraw.Draw(img)
     for x in range(0, 32, 4):
-        d.line([(x, 0), (x + 6, 31)], fill=(170, 174, 180, 255))
-    d.line([(0, 0), (0, 31)], fill=(70, 72, 78, 255), width=2)
-    d.line([(31, 0), (31, 31)], fill=(196, 200, 206, 255))
+        d.line([(x, 0), (x + 6, 31)], fill=(236, 238, 242, 255))
     return img
+
+
+# --------------------------------------------------------------------------
+# gate looks: each look has its own ring, symbol track and event horizon textures;
+# the renderer adds its chevron, glyph and iris colours (GateLook.java). "sg1" is the
+# original look and uses the plain gate_stone / gate_track / event_horizon textures.
+# --------------------------------------------------------------------------
+
+LOOKS = {
+    # id: stone colour, track colour, horizon (dark, middle, bright), extras
+    "movie": dict(stone=(92, 84, 76), track=(66, 62, 58), horizon=((24, 52, 150), (90, 140, 240), (220, 236, 255))),
+    "origins": dict(stone=(142, 120, 88), track=(112, 94, 68), horizon=((70, 110, 170), (150, 190, 230), (240, 246, 255)), wear=True),
+    "continuum": dict(stone=(176, 186, 196), track=(142, 152, 164), horizon=((60, 130, 200), (150, 205, 245), (245, 252, 255)), frost=True),
+    "ark": dict(stone=(178, 142, 64), track=(140, 108, 44), horizon=((150, 90, 10), (230, 170, 50), (255, 240, 170))),
+    "atlantis": dict(stone=(92, 108, 132), track=(66, 80, 104), horizon=((20, 70, 180), (70, 150, 250), (210, 235, 255))),
+    "universe": dict(stone=(60, 62, 68), track=(44, 46, 52), horizon=((40, 70, 140), (150, 180, 240), (250, 252, 255))),
+    "infinity": dict(stone=(196, 204, 216), track=(166, 174, 188), cartoon=True),
+    "ori": dict(stone=(44, 44, 50), track=(32, 32, 38), horizon=((30, 50, 130), (140, 170, 240), (250, 250, 255))),
+    "tollan": dict(stone=(122, 142, 130), track=(96, 114, 104), horizon=((20, 110, 60), (80, 200, 120), (210, 255, 220))),
+    "goauld": dict(stone=(132, 102, 62), track=(100, 76, 44), horizon=((150, 70, 10), (230, 140, 40), (255, 225, 150))),
+    "wraith": dict(stone=(72, 60, 84), track=(54, 44, 64), horizon=((70, 20, 120), (150, 70, 220), (235, 200, 255))),
+    "crimson": dict(stone=(84, 58, 58), track=(64, 42, 42), horizon=((120, 10, 10), (220, 50, 40), (255, 200, 170))),
+}
+
+
+def look_stone(spec, seed):
+    base = spec["stone"]
+    img = noise_tile(64, 64, base, 34 if spec.get("cartoon") else 70, 7 + seed)
+    d = ImageDraw.Draw(img)
+    dark = tuple(clamp(c * 0.64) for c in base) + (255,)
+    light = tuple(clamp(c * 1.3) for c in base) + (255,)
+    if spec.get("cartoon"):
+        # flat colour with black ink outlines, like the animated series
+        ink = (24, 26, 34, 255)
+        for y in (1, 2, 61, 62):
+            d.line([(0, y), (63, y)], fill=ink)
+        for y in (21, 42):
+            d.line([(0, y), (63, y)], fill=(120, 128, 142, 255))
+        d.line([(0, 0), (0, 63)], fill=ink, width=2)
+        return img
+    for y, col in ((3, dark), (4, light), (20, dark), (21, light), (42, dark), (43, light), (59, dark), (60, light)):
+        d.line([(0, y), (63, y)], fill=col)
+    d.line([(0, 0), (0, 63)], fill=dark)
+    rnd = random.Random(40 + seed)
+    px = img.load()
+    if spec.get("wear"):
+        # chips and grime on old stone
+        for _ in range(90):
+            x, y = rnd.randrange(64), rnd.randrange(64)
+            c = px[x, y]
+            px[x, y] = tuple(clamp(v * 0.62) for v in c[:3]) + (255,)
+    if spec.get("frost"):
+        for _ in range(160):
+            x, y = rnd.randrange(64), rnd.randrange(64)
+            px[x, y] = (236, 244, 252, 255)
+    return img
+
+
+def look_track(spec, seed):
+    base = spec["track"]
+    img = noise_tile(64, 64, base, 24 if spec.get("cartoon") else 40, 11 + seed)
+    d = ImageDraw.Draw(img)
+    edge = (24, 26, 34, 255) if spec.get("cartoon") else tuple(clamp(c * 0.6) for c in base) + (255,)
+    d.line([(0, 0), (0, 63)], fill=edge, width=2 if spec.get("cartoon") else 1)
+    d.line([(63, 0), (63, 63)], fill=tuple(clamp(c * 1.2) for c in base) + (255,))
+    d.line([(0, 2), (63, 2)], fill=edge)
+    d.line([(0, 61), (63, 61)], fill=edge)
+    return img
+
+
+def look_horizon(spec, seed):
+    """Water like the original horizon, in the look's colours."""
+    if spec.get("cartoon"):
+        return cartoon_horizon()
+    dark, mid, bright = spec["horizon"]
+    s = 128
+    img = Image.new("RGBA", (s, s))
+    px = img.load()
+    rnd = random.Random(3)  # same waves as the original, so all looks move alike
+    waves = [(rnd.uniform(0.04, 0.16), rnd.uniform(0, math.tau), rnd.uniform(0, math.tau)) for _ in range(9)]
+    for y in range(s):
+        for x in range(s):
+            v = 0.0
+            for f, ph, ang in waves:
+                v += math.sin((x * math.cos(ang) + y * math.sin(ang)) * f + ph)
+            light = 1 - abs(v / len(waves)) ** 0.5
+            col = [dark[i] + (mid[i] - dark[i]) * light + (bright[i] - mid[i]) * light ** 4 for i in range(3)]
+            px[x, y] = tuple(clamp(c) for c in col) + (228,)
+    return img.filter(ImageFilter.GaussianBlur(0.6))
+
+
+def cartoon_horizon():
+    """Flat bright cyan with white crescent streaks, like the animated series' wormhole."""
+    s = 128
+    img = Image.new("RGBA", (s, s), (38, 196, 232, 236))
+    d = ImageDraw.Draw(img)
+    rnd = random.Random(17)
+    # a lighter middle
+    for r in range(56, 0, -4):
+        t = 1 - r / 56
+        d.ellipse([64 - r, 64 - r, 64 + r, 64 + r], fill=(clamp(38 + 60 * t), clamp(196 + 30 * t), clamp(232 + 18 * t), 236))
+    for _ in range(46):
+        cx, cy = rnd.uniform(0, s), rnd.uniform(0, s)
+        r = rnd.uniform(6, 22)
+        start = rnd.uniform(0, 360)
+        d.arc([cx - r, cy - r, cx + r, cy + r], start, start + rnd.uniform(40, 110), fill=(246, 252, 255, 255), width=rnd.choice((2, 3, 3, 4)))
+    return img
+
+
+def look_crystal_icon():
+    s = 64
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.polygon([(32, 4), (48, 22), (40, 58), (24, 58), (16, 22)], fill=(150, 96, 220, 255), outline=(70, 36, 120, 255))
+    d.polygon([(32, 4), (40, 22), (32, 58), (24, 22)], fill=(196, 150, 250, 255))
+    d.line([(16, 22), (48, 22)], fill=(90, 50, 150, 255), width=2)
+    for x, col in ((22, (240, 140, 40)), (32, (80, 200, 240)), (42, (120, 220, 120))):
+        d.ellipse([x - 3, 34, x + 3, 40], fill=col + (255,))
+    return img.resize((16, 16), Image.LANCZOS)
 
 
 # --------------------------------------------------------------------------
@@ -338,6 +456,25 @@ LANG = {
     "screen.chevron7.gate_n": "Gate %s of %s",
     "message.chevron7.bad_direction": "The direction is north, east, south or west",
     "message.chevron7.field_built": "Built a gate field of %s gates",
+    "item.chevron7.look_crystal": "Gate Look Crystal",
+    "message.chevron7.look": "Gate look: %s",
+    "message.chevron7.looks": "Gate looks: %s",
+    "message.chevron7.bad_look": "There is no look called %s",
+    "message.chevron7.platform_built": "Built a gate on a platform",
+    "message.chevron7.gate_room_built": "Built a gate room",
+    "look.chevron7.sg1": "SG-1",
+    "look.chevron7.movie": "Movie",
+    "look.chevron7.origins": "Origins",
+    "look.chevron7.continuum": "Continuum",
+    "look.chevron7.ark": "Ark of Truth",
+    "look.chevron7.atlantis": "Atlantis",
+    "look.chevron7.universe": "Universe",
+    "look.chevron7.infinity": "Infinity",
+    "look.chevron7.ori": "Ori",
+    "look.chevron7.tollan": "Tollan",
+    "look.chevron7.goauld": "Goa'uld",
+    "look.chevron7.wraith": "Wraith",
+    "look.chevron7.crimson": "Crimson",
 }
 
 
@@ -381,6 +518,7 @@ def data_files():
     write_json(os.path.join(ASSETS, "models", "item", "stargate.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/stargate"}})
     write_json(os.path.join(ASSETS, "models", "item", "iris.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/iris"}})
     write_json(os.path.join(ASSETS, "models", "item", "address_book.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/address_book"}})
+    write_json(os.path.join(ASSETS, "models", "item", "look_crystal.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/look_crystal"}})
     write_json(os.path.join(ASSETS, "models", "item", "dhd.json"), {"parent": "chevron7:block/dhd"})
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), LANG)
 
@@ -406,6 +544,11 @@ def data_files():
            {"R": "minecraft:redstone_block", "G": "minecraft:gold_ingot", "C": "minecraft:compass", "S": "minecraft:smooth_sandstone"},
            "chevron7:dhd")
     shaped("iris", ["III", "ITI", "III"], {"I": "minecraft:iron_ingot", "T": "minecraft:iron_trapdoor"}, "chevron7:iris")
+    write_json(os.path.join(DATA, "recipes", "look_crystal.json"), {
+        "type": "minecraft:crafting_shapeless", "category": "misc",
+        "ingredients": [{"item": "minecraft:amethyst_shard"}, {"item": "minecraft:quartz"}, {"item": "minecraft:glowstone_dust"}],
+        "result": {"item": "chevron7:look_crystal", "count": 1},
+    })
     write_json(os.path.join(DATA, "recipes", "address_book.json"), {
         "type": "minecraft:crafting_shapeless", "category": "misc",
         "ingredients": [{"item": "minecraft:book"}, {"item": "minecraft:ender_eye"}],
@@ -478,6 +621,11 @@ def main():
     save(gate_icon(), "item", "stargate")
     save(iris_icon(), "item", "iris")
     save(address_book_icon(), "item", "address_book")
+    save(look_crystal_icon(), "item", "look_crystal")
+    for i, (look, spec) in enumerate(LOOKS.items()):
+        save(look_stone(spec, i), "entity", "gate_stone_" + look)
+        save(look_track(spec, i), "entity", "gate_track_" + look)
+        save(look_horizon(spec, i), "entity", "event_horizon_" + look)
     data_files()
     print("resources written to", os.path.normpath(RES))
 

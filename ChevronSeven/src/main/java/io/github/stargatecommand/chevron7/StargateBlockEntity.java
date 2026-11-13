@@ -130,6 +130,8 @@ public class StargateBlockEntity extends BlockEntity
 	 */
 	private boolean forced;
 
+	private GateLook look = GateLook.SG1;
+
 	// iris
 	private boolean irisInstalled, irisClosed;
 	private long irisTick = -1000;
@@ -410,6 +412,17 @@ public class StargateBlockEntity extends BlockEntity
 			state = State.IDLE;
 			stateTick = now();
 		}
+	}
+
+	public GateLook getLook()
+	{
+		return look;
+	}
+
+	public void setLook(GateLook look)
+	{
+		this.look = look;
+		sync();
 	}
 
 	public void installIris()
@@ -1087,6 +1100,7 @@ public class StargateBlockEntity extends BlockEntity
 		}
 		tag.putIntArray("RemoteAddress", remoteAddress);
 		tag.putBoolean("Forced", forced);
+		tag.putString("Look", look.id);
 		tag.putBoolean("Iris", irisInstalled);
 		tag.putBoolean("IrisClosed", irisClosed);
 		tag.putLong("IrisTick", irisTick);
@@ -1130,6 +1144,8 @@ public class StargateBlockEntity extends BlockEntity
 		remotePos = tag.contains("RemotePos") ? BlockPos.of(tag.getLong("RemotePos")) : null;
 		remoteAddress = tag.getIntArray("RemoteAddress");
 		forced = tag.getBoolean("Forced");
+		GateLook saved = GateLook.byId(tag.getString("Look"));
+		look = saved == null ? GateLook.SG1 : saved;
 		irisInstalled = tag.getBoolean("Iris");
 		irisClosed = tag.getBoolean("IrisClosed");
 		irisTick = tag.contains("IrisTick") ? tag.getLong("IrisTick") : -1000;

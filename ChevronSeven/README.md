@@ -23,8 +23,49 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
 | **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
-| **Gate Iris** | Use it on a gate to fit an iris. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
+| **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
+| **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
 | **Gate Address Book** | Use it to read the address of every planet's gate (see [planet gates](#planet-gates)). | a book and an eye of ender |
+
+## Gate looks
+
+![The gate looks](../imgs/GateLooks.jpg)
+
+*Every look, each on a gate platform with its wormhole open, in a Minecraft 1.20.1 client.*
+
+Every gate can have its own look: its ring and symbol track, the colour of its chevrons and symbols, its event horizon and its iris all change with it. A new gate starts with the SG-1 look. Change it with the **Gate Look Crystal** or `/chevron7 look <pos> <look>`.
+
+| Look | |
+|---|---|
+| `sg1` | grey stone, orange chevrons, blue water |
+| `movie` | darker, browner stone, deep orange chevrons |
+| `origins` | the weathered 1939 gate: chipped sandstone-coloured stone |
+| `continuum` | the frozen gate: pale stone with frost |
+| `ark` | gold, with a golden wormhole (Ark of Truth) |
+| `atlantis` | blue-grey stone, blue chevrons (Pegasus) |
+| `universe` | dark grey, white chevrons, a starry-white horizon (Destiny) |
+| `infinity` | the animated series: a pale ring with black ink outlines, orange chevrons, a flat bright cyan wormhole with white streaks |
+| `ori` | nearly black, pale blue chevrons |
+| `tollan` | grey-green, green chevrons, a green wormhole |
+| `goauld` | bronze, amber chevrons, an orange wormhole |
+| `wraith` | purple-grey, violet chevrons, a violet wormhole |
+| `crimson` | dark red, red chevrons, a red wormhole |
+
+`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves. Looks are only colours and textures: the gate works the same in every one.
+
+## Gate platforms and the gate room
+
+![Gate platforms](../imgs/GatePlatforms.jpg)
+
+*Left: `/chevron7 platform` on flat ground. Right: the gate on Mars, which now stands on a platform too. Both from a Minecraft 1.20.1 client.*
+
+`/chevron7 platform <pos> [direction] [look] [style]` builds a gate on a raised stone dais: two steps up the front, the gate's own step on top, a lantern on a post at each corner and a DHD in front, on a paved plaza. The style is the stone it's made of: `stone`, `deepslate`, `sandstone` or `blackstone`. Without a direction the gate faces whoever runs the command. Planet sites are built this way now.
+
+![The Infinity gate room](../imgs/GateRoomInfinity.jpg)
+
+*`/chevron7 gateroom`, with the wormhole open, in a Minecraft 1.20.1 client.*
+
+`/chevron7 gateroom <pos> [direction]` builds a gate room after the animated series: an Infinity-look gate on a base at the top of a copper ramp with red rails, a pale halo on the wall behind it and yellow and lime light bars fanned out around it. The room is lit and open at the front, and has a DHD by the ramp.
 
 ## Gate fields
 
@@ -42,9 +83,9 @@ A gate field is five gates on an arc around a clearing, each at the end of a dir
 
 ![The gate on Mars](../imgs/PlanetGateMars.jpg)
 
-*Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad, with a wormhole open from a gate on Earth.*
+*Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad (1.1), with a wormhole open from a gate on Earth. Since 1.2.0 the gate stands on a [platform](#gate-platforms-and-the-gate-room).*
 
-With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a paved pad near 8, 6 with the gate, a step up to it and a DHD.
+With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a stone platform near 8, 6 with the gate on top, stairs up to it and a DHD. Planets visited before 1.2.0 keep their paved pad.
 
 - Every planet's gate has its own address, fixed for the world. The **Gate Address Book** (or `/chevron7 planets`) lists them.
 - You can dial a planet before anyone has been there: the first wormhole to it generates the planet's gate. A gate on Earth can dial Mars directly.
@@ -88,6 +129,10 @@ For operators:
 /chevron7 iris <pos> open|close
 /chevron7 field <pos> [direction] [gates]   build a gate field (see above)
 /chevron7 planets                       the planets' gate addresses
+/chevron7 look <pos> <look>             change a gate's look
+/chevron7 looks                         list the looks
+/chevron7 platform <pos> [direction] [look] [style]   build a gate on a platform
+/chevron7 gateroom <pos> [direction]    build an Infinity gate room
 ```
 
 `<pos>` can be any block of the ring.
@@ -106,7 +151,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.1.3.jar`](dist/chevron7-1.1.3.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.2.0.jar`](dist/chevron7-1.2.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -157,6 +202,17 @@ Put [`dist/chevron7-1.1.3.jar`](dist/chevron7-1.1.3.jar) in the `mods` folder (c
 
 *Gate fields built with `/chevron7 field` in a dark forest, in a Minecraft 1.20.1 client. Left: 1.1.2, with gates up the hillside among the trunks and the DHD on a block of grass. Right: 1.1.3, with the trees cleared and the clearing level, the DHD on the path and every gate on its step.*
 
+- **Looks, iris, platforms and the gate room (1.2.0)**, in a Minecraft 1.20.1 client on a flat test world with Ad Astra:
+  - `/chevron7 platform` built 14 gates in every look and all four stone styles. Seven pairs dialed each other at once, and every look's ring, chevrons and wormhole showed as in the picture above.
+  - The Gate Look Crystal stepped a gate forward through the looks with each use, and back with a sneak-use. The look is kept when the server restarts.
+  - Fitted to an SG-1 and an Infinity gate, the iris closed as a spiral of curved blades, grey on the one and light blue with black ink lines on the other.
+  - `/chevron7 gateroom` built the room. Dialed from it, a player walked up the copper ramp into the gate and came out at the gate on the other platform.
+  - Dialing Mars generated its site as a platform, with the gate and stairs in place.
+
+![The spiral iris](../imgs/GateIrisSpiral.jpg)
+
+*The iris closing and shut on an SG-1 gate (left two) and an Infinity gate (right two).*
+
 ## Build
 
 ```
@@ -164,7 +220,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.1.3.jar`.
+The jar is `build/libs/chevron7-1.2.0.jar`.
 
 ## License
 

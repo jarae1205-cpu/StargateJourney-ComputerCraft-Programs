@@ -75,6 +75,8 @@ public class Chevron7
 			() -> new IrisItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> ADDRESS_BOOK = ITEMS.register("address_book",
 			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> LOOK_CRYSTAL = ITEMS.register("look_crystal",
+			() -> new LookCrystalItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
 			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));

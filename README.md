@@ -60,7 +60,8 @@ Not ComputerCraft programs, but made to go with them:
 ### [Chevron Seven](./ChevronSeven/)
 A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - A 7-block ring gate with a turning symbol track, chevrons, kawoosh, event horizon and travel between gates, even across dimensions
- - Dial Home Device, iris, automatic closing, chunk loading while a wormhole is open
+ - Dial Home Device, a spiral iris, automatic closing, chunk loading while a wormhole is open
+ - 13 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity and more), gate platforms and an Infinity-style gate room
  - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
