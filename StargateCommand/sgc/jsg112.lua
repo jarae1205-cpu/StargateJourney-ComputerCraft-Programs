@@ -51,16 +51,32 @@ local function failed(result)
         or result:find("error", 1, true) ~= nil or result:find("invalid", 1, true) ~= nil
 end
 
--- calls a JSG method; returns true or false + a reason
+-- calls a JSG method; returns true, or false + a reason + JSG's code
 -- (a refusal comes back as nil, "stargate_failure_busy", "Stargate is busy, ...")
 local function command(g, method, ...)
     local pc, result, code, text = g:try(method, ...)
     if not pc then return false, (tostring(result):gsub("^.-:%d+: ", "")) end
     if result == nil and type(code) == "string" then
-        return false, type(text) == "string" and text or M.reason(code)
+        return false, type(text) == "string" and text or M.reason(code), code
     end
-    if failed(result) then return false, type(code) == "string" and code or M.reason(result) end
+    if failed(result) then return false, type(code) == "string" and code or M.reason(result), result end
     return true
+end
+
+-- JSG refuses a command while the ring turns or a chevron is still locking:
+-- try again until the gate takes it
+local function untilAccepted(g, opts, timeout, method, ...)
+    local G = require("sgc.gate")
+    local args = table.pack(...)
+    local lastWhy
+    local accepted = G.waitUntil(opts, function()
+        local ok, why, code = command(g, method, table.unpack(args, 1, args.n))
+        if ok then return true end
+        if code ~= "stargate_failure_busy" then G.fail(why) end
+        lastWhy = why
+        return false
+    end, timeout)
+    if not accepted then G.fail(lastWhy or "The gate stayed busy") end
 end
 
 -- the symbols dialed so far, from dialedAddress ("[Eridanus, Crater]" or a table)
@@ -215,8 +231,7 @@ function M.dial(g, address, opts)
     for i, symbol in ipairs(list) do
         G.pause(opts)
         if opts.onStep then opts.onStep(i, symbol, #list) end
-        local ok, why = command(g, "engageSymbol", symbol)
-        if not ok then G.fail(why) end
+        untilAccepted(g, opts, opts.stepTimeout or 60, "engageSymbol", symbol)
         if not G.waitUntil(opts, function()
             if g.lastFailure then G.fail(g.lastFailure) end
             return #M.dialedList(g:call("dialedAddress")) >= i
@@ -226,8 +241,7 @@ function M.dial(g, address, opts)
         g.chevrons = i
     end
 
-    local ok, why = command(g, "engageGate")
-    if not ok then G.fail(why) end
+    untilAccepted(g, opts, 10, "engageGate")
     if not G.waitUntil(opts, function()
         if g.lastFailure then G.fail(g.lastFailure) end
         local st = status(g)
