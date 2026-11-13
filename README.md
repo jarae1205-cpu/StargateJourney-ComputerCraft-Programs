@@ -48,8 +48,9 @@
  - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
  - Shares its address book, iris codes and gate log files with the ComputerCraft programs
+ - Tested in a Minecraft 1.12.2 world with OpenComputers 1.8.10 and JSG; SGCraft so far only in an emulator
 
-![gatedial on OpenComputers](./imgs/OpenComputers.png)
+![gatedial in a Minecraft 1.12.2 world](./imgs/OpenComputersInGame.jpg)
 
 ## Mods and resource packs
 

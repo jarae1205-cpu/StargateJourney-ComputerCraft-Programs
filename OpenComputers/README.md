@@ -11,6 +11,10 @@ It is the OpenComputers version of the [Personal Dialer](../PersonalDialer/) and
 
 *Left: dialing Abydos on an SGCraft gate, with a tier 3 screen and graphics card (160x50). Right: a JSG 1.12.2 gate on a tier 2 screen (80x25), with the wormhole open and the iris code sent, then a player coming through an incoming wormhole. These screens were rendered from a headless OpenOS test harness with simulated gates, not captured in-game.*
 
+![gatedial in a Minecraft 1.12.2 world](../imgs/OpenComputersInGame.jpg)
+
+*In a Minecraft 1.12.2 world with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top left: the installer, downloaded with `wget` on an in-game computer. Top right: gatedial has dialed the other gate and sent its iris code. Bottom left: the computer at the other gate as that call comes in; the code 1234 is accepted. Bottom right: the gate with its wormhole open.*
+
 ## Install
 
 You need an internet card. In the OpenOS shell:
@@ -20,12 +24,14 @@ wget -f https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-Computer
 /tmp/install.lua
 ```
 
-This puts `gatedial` and `idc` in `/home/bin` and the `sgc` library in `/home/lib/sgc`. Run the installer again to update; it downloads every file before it changes anything. Your address book, iris codes and gate log stay as they are.
+This puts `gatedial` and `idc` in `/home/bin` and the `sgc` library in `/home/lib/sgc`. Run the installer again to update; it downloads every file before it changes anything. Your address book, iris codes and gate log stay as they are. Then `reboot`: OpenOS keeps the libraries it has loaded in memory, so until a reboot the computer keeps using the old ones.
 
 ## Connect the gate
 
 - **SGCraft**: place SGCraft's OpenComputers interface block against the gate's base and connect it to the computer with cable. It shows up as a `stargate` component.
 - **JSG 1.12.2**: connect the gate's base block to the computer with cable. It is a `stargate` component too. To open and close the iris from the computer, set the iris mode to OC in the gate's GUI.
+
+JSG closes a wormhole by itself when no player has been nearby for 5 seconds ("Autoclose" in JSG's `stargates.cfg`). gatedial logs that as a close with the reason Autoclose. Raise the time or turn it off in that config if your computers should keep wormholes open on their own.
 
 Then run `gatedial`. Run `components` in the shell if the gate is not found.
 
@@ -83,4 +89,12 @@ At the top of `gatedial.lua`:
 
 ## Tested
 
-gatedial was tested in a headless OpenOS emulator with simulated SGCraft and JSG 1.12.2 gates. The JSG side follows the OpenComputers methods and signals in JSG 4.11.2.8. It has not been run in a real Minecraft 1.12.2 or 1.7.10 world yet, so please open an issue if a gate behaves differently.
+**In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Two computers, each with a tier 2 screen, were cabled to the bases of two JSG Milky Way gates:
+
+- The installer, typed into OpenOS on a computer with an internet card, downloaded all 12 files from GitHub.
+- gatedial found the gate and showed its address, state and energy. It dialed the other gate one symbol at a time; the wormhole opened and the iris code was sent.
+- At the other gate, gatedial showed the incoming wormhole. The code arrived through JSG's GDO and was accepted, after `idc add 1234 SG-1`.
+- Closing worked from either computer, and both gate logs recorded the calls.
+- The test found two bugs, both fixed. JSG gives `dialedAddress` as a string, and a gate stays busy for a moment after each chevron locks. Before the fixes, every dial failed with "Chevron 1 did not lock".
+
+Not tried in a real world yet: SGCraft (tested only in a headless OpenOS emulator with a simulated gate), the gate picture on a tier 3 screen, and the iris (the test gates had none). Please open an issue if a gate behaves differently.

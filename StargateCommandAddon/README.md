@@ -42,7 +42,13 @@ Everything is in the **Stargate Command** creative tab.
 
 On a dedicated Forge 1.20.1 (47.4.29) server with Stargate Journey 0.6.54: two gates on the network, one dials the other (with a kawoosh), then disconnects. The alarm by the receiving gate came on during the kawoosh, stayed on while the wormhole was open and went off after the disconnect. Its redstone input also worked. The monitor read incoming, then open, then idle, counting the chevrons up to 9. The four variants and all recipes loaded into the game.
 
-Not yet tried on a client with graphics: the textures, the light animation and the klaxon sound have not been seen or heard in game.
+In a Minecraft 1.20.1 client joined to that server, the blocks and the four gate variants render as intended:
+
+![The addon in game](../imgs/AddonInGame.jpg)
+
+*Stargate Journey 0.6.54 in a Minecraft 1.20.1 client. Left, from the left: the Infinity, Ark of Truth, Continuum and Origins looks and an ordinary Milky Way gate; all but the Ark of Truth gate have a wormhole open. In front: hazard stripes, wall panel, ramp slab, ramp stairs, ramp grating, the gate monitor and two alarm lights (the one with a redstone block behind it is lit). Right: the same blocks closer.*
+
+The ramp blocks are see-through grating, so a full block of it looks like a cage, the way other see-through blocks do. Not checked yet: the alarm light's flashing (seen only lit and unlit) and the klaxon sound (the test machine had no sound device).
 
 ## Build
 

@@ -9,7 +9,7 @@ A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own g
 - A ring seven blocks across, with a symbol track that turns to each symbol, nine chevrons, and an event horizon that ripples and swirls.
 - Dialing locks seven chevrons: six symbols, then the point of origin. The ring turns one way, then the other, and the top chevron engages each symbol.
 - The wormhole opens with a kawoosh. The vortex vaporises anything standing in front of the gate (you can turn this off).
-- Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back.
+- Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back. The bottom of the ring is a solid block, so jump in, or build a step up to the gate.
 - The wormhole closes by itself after five minutes (configurable, up to 38 minutes). Only the dialing gate can close it, unless you allow it in the config.
 - Both gates keep their chunks loaded while they are connected.
 - The ring lights up its surroundings while a wormhole is open.
@@ -129,7 +129,12 @@ Put [`dist/chevron7-1.1.0.jar`](dist/chevron7-1.1.0.jar) in the `mods` folder (c
   - Without Ad Astra, the mod loads and the address book says there are no planets.
   - In a Minecraft 1.20.1 client, on a server set up the same way, a gate on Earth dialed Mars, and the Mars gate opened its end of the wormhole. The picture above is from that client.
 
-Not tested: playing with several people, and the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
+- **Two players**, each in a Minecraft 1.20.1 client, on a server with Ad Astra:
+  - One player jumped into the gate on Earth and came out of the gate on Mars, then jumped back through a wormhole dialed from Mars.
+  - The other player, beside the Earth gate, saw the wormhole and the first player.
+  - Walking straight at the gate doesn't take you through: the bottom of the ring is a block, so you have to jump.
+
+Not tested: the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
 
 ## Build
 
