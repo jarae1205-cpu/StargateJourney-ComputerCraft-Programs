@@ -154,7 +154,7 @@ function G.new(p, name, ptype)
         impl = impl(mod),
         interfaceName = G.INTERFACE_NAMES[mod ~= "sgjourney" and mod or ptype] or G.INTERFACE_NAMES[ptype] or tostring(ptype),
         -- the point of origin as the gate names it (nil: SGCraft addresses have none)
-        originSymbol = (mod == "sgcraft") and nil or 0,
+        originSymbol = (mod ~= "sgcraft") and 0 or nil,
         energyUnit = (mod == "sgcraft") and "SU" or "FE",
         state = "IDLE", chevrons = 0, connected = false, outgoing = false,
         engaged = {},          -- symbols locked so far (for display)
