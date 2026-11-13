@@ -123,6 +123,7 @@ public final class PlanetGates
 		}
 		if(level.getBlockEntity(core) instanceof StargateBlockEntity gate)
 			gate.presetAddress(addressFor(seed, dimension));
+		GateField.placeStep(level, core, facing, Blocks.POLISHED_ANDESITE_STAIRS, flags);
 		level.setBlock(core.relative(facing, 5), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), flags);
 		return true;
 	}

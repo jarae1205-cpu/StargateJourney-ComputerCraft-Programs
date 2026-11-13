@@ -9,7 +9,7 @@ A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own g
 - A ring seven blocks across, with a symbol track that turns to each symbol, nine chevrons, and an event horizon that ripples and swirls.
 - Dialing locks seven chevrons: six symbols, then the point of origin. The ring turns one way, then the other, and the top chevron engages each symbol.
 - The wormhole opens with a kawoosh. The vortex vaporises anything standing in front of the gate (you can turn this off).
-- Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back. The bottom of the ring is a solid block, so jump in, or build a step up to the gate.
+- Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back. The bottom of the ring is a solid block. Gates in gate fields and at the planet sites have a step in front, so you can walk in; for a gate you place yourself, put stairs in front of it, or jump in.
 - The wormhole closes by itself after five minutes (configurable, up to 38 minutes). Only the dialing gate can close it, unless you allow it in the config.
 - Both gates keep their chunks loaded while they are connected.
 - The ring lights up its surroundings while a wormhole is open.
@@ -32,7 +32,7 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 
 *A gate field in a Minecraft 1.20.1 client: five gates around a clearing, with the DHD in the middle choosing which gate dials. Bottom right: the middle gate has dialed the leftmost one.*
 
-A gate field is five gates on an arc around a clearing, each at the end of a dirt path, with one DHD in the middle that can dial from any of them. The outer gates turn towards the middle as far as a gate can (gates face north, east, south or west).
+A gate field is five gates on an arc around a clearing, each at the end of a dirt path with a step up to it, with one DHD in the middle that can dial from any of them. The outer gates turn towards the middle as far as a gate can (gates face north, east, south or west).
 
 - They appear by themselves, rarely, in plains, sunflower plains, meadows and savannas, on flat dry ground. Every gate has its own address.
 - An operator can build one anywhere: `/chevron7 field <pos> [direction] [gates]`, e.g. `/chevron7 field ~ ~ ~ north 5`. The gates stand 13 blocks from `<pos>` in that direction; 1 to 7 gates.
@@ -44,7 +44,7 @@ A gate field is five gates on an arc around a clearing, each at the end of a dir
 
 *Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad, with a wormhole open from a gate on Earth.*
 
-With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a paved pad near 8, 6 with the gate and a DHD.
+With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a paved pad near 8, 6 with the gate, a step up to it and a DHD.
 
 - Every planet's gate has its own address, fixed for the world. The **Gate Address Book** (or `/chevron7 planets`) lists them.
 - You can dial a planet before anyone has been there: the first wormhole to it generates the planet's gate. A gate on Earth can dial Mars directly.
@@ -106,7 +106,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.1.0.jar`](dist/chevron7-1.1.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.1.1.jar`](dist/chevron7-1.1.1.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -132,7 +132,15 @@ Put [`dist/chevron7-1.1.0.jar`](dist/chevron7-1.1.0.jar) in the `mods` folder (c
 - **Two players**, each in a Minecraft 1.20.1 client, on a server with Ad Astra:
   - One player jumped into the gate on Earth and came out of the gate on Mars, then jumped back through a wormhole dialed from Mars.
   - The other player, beside the Earth gate, saw the wormhole and the first player.
-  - Walking straight at the gate doesn't take you through: the bottom of the ring is a block, so you have to jump.
+  - Walking straight at the gate didn't take you through, because the bottom of the ring is a block; you had to jump. 1.1.1 adds the steps below.
+
+- **Steps (1.1.1)**, in a Minecraft 1.20.1 client on a server with Ad Astra:
+  - `/chevron7 field` put stairs in front of all five gates, and Mars's gate site got a step in front of its gate.
+  - A player walked, without jumping, up the step of a field gate into the wormhole and came out on Mars, then walked up the step on Mars's pad and came back.
+
+![The steps](../imgs/GateSteps.jpg)
+
+*Left: a gate in a gate field, with the path leading up to its step. Right: the gate on Mars, with its step on the paved pad. Both from a Minecraft 1.20.1 client.*
 
 Not tested: the sounds (all of them are Minecraft's own sounds; the test machine had no sound device).
 
@@ -143,7 +151,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.1.0.jar`.
+The jar is `build/libs/chevron7-1.1.1.jar`.
 
 ## License
 

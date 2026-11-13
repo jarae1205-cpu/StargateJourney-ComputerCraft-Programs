@@ -9,7 +9,10 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
@@ -101,6 +104,7 @@ public final class GateField
 						.setValue(GateFrameBlock.FACING, facing).setValue(GateFrameBlock.PART, part), flags);
 			}
 			gates.add(core);
+			placeStep(level, core, facing, Blocks.STONE_BRICK_STAIRS, flags);
 
 			// a path from the middle to the step in front of the gate
 			path(level, center, core.relative(facing, 2), heightmap, flags);
@@ -116,6 +120,21 @@ public final class GateField
 					pathBlock(level, center.offset(dx, 0, dz), heightmap, flags);
 		level.setBlock(center, Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, opens.getOpposite()), flags);
 		return gates;
+	}
+
+	/**
+	 * The bottom of the ring is a solid block. A row of three stairs in front of it, rising
+	 * towards the gate, lets people walk into the event horizon instead of jumping.
+	 */
+	public static void placeStep(LevelAccessor level, BlockPos core, Direction facing, Block stairs, int flags)
+	{
+		BlockState step = stairs.defaultBlockState()
+				.setValue(StairBlock.FACING, facing.getOpposite())
+				.setValue(StairBlock.HALF, Half.BOTTOM)
+				.setValue(StairBlock.SHAPE, StairsShape.STRAIGHT);
+		Direction right = GateShape.right(facing);
+		for(int x = -1; x <= 1; x++)
+			level.setBlock(core.relative(right, x).relative(facing), step, flags);
 	}
 
 	private static void fillDown(LevelAccessor level, BlockPos pos, int flags)
