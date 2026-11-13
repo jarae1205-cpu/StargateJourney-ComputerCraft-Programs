@@ -53,7 +53,7 @@ A tier 2 screen and graphics card is enough. With tier 3 (160x50), gatedial also
 
 On a touch screen, tap an address to pick it and tap it again to dial. The buttons along the bottom do the same as the keys.
 
-New and edit ask for a name, an address and the iris code to send when you dial it. Addresses are typed the way the gate shows them: SGCraft letters such as `WLDQ-DQB-MT`, or JSG symbol names separated by commas such as `Aquila, Cetus, Gemini, Leo, Scorpius, Orion`. An entry with the wrong kind of address for the gate is shown but not dialed.
+New and edit ask for a name, an address and the iris code to send when you dial it. When you edit, each question shows the current value in [brackets]: press Enter to keep it, or type `-` to clear it. Addresses are typed the way the gate shows them: SGCraft letters such as `WLDQ-DQB-MT`, or JSG symbol names separated by commas such as `Aquila, Cetus, Gemini, Leo, Scorpius, Orion`. An entry with the wrong kind of address for the gate is shown but not dialed.
 
 ## Iris codes
 
