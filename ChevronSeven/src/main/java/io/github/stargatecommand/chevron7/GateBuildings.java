@@ -287,6 +287,22 @@ public final class GateBuildings
 		f.fill(-reach, 0, -1, reach, height, 1, Blocks.AIR);
 		f.foundation(0, 0, Blocks.STONE);
 		level.setBlock(ground, Chevron7.SUPERGATE.get().defaultBlockState().setValue(StargateBlock.FACING, facing), FLAGS);
+		// the bottom of the horizon is this far up, so a landing under it and stairs up the front
+		int lift = (int) Math.ceil(GateShape.CENTER_HEIGHT - 3.42 + (3.42 - GateShape.HORIZON_RADIUS) * SupergateBlock.SCALE);
+		for(int x = -2; x <= 2; x++)
+		{
+			for(int y = 0; y < lift; y++)
+				for(int d = 0; d <= 1; d++)
+					if(x != 0 || y != 0 || d != 0)
+						f.set(x, y, d, Blocks.POLISHED_BLACKSTONE_BRICKS);
+			for(int step = 1; step <= lift; step++)
+			{
+				int d = 1 + step, y = lift - step;
+				for(int below = 0; below < y; below++)
+					f.set(x, below, d, Blocks.POLISHED_BLACKSTONE_BRICKS);
+				f.stairs(x, y, d, Blocks.POLISHED_BLACKSTONE_BRICK_STAIRS);
+			}
+		}
 		if(level.getBlockEntity(ground) instanceof StargateBlockEntity gate)
 		{
 			gate.setLook(GateLook.ORI);
@@ -327,11 +343,7 @@ public final class GateBuildings
 	{
 		int h = (a * 73856093) ^ (b * 19349663) ^ (c * 83492791);
 		h = (h ^ (h >>> 13)) & 15;
-		if(h < 3)
-			return Blocks.BROWN_TERRACOTTA;
-		if(h < 8)
-			return Blocks.YELLOW_TERRACOTTA;
-		return Blocks.TERRACOTTA;
+		return h < 4 ? Blocks.ORANGE_TERRACOTTA : Blocks.TERRACOTTA;
 	}
 
 	/**

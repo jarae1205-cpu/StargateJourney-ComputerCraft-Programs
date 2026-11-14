@@ -184,13 +184,13 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 			float a0 = (float) Math.toRadians(k * span + gap), a1 = (float) Math.toRadians((k + 1) * span - gap);
 			segment(stone, m, n, r1, r2, d, a0, a1, light);
 		}
-		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(CHEVRON));
+		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(DHDRenderer.KEY));
 		for(int k = 0; k < lit; k++)
 		{
 			float a0 = (float) Math.toRadians(k * span + gap * 1.6F), a1 = (float) Math.toRadians((k + 1) * span - gap * 1.6F);
 			float s0 = Mth.sin(a0), c0 = Mth.cos(a0), s1 = Mth.sin(a1), c1 = Mth.cos(a1);
 			float q1 = r1 + 0.05F, q2 = r1 + 0.32F;
-			float[] uv = {0.3F, 0.3F, 0.7F, 0.3F, 0.7F, 0.7F, 0.3F, 0.7F};
+			float[] uv = {0.35F, 0.35F, 0.65F, 0.35F, 0.65F, 0.65F, 0.35F, 0.65F}; // the plain middle of the key texture
 			float r = look.chevronR * pulse, g = look.chevronG * pulse, b = look.chevronB * pulse;
 			for(int side = 1; side >= -1; side -= 2)
 			{
