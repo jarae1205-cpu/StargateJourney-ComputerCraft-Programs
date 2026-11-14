@@ -223,6 +223,8 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 
 - Lantea numbers its Milky Way symbols like Stargate Journey (1-38, point of origin 0), so the same address works in both mods' notation. A same-galaxy address is the first six symbols; another galaxy needs all seven and a Range Crystal.
 - The program turns the ring to each symbol and locks it (`encodeSymbol`); locking the point of origin reaches out.
+- Lantea counts a chevron as locked about a second before it has finished locking, and refuses the next symbol until then ("A chevron is still locking"). The programs wait and try again.
+- The gates need power: by default opening a wormhole costs 2,000,000 EU (4 FE each), and the programs report "Not enough power" otherwise. Any Forge Energy source next to the controller works; in the test a JSG Creative Capacitor powered a Lantea gate.
 - Pegasus gates have no ring to turn, so Lantea doesn't let computers dial them. The Gate Room still shows them, their chevrons and wormholes.
 - Energy is shown in EU, as Lantea reports it.
 
@@ -256,7 +258,8 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - Gate events, keys, clicks and touches are queued by a task that never calls the gate, so none are lost while the screen waits for a slow gate.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Tested in live games with Stargate Journey 0.6.54, JSG 1.20.1 5.1.2.0 (both with CC: Tweaked 1.120.2 on Forge 1.20.1) and LanteaCraft 0.2.5 (CC: Tweaked 1.121.0, NeoForge 1.21.1). SGCraft (original and 2.3) and Lantea: Stargates 0.7.7.0 were tested against simulated interfaces built from each mod's source code or its method and event names.
+- Tested in live games with Stargate Journey 0.6.54, JSG 1.20.1 5.1.2.0 and Lantea: Stargates 0.7.7.0 (all three in one world, with CC: Tweaked 1.120.2 on Forge 1.20.1), and with LanteaCraft 0.2.5 (CC: Tweaked 1.121.0, NeoForge 1.21.1). SGCraft (original and 2.3) was tested against a simulated interface built from its source code; gatedial was tested with SGCraft in game.
+- Lantea: Stargates in a live game: the Personal Dialer dialed the other gate through its Power Coupler Kit, all seven chevrons, and the Gate Room there showed the wormhole coming in. Without power both reported "Not enough power".
 - Stargate Journey in a live game: dialing through the basic, crystal and advanced crystal interfaces, *Invalid address* for an address with no gate, and an incoming wormhole with `autoIris` on. The iris was opened for the kawoosh and closed after it, at full durability.
 - JSG in a live game, in a world that also had JSG Decoration, Stargate Additions, Stargate Journey and BuildCraft: the Personal Dialer dialed the other gate and the Gate Room there showed it coming in. With the iris mode on OC the Gate Room closed the iris as the dial began; with another mode it said why it couldn't.
 

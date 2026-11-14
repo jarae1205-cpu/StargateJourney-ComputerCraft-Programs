@@ -919,8 +919,17 @@ local function runDialLantea()
             if dial.abort then return end
             fail("The gate is not ready for chevron " .. i)
         end
-        -- turns the ring and locks the symbol; the point of origin reaches out
-        local ok, err = pcall(p.encodeSymbol, symbol)
+        -- turns the ring and locks the symbol; the point of origin reaches out.
+        -- Lantea counts a chevron as locked about a second before it has finished
+        -- locking, and refuses the next symbol until then: wait and try again.
+        local ok, err
+        local deadline = os.clock() + CONFIG.stepTimeout
+        while true do
+            ok, err = pcall(p.encodeSymbol, symbol)
+            if ok or not tostring(err):find("still locking", 1, true) or os.clock() > deadline then break end
+            if dial.abort then return end
+            sleep(0.25)
+        end
         if not ok then fail(cleanError(err)) end
         if i < #address then
             if not waitUntil(function()

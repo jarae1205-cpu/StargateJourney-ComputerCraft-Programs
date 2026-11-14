@@ -42,6 +42,7 @@
  - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
  - Tested on Stargate Journey 0.6.54 gates with every interface tier: dialing, errors, incoming wormholes and the automatic iris
  - Tested on JSG 1.20.1 (5.1.2.0) gates: dialing between gates and the automatic iris
+ - Tested on Lantea: Stargates 0.7.7.0 gates, in the same world as Stargate Journey and JSG: dialing between gates
  - Shares its address book with the Personal Dialer; one installer for all three
 
 ![Gate Room image](./imgs/GateRoom.png)
