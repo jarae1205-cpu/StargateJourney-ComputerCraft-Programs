@@ -35,7 +35,9 @@ public final class GateBuildings
 		DEEPSLATE(Blocks.DEEPSLATE_BRICKS, Blocks.POLISHED_DEEPSLATE, Blocks.DEEPSLATE_BRICK_STAIRS, Blocks.DEEPSLATE_BRICK_WALL),
 		SANDSTONE(Blocks.CUT_SANDSTONE, Blocks.SMOOTH_SANDSTONE, Blocks.SMOOTH_SANDSTONE_STAIRS, Blocks.SANDSTONE_WALL),
 		BLACKSTONE(Blocks.POLISHED_BLACKSTONE_BRICKS, Blocks.POLISHED_BLACKSTONE, Blocks.POLISHED_BLACKSTONE_BRICK_STAIRS,
-				Blocks.POLISHED_BLACKSTONE_BRICK_WALL);
+				Blocks.POLISHED_BLACKSTONE_BRICK_WALL),
+		/** The Carter Addon Pack look: a sloped stone pedestal with a red carpet up to the gate. */
+		CAP(Blocks.POLISHED_DEEPSLATE, Blocks.DEEPSLATE_TILES, Blocks.POLISHED_DEEPSLATE_STAIRS, Blocks.POLISHED_DEEPSLATE_WALL);
 
 		final Block body, top, stairs, wall;
 
@@ -128,6 +130,8 @@ public final class GateBuildings
 	@Nullable
 	public static StargateBlockEntity platform(LevelAccessor level, BlockPos ground, Direction facing, GateLook look, Style style)
 	{
+		if(style == Style.CAP)
+			return capPlatform(level, ground, facing, look);
 		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
 		// room for it all: the dais, the gate and the plaza in front
 		f.fill(-6, 0, -4, 6, 11, 8, Blocks.AIR);
@@ -166,6 +170,105 @@ public final class GateBuildings
 		StargateBlockEntity gate = placeGate(level, core, facing, look);
 		GateField.placeStep(level, core, facing, style.stairs, FLAGS);
 		level.setBlock(f.at(4, 0, 6), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
+		return gate;
+	}
+
+	/** Pedestal sizes: the half width of the top, for 7-wide gates or for JSG's 11-wide ones. */
+	public static final int PEDESTAL_SMALL = 5, PEDESTAL_LARGE = 7;
+	/** How high the pedestal is: a gate on it stands this many blocks above the ground. */
+	public static final int PEDESTAL_HEIGHT = 3;
+
+	/**
+	 * A sloped stone pedestal in the style of the Carter Addon Pack, with no gate: three layers that
+	 * step in towards the top, stairs down every side, a red carpet up the middle of the front and a
+	 * red floor around it. A gate of any mod can stand on top.
+	 * @param ground the first block above the ground, under the middle of the gate
+	 * @param half the half width of the top (PEDESTAL_SMALL or PEDESTAL_LARGE)
+	 * @return where the gate's base (the bottom middle of the ring) goes
+	 */
+	public static BlockPos pedestal(LevelAccessor level, BlockPos ground, Direction facing, int half)
+	{
+		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
+		final int top = PEDESTAL_HEIGHT - 1, depth = 2;
+		int wide = half + PEDESTAL_HEIGHT + 3, back = -depth - PEDESTAL_HEIGHT - 3, front = depth + PEDESTAL_HEIGHT + 6;
+		// room for it all, and something to stand on
+		f.fill(-wide, 0, back, wide, PEDESTAL_HEIGHT + 12, front, Blocks.AIR);
+		for(int x = -wide; x <= wide; x++)
+			for(int d = back; d <= front; d++)
+			{
+				f.foundation(x, d, Blocks.STONE);
+				boolean edge = Math.abs(x) == wide || d == back || d == front;
+				f.set(x, -1, d, edge ? Blocks.POLISHED_BLACKSTONE_BRICKS : Blocks.RED_TERRACOTTA);
+			}
+		// three layers, each one block wider all round than the one above it
+		for(int y = 0; y <= top; y++)
+		{
+			int grow = top - y, xh = half + grow, d0 = -depth - grow, d1 = depth + grow;
+			for(int x = -xh; x <= xh; x++)
+				for(int d = d0; d <= d1; d++)
+				{
+					boolean rim = Math.abs(x) == xh || d == d0 || d == d1;
+					if(!rim || y == top)
+						f.set(x, y, d, y == top && !rim ? Style.CAP.top : Style.CAP.body);
+					else
+						f.set(x, y, d, slope(f, x, d, xh, d0, d1));
+				}
+		}
+		// the red carpet: up the front in three steps, then along the top to the gate
+		for(int x = -1; x <= 1; x++)
+		{
+			for(int step = 0; step < PEDESTAL_HEIGHT; step++)
+			{
+				int d = depth + 1 + step, y = top - step;
+				for(int below = 0; below < y; below++)
+					f.set(x, below, d, Blocks.RED_NETHER_BRICKS);
+				f.stairs(x, y, d, Blocks.RED_NETHER_BRICK_STAIRS);
+			}
+			for(int d = 1; d <= depth; d++)
+				f.set(x, top, d, Blocks.RED_NETHER_BRICKS);
+		}
+		// turn the stairs at the corners, the way they would turn if a player placed them
+		for(int y = 0; y < top; y++)
+		{
+			int grow = top - y, xh = half + grow;
+			for(int x = -xh; x <= xh; x++)
+				for(int d = -depth - grow; d <= depth + grow; d++)
+				{
+					BlockPos pos = f.at(x, y, d);
+					BlockState state = level.getBlockState(pos);
+					if(state.getBlock() instanceof StairBlock)
+						level.setBlock(pos, Block.updateFromNeighbourShapes(state, level, pos), FLAGS);
+				}
+		}
+		return f.at(0, PEDESTAL_HEIGHT, 0);
+	}
+
+	/** Stairs going down the side of a pedestal layer, facing out; the corners turn. */
+	private static BlockState slope(Frame f, int x, int d, int xh, int d0, int d1)
+	{
+		Direction out;
+		boolean end = d == d0 || d == d1;
+		Direction along = d == d1 ? f.facing() : f.facing().getOpposite();
+		Direction across = x > 0 ? f.right() : f.right().getOpposite();
+		out = end ? along : across;
+		return Style.CAP.stairs.defaultBlockState().setValue(StairBlock.FACING, out.getOpposite())
+				.setValue(StairBlock.HALF, Half.BOTTOM);
+	}
+
+	/**
+	 * A gate on a Carter Addon Pack pedestal: the gate on top with its step, the red carpet up to it
+	 * and the DHD at the foot of the carpet.
+	 * @param ground the first block above the ground, under the middle of the gate
+	 * @return the gate
+	 */
+	@Nullable
+	public static StargateBlockEntity capPlatform(LevelAccessor level, BlockPos ground, Direction facing, GateLook look)
+	{
+		BlockPos core = pedestal(level, ground, facing, PEDESTAL_SMALL);
+		StargateBlockEntity gate = placeGate(level, core, facing, look);
+		GateField.placeStep(level, core, facing, Blocks.RED_NETHER_BRICK_STAIRS, FLAGS);
+		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
+		level.setBlock(f.at(0, 0, 2 + PEDESTAL_HEIGHT + 2), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
 		return gate;
 	}
 

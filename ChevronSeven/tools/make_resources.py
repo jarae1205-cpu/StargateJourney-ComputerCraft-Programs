@@ -462,6 +462,8 @@ LANG = {
     "message.chevron7.bad_look": "There is no look called %s",
     "message.chevron7.platform_built": "Built a gate on a platform",
     "message.chevron7.gate_room_built": "Built a gate room",
+    "message.chevron7.pedestal_built": "Pedestal built: put the gate's base (the bottom middle of the ring) at %s %s %s, facing %s",
+    "message.chevron7.bad_size": "Sizes: small (7-wide gates: Chevron Seven, Stargate Journey, Lantea) or large (JSG)",
     "look.chevron7.sg1": "SG-1",
     "look.chevron7.movie": "Movie",
     "look.chevron7.origins": "Origins",

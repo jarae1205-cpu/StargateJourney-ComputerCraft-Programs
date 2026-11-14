@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.RegisterCommandsEvent;
 
 /**
- * /chevron7 list | address | dial | close | iris | field | look | platform | gateroom, for operators.
+ * /chevron7 list | address | dial | close | iris | field | look | platform | pedestal | gateroom, for operators.
  */
 public final class GateCommands
 {
@@ -94,6 +94,15 @@ public final class GateCommands
 										.then(Commands.argument("style", StringArgumentType.word()).suggests(GateCommands::suggestStyles)
 												.executes(context -> platform(context, StringArgumentType.getString(context, "direction"),
 														StringArgumentType.getString(context, "look"), StringArgumentType.getString(context, "style"))))))))
+				.then(Commands.literal("pedestal").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> pedestal(context, null, "small"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> pedestal(context, StringArgumentType.getString(context, "direction"), "small"))
+								.then(Commands.argument("size", StringArgumentType.word())
+										.suggests((context, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+												java.util.List.of("small", "large"), builder))
+										.executes(context -> pedestal(context, StringArgumentType.getString(context, "direction"),
+												StringArgumentType.getString(context, "size")))))))
 				.then(Commands.literal("gateroom").then(Commands.argument("pos", BlockPosArgument.blockPos())
 						.executes(context -> gateRoom(context, null))
 						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
@@ -180,9 +189,30 @@ public final class GateCommands
 		GateLook look = look(context, lookName);
 		GateBuildings.Style style = GateBuildings.Style.byName(styleName);
 		if(style == null)
-			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Styles: stone, deepslate, sandstone, blackstone")).create();
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Styles: stone, deepslate, sandstone, blackstone, cap")).create();
 		GateBuildings.platform(context.getSource().getLevel(), pos, facing, look, style);
 		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.platform_built"), true);
+		return 1;
+	}
+
+	/** A Carter Addon Pack pedestal with no gate, for a gate of any mod to stand on. */
+	private static int pedestal(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction, String size)
+			throws CommandSyntaxException
+	{
+		BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+		net.minecraft.core.Direction facing = facing(context, direction);
+		if(facing == null)
+			return 0;
+		int half;
+		if(size.equalsIgnoreCase("small"))
+			half = GateBuildings.PEDESTAL_SMALL;
+		else if(size.equalsIgnoreCase("large"))
+			half = GateBuildings.PEDESTAL_LARGE;
+		else
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.translatable("message.chevron7.bad_size")).create();
+		BlockPos base = GateBuildings.pedestal(context.getSource().getLevel(), pos, facing, half);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.pedestal_built",
+				base.getX(), base.getY(), base.getZ(), facing.getName()), true);
 		return 1;
 	}
 
