@@ -74,6 +74,13 @@ A Forge 1.20.1 add-on for Stargate Journey:
 ### [Stargate Journey Variants](./StargateJourneyVariants/)
 A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth and Infinity looks, made in the crystallizer.
 
+### [Just Stargate Mod Looks](./JustStargateModLooks/)
+Two resource packs for Just Stargate Mod 1.20.1, with textures drawn from scratch:
+ - **Infinity Gate**: the Milky Way gate as drawn in *Stargate Infinity*: pale stone with ink outlines, lime-yellow chevrons, and an iris that closes into a pale spiral
+ - **Orange DHD**: an orange DHD in the style of Carter's Addon Pack, with a dark console and a turquoise dome
+
+![Infinity gate](./imgs/JSGInfinityGate.png)
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program
@@ -95,7 +102,7 @@ A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continu
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, and the tools that build the variant pack.
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, the tools that build the variant pack, and the Just Stargate Mod Looks (the script and the textures it draws).
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.
