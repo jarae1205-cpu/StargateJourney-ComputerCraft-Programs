@@ -86,6 +86,10 @@ In the list, `*` marks the gate you are controlling and `>` marks your selection
 
 ## Tested
 
+![A gate node during an incoming wormhole](../imgs/StargateNetworkInGame.png)
+
+*Earth's gate node while Atlantis, a network gate, dials in: caller ID, and auto-iris keeping the iris open for the kawoosh. From a Minecraft 1.20.1 world.*
+
 In a Minecraft 1.20.1 world with Stargate Journey 0.6.54 and CC: Tweaked 1.120.2, with three gates on a basic, a crystal and an advanced crystal interface, a fourth gate with no computer, and a computer with no gate as the remote:
 
 - Every gate found the others, and dialed them from the list, from a typed address (saved to the address book) and from the remote. Closing from the remote stopped a dial in progress and closed an open wormhole.

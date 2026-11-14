@@ -40,6 +40,7 @@
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)
  - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
+ - Tested on Stargate Journey 0.6.54 gates with every interface tier: dialing, errors, incoming wormholes and the automatic iris
  - Shares its address book with the Personal Dialer; one installer for all three
 
 ![Gate Room image](./imgs/GateRoom.png)
@@ -52,6 +53,26 @@
  - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
 
 ![gatedial in a Minecraft 1.12.2 world](./imgs/OpenComputersInGame.jpg)
+
+## [Stargate Network](./StargateNetwork/)
+ - Links every gate in your world over rednet (wireless/ender modem)
+ - Finds gates automatically, with live status, and remembers them so you can still dial unloaded gates
+ - Dial from a list or type an address, with caller ID on incoming wormholes
+ - Optional auto-iris that only opens for gates from your network
+ - Remote control from a computer or pocket computer, protected by a network key
+ - Stargate Journey (1.20.1), basic, crystal and advanced crystal interfaces; tested on Stargate Journey 0.6.54 gates
+
+![Stargate Network on a real gate](./imgs/StargateNetworkInGame.png)
+
+## [Stargate Hybrid Legacy](./StargateHybridLegacy/)
+ - Address book dialer in the style of the 1.12.2 personal dialers, with search, glyph marks and reordering
+ - Works with every Stargate Journey gate type (Milky Way, Pegasus, Universe, Classic, Tollan, Andromeda) and every interface tier
+ - Gate display: V-shaped chevrons, a symbol track that turns with the ring, an event horizon with a kawoosh, and an iris that closes from the rim
+ - Gate styles for every gate type, plus styles based on SGCraft, Stargate Network and JSG
+ - Config page: Auto Close, open time limit, automatic iris, SGC 3-step dialing, address access list
+ - Optional monitor status board and pocket computer dialer over rednet; tested on Stargate Journey 0.6.54 gates
+
+![Stargate Hybrid Legacy on a real gate](./imgs/StargateHybridLegacyInGame.png)
 
 ## Mods and resource packs
 
@@ -96,7 +117,7 @@ A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continu
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, and the tools that build the variant pack.
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Stargate Network, Stargate Hybrid Legacy, Chevron Seven, the Stargate Command Addon, and the tools that build the variant pack.
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.
