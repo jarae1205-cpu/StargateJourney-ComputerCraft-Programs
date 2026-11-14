@@ -268,7 +268,8 @@ public final class GateBuildings
 		StargateBlockEntity gate = placeGate(level, core, facing, look);
 		GateField.placeStep(level, core, facing, Blocks.RED_NETHER_BRICK_STAIRS, FLAGS);
 		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
-		level.setBlock(f.at(0, 0, 2 + PEDESTAL_HEIGHT + 2), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
+		level.setBlock(f.at(0, 0, 2 + PEDESTAL_HEIGHT + 2), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing)
+				.setValue(DHDBlock.CAP, true), FLAGS);
 		return gate;
 	}
 

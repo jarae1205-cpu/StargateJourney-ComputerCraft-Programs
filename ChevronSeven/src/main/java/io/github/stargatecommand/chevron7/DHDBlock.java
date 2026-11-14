@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -30,18 +31,20 @@ import net.minecraftforge.fml.DistExecutor;
 public class DHDBlock extends HorizontalDirectionalBlock implements EntityBlock
 {
 	public static final int RANGE = 16;
+	/** The Carter Addon Pack's orange DHD with a blue dome; otherwise the dark one with a red dome, as in JSG and the show. */
+	public static final BooleanProperty CAP = BooleanProperty.create("cap");
 	private static final VoxelShape SHAPE = Shapes.or(Block.box(1, 0, 1, 15, 10, 15), Block.box(0, 10, 0, 16, 16, 16));
 
 	public DHDBlock(Properties properties)
 	{
 		super(properties);
-		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(CAP, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
 	{
-		builder.add(FACING);
+		builder.add(FACING, CAP);
 	}
 
 	@Override
@@ -85,6 +88,9 @@ public class DHDBlock extends HorizontalDirectionalBlock implements EntityBlock
 	@Override
 	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
 	{
+		// a Look Crystal swaps the DHD's style instead (LookCrystalItem)
+		if(player.getItemInHand(hand).getItem() instanceof LookCrystalItem)
+			return InteractionResult.PASS;
 		if(level.isClientSide())
 			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> io.github.stargatecommand.chevron7.client.ClientHooks.openDhd(pos));
 		return InteractionResult.sidedSuccess(level.isClientSide());

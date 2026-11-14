@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "cap=false,facing=north": {
       "model": "chevron7:block/dhd"
     },
-    "facing=east": {
+    "cap=false,facing=east": {
       "model": "chevron7:block/dhd",
       "y": 90
     },
-    "facing=south": {
+    "cap=false,facing=south": {
       "model": "chevron7:block/dhd",
       "y": 180
     },
-    "facing=west": {
+    "cap=false,facing=west": {
       "model": "chevron7:block/dhd",
+      "y": 270
+    },
+    "cap=true,facing=north": {
+      "model": "chevron7:block/dhd_cap"
+    },
+    "cap=true,facing=east": {
+      "model": "chevron7:block/dhd_cap",
+      "y": 90
+    },
+    "cap=true,facing=south": {
+      "model": "chevron7:block/dhd_cap",
+      "y": 180
+    },
+    "cap=true,facing=west": {
+      "model": "chevron7:block/dhd_cap",
       "y": 270
     }
   }

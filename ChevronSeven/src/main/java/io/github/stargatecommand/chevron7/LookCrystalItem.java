@@ -26,6 +26,20 @@ public class LookCrystalItem extends Item
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 		BlockState state = level.getBlockState(pos);
+		if(state.getBlock() instanceof DHDBlock)
+		{
+			// on a DHD it swaps the dark DHD and the Carter Addon Pack's orange one
+			if(!level.isClientSide())
+			{
+				BlockState swapped = state.cycle(DHDBlock.CAP);
+				level.setBlock(pos, swapped, net.minecraft.world.level.block.Block.UPDATE_ALL);
+				Player player = context.getPlayer();
+				if(player != null)
+					player.displayClientMessage(Component.translatable(swapped.getValue(DHDBlock.CAP)
+							? "message.chevron7.dhd_cap" : "message.chevron7.dhd_dark"), true);
+			}
+			return InteractionResult.sidedSuccess(level.isClientSide());
+		}
 		BlockPos core = state.is(Chevron7.GATE_FRAME.get()) ? GateFrameBlock.core(pos, state) : pos;
 		if(!(level.getBlockEntity(core) instanceof StargateBlockEntity gate))
 			return InteractionResult.PASS;

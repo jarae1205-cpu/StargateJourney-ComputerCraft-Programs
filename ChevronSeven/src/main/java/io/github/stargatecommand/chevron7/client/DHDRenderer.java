@@ -40,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 {
 	static final ResourceLocation BODY = Chevron7.id("textures/entity/dhd_body.png");
+	static final ResourceLocation BODY_CAP = Chevron7.id("textures/entity/dhd_body_cap.png");
 	static final ResourceLocation KEY = Chevron7.id("textures/entity/dhd_button.png");
 	static final int FULL_BRIGHT = LightTexture.FULL_BRIGHT;
 
@@ -63,6 +64,7 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 			return;
 		BlockState state = dhd.getBlockState();
 		Direction facing = state.hasProperty(DHDBlock.FACING) ? state.getValue(DHDBlock.FACING) : Direction.NORTH;
+		boolean cap = state.hasProperty(DHDBlock.CAP) && state.getValue(DHDBlock.CAP);
 		int light = LevelRenderer.getLightColor(level, dhd.getBlockPos().above());
 		float time = level.getGameTime() + partialTick;
 
@@ -85,11 +87,11 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 		Matrix4f m = pose.last().pose();
 		Matrix3f n = pose.last().normal();
 
-		collar(buffers.getBuffer(RenderType.entityCutoutNoCull(BODY)), m, n, light);
-		keys(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, look, lit, light);
-		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(StargateRenderer.GLYPHS)), m, n, look, lit, light);
+		collar(buffers.getBuffer(RenderType.entityCutoutNoCull(cap ? BODY_CAP : BODY)), m, n, light, cap);
+		keys(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, look, lit, light, cap);
+		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(StargateRenderer.GLYPHS)), m, n, look, lit, light, cap);
 		float glow = open ? 1.0F : dialing ? 0.55F + 0.25F * Mth.sin(time * 0.3F) : 0.3F;
-		dome(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, glow, open || dialing ? FULL_BRIGHT : light);
+		dome(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, glow, open || dialing ? FULL_BRIGHT : light, cap);
 
 		pose.popPose();
 	}
@@ -123,7 +125,7 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 	}
 
 	/** The orange collar from the pedestal up to the rim of the top, the dark face under the keys and the rim's edge. */
-	private static void collar(VertexConsumer vc, Matrix4f m, Matrix3f n, int light)
+	private static void collar(VertexConsumer vc, Matrix4f m, Matrix3f n, int light, boolean cap)
 	{
 		float ny = COS, nz = SIN;
 		for(int i = 0; i < SEGMENTS; i++)
@@ -139,11 +141,12 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 			quad(vc, m, n, low0, low1, rim1, rim0, new float[] {u0, 1, u1, 1, u1, 0.1F, u0, 0.1F}, 1, 1, 1, light, sx, 0.4F, sz);
 			quad(vc, m, n, rim0, rim1, low1, low0, new float[] {u0, 0.1F, u1, 0.1F, u1, 1, u0, 1}, 0.7F, 0.7F, 0.7F, light, -sx, -0.4F, -sz);
 			// the rim's edge, in the trim colour
-			quad(vc, m, n, rim0, rim1, edge1, edge0, new float[] {u0, 0.0F, u1, 0.0F, u1, 0.06F, u0, 0.06F}, 1, 0.95F, 0.85F, light, sx, 0, sz);
+			float trim = cap ? 1 : 0.75F;
+			quad(vc, m, n, rim0, rim1, edge1, edge0, new float[] {u0, 0.0F, u1, 0.0F, u1, 0.06F, u0, 0.06F}, trim, trim * 0.95F, trim * 0.85F, light, sx, 0, sz);
 			// the dark face the keys sit on
 			float[] in0 = top(DOME_R, a0, 0.02F), in1 = top(DOME_R, a1, 0.02F);
 			quad(vc, m, n, in0, edge0, edge1, in1, new float[] {0.4F, 0.5F, 0.45F, 0.5F, 0.45F, 0.55F, 0.4F, 0.55F},
-					0.16F, 0.11F, 0.08F, light, 0, ny, nz);
+					cap ? 0.16F : 0.09F, cap ? 0.11F : 0.09F, cap ? 0.08F : 0.1F, light, 0, ny, nz);
 		}
 	}
 
@@ -157,7 +160,7 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 		return new float[] {r0, r1, a - span * 0.44F, a + span * 0.44F};
 	}
 
-	private static void keys(VertexConsumer vc, Matrix4f m, Matrix3f n, GateLook look, Set<Integer> lit, int light)
+	private static void keys(VertexConsumer vc, Matrix4f m, Matrix3f n, GateLook look, Set<Integer> lit, int light, boolean cap)
 	{
 		for(int s = 0; s < GateAddress.SYMBOLS; s++)
 		{
@@ -168,12 +171,14 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 			float[] uv = {0, 1, 0, 0, 1, 0, 1, 1};
 			if(on)
 				quad(vc, m, n, a, b, c, d, uv, look.chevronR, look.chevronG, look.chevronB, FULL_BRIGHT, 0, COS, SIN);
-			else
+			else if(cap)
 				quad(vc, m, n, a, b, c, d, uv, 0.62F, 0.52F, 0.40F, light, 0, COS, SIN);
+			else
+				quad(vc, m, n, a, b, c, d, uv, 0.30F, 0.30F, 0.32F, light, 0, COS, SIN);
 		}
 	}
 
-	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, GateLook look, Set<Integer> lit, int light)
+	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, GateLook look, Set<Integer> lit, int light, boolean cap)
 	{
 		for(int s = 0; s < GateAddress.SYMBOLS; s++)
 		{
@@ -188,16 +193,24 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 			float[] uv = {u0, v0, u1, v0, u1, v1, u0, v1};
 			if(on)
 				quad(vc, m, n, a, b, c, d, uv, 0.25F, 0.12F, 0.04F, FULL_BRIGHT, 0, COS, SIN);
-			else
+			else if(cap)
 				quad(vc, m, n, a, b, c, d, uv, look.glyphR, look.glyphG, look.glyphB, light, 0, COS, SIN);
+			else
+				quad(vc, m, n, a, b, c, d, uv, 0.72F, 0.72F, 0.74F, light, 0, COS, SIN);
 		}
 	}
 
-	/** The dome in the middle: blue, brighter while the gate dials and glowing while the wormhole is open. */
-	private static void dome(VertexConsumer vc, Matrix4f m, Matrix3f n, float glow, int light)
+	/** The dome in the middle, brighter while the gate dials and glowing while the wormhole is open: blue on the CAP DHD, red on the dark one. */
+	private static void dome(VertexConsumer vc, Matrix4f m, Matrix3f n, float glow, int light, boolean cap)
 	{
 		float[][] rings = {{DOME_R, 0.02F}, {DOME_R * 0.8F, 0.08F}, {DOME_R * 0.45F, 0.115F}, {0.0F, 0.125F}};
 		float r = 0.12F + 0.38F * glow, g = 0.42F + 0.5F * glow, b = 0.7F + 0.3F * glow;
+		if(!cap)
+		{
+			r = 0.45F + 0.55F * glow;
+			g = 0.06F + 0.3F * glow;
+			b = 0.04F + 0.2F * glow;
+		}
 		float[] uv = {0.3F, 0.3F, 0.7F, 0.3F, 0.7F, 0.7F, 0.3F, 0.7F};
 		for(int ring = 0; ring < rings.length - 1; ring++)
 		{
