@@ -44,6 +44,11 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
+| Carter Addon Pack | pick it with STYLE, or a variant named "cap" or "carter". After the Garry's Mod addon: the gate a little smaller, on a stepped grey pedestal with a red carpet, under the sky, with the round orange DHD and its blue dome in front |
+
+![The Carter Addon Pack style](../imgs/GateRoomCAP.png)
+
+*The Gate Room's Carter Addon Pack style with a wormhole open, rendered from the test harness.*
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
 

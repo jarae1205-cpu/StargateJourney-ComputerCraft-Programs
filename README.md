@@ -36,7 +36,7 @@
 ![Personal Dialer image](./imgs/PersonalDialer.png)
 
 ## [Stargate Command: Gate Room and Network Hub](./StargateCommand/)
- - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
+ - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)
  - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
@@ -85,6 +85,7 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - A 7-block ring gate with a turning symbol track, chevrons, kawoosh, event horizon and travel between gates, even across dimensions
  - Dial Home Device, a spiral iris, automatic closing, chunk loading while a wormhole is open
  - 13 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity and more), gate platforms and an Infinity-style gate room
+ - A Carter Addon Pack pedestal with a red carpet, a round DHD whose keys light up as the gate dials, and `/chevron7 pedestal` to build the pedestal for a Stargate Journey, Lantea or JSG gate
  - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)

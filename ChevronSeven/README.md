@@ -22,7 +22,7 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
-| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
+| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it looks like the Carter Addon Pack's DHD: a round orange top about two blocks across, with two rings of glyph keys and a blue dome. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
 | **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
 | **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
 | **Gate Address Book** | Use it to read the address of every planet's gate (see [planet gates](#planet-gates)). | a book and an eye of ender |
@@ -64,6 +64,16 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 ![The Infinity gate room](../imgs/GateRoomInfinity.jpg)
 
 *`/chevron7 gateroom`, with the wormhole open, in a Minecraft 1.20.1 client.*
+
+### The Carter Addon Pack pedestal
+
+![The CAP pedestal](../imgs/CapPedestal.jpg)
+
+*Left: an SG-1 gate on a CAP pedestal with its wormhole open. Middle: its DHD, with the keys of the dialed symbols lit and the dome glowing. Right: the Infinity gate it reached, on a pedestal of its own. In a Minecraft 1.20.1 client.*
+
+After the dial sequence of the Carter Addon Pack for Garry's Mod: `/chevron7 platform <pos> [direction] [look] cap` builds the gate on a sloped stone pedestal (three layers that step in towards the top, stairs down every side) with a red carpet up the middle to the gate's step, the round DHD at the foot of the carpet, and a red floor around it all.
+
+`/chevron7 pedestal <pos> [direction] [small|large]` builds the same pedestal and carpet with no gate, so a gate of another mod can stand on it. `small` fits the 7-wide gates of Chevron Seven, Stargate Journey and Lantea: Stargates; `large` fits JSG's bigger ones. It answers with where the gate's base (the bottom middle of the ring) goes; place your gate there, facing the way the carpet comes up.
 
 `/chevron7 gateroom <pos> [direction]` builds a gate room after the animated series: an Infinity-look gate on a base at the top of a copper ramp with red rails, a pale halo on the wall behind it and yellow and lime light bars fanned out around it. The room is lit and open at the front, and has a DHD by the ramp.
 
@@ -133,6 +143,7 @@ For operators:
 /chevron7 looks                         list the looks
 /chevron7 platform <pos> [direction] [look] [style]   build a gate on a platform
 /chevron7 gateroom <pos> [direction]    build an Infinity gate room
+/chevron7 pedestal <pos> [direction] [small|large]   build a CAP pedestal for any mod's gate
 ```
 
 `<pos>` can be any block of the ring.
@@ -151,7 +162,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.2.0.jar`](dist/chevron7-1.2.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.3.0.jar`](dist/chevron7-1.3.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -213,6 +224,10 @@ Put [`dist/chevron7-1.2.0.jar`](dist/chevron7-1.2.0.jar) in the `mods` folder (c
 
 *The iris closing and shut on an SG-1 gate (left two) and an Infinity gate (right two).*
 
+- **The CAP pedestal and DHD (1.3.0)**, in a Minecraft 1.20.1 client:
+  - `/chevron7 platform … cap` built an SG-1 and an Infinity gate on pedestals, and `/chevron7 pedestal` built a small and a large one with no gate.
+  - Dialing from the SG-1 gate lit the DHD's keys for the dialed symbols and made the dome glow once the wormhole was open (the middle picture above).
+
 ## Build
 
 ```
@@ -220,7 +235,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.2.0.jar`.
+The jar is `build/libs/chevron7-1.3.0.jar`.
 
 ## License
 
