@@ -43,11 +43,13 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 	static final ResourceLocation KEY = Chevron7.id("textures/entity/dhd_button.png");
 	static final int FULL_BRIGHT = LightTexture.FULL_BRIGHT;
 
+	// everything below is drawn this much bigger: the DHD is about two blocks across, like the CAP one
+	static final float SCALE = 1.45F;
 	// the slanted top: a disc of radius TOP_R around (0, TOP_Y, 0), tipped towards the front
-	static final float TILT = (float) Math.toRadians(28), TOP_Y = 0.9F, TOP_R = 0.66F;
+	static final float TILT = (float) Math.toRadians(28), TOP_Y = 0.78F, TOP_R = 0.66F;
 	static final float SIN = Mth.sin(TILT), COS = Mth.cos(TILT);
-	// where the pedestal's octagon ends
-	static final float NECK_R = 0.36F, NECK_Y = 0.56F;
+	// where the pedestal's octagon (the block model) ends, in the scaled space
+	static final float NECK_R = 0.42F / SCALE, NECK_Y = 0.625F / SCALE;
 	static final int OUTER = 20, SEGMENTS = 40;
 	static final float DOME_R = 0.2F;
 
@@ -79,6 +81,7 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 		pose.pushPose();
 		pose.translate(0.5, 0, 0.5);
 		pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+		pose.scale(SCALE, SCALE, SCALE);
 		Matrix4f m = pose.last().pose();
 		Matrix3f n = pose.last().normal();
 

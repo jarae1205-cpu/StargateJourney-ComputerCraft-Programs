@@ -359,15 +359,15 @@ def dhd_button():
 def dhd_body_elements(side):
     """The DHD's pedestal: two boxes, one turned 45 degrees, make an octagon."""
     faces = {
-        "north": {"uv": [3, 7, 13, 16], "texture": side},
-        "south": {"uv": [3, 7, 13, 16], "texture": side},
-        "east": {"uv": [3, 7, 13, 16], "texture": side},
-        "west": {"uv": [3, 7, 13, 16], "texture": side},
-        "up": {"uv": [3, 3, 13, 13], "texture": "#bottom"},
-        "down": {"uv": [3, 3, 13, 13], "texture": "#bottom", "cullface": "down"}}
+        "north": {"uv": [1, 6, 15, 16], "texture": side},
+        "south": {"uv": [1, 6, 15, 16], "texture": side},
+        "east": {"uv": [1, 6, 15, 16], "texture": side},
+        "west": {"uv": [1, 6, 15, 16], "texture": side},
+        "up": {"uv": [1, 1, 15, 15], "texture": "#bottom"},
+        "down": {"uv": [1, 1, 15, 15], "texture": "#bottom", "cullface": "down"}}
     return [
-        {"from": [3, 0, 3], "to": [13, 9, 13], "faces": faces},
-        {"from": [3, 0, 3], "to": [13, 9, 13], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "faces": faces},
+        {"from": [1, 0, 1], "to": [15, 10, 15], "faces": faces},
+        {"from": [1, 0, 1], "to": [15, 10, 15], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "faces": faces},
     ]
 
 
@@ -550,7 +550,7 @@ def data_files():
         "textures": {"particle": "chevron7:block/dhd_side", "side": "chevron7:block/dhd_side",
                      "top": "chevron7:block/dhd_top", "bottom": "chevron7:block/dhd_bottom"},
         "elements": dhd_body_elements(side) + [
-            {"from": [1, 9, 1], "to": [15, 12, 15],
+            {"from": [0, 10, 0], "to": [16, 13, 16],
              "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 10.5, 8]},
              "faces": {
                  "up": {"uv": [0, 0, 16, 16], "texture": "#top"},

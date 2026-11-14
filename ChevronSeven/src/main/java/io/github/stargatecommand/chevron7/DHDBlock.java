@@ -30,7 +30,7 @@ import net.minecraftforge.fml.DistExecutor;
 public class DHDBlock extends HorizontalDirectionalBlock implements EntityBlock
 {
 	public static final int RANGE = 16;
-	private static final VoxelShape SHAPE = Shapes.or(Block.box(3, 0, 3, 13, 9, 13), Block.box(0, 9, 0, 16, 13, 16));
+	private static final VoxelShape SHAPE = Shapes.or(Block.box(1, 0, 1, 15, 10, 15), Block.box(0, 10, 0, 16, 16, 16));
 
 	public DHDBlock(Properties properties)
 	{

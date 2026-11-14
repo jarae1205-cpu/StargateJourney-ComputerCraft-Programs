@@ -44,6 +44,6 @@ public class DHDBlockEntity extends BlockEntity
 	public AABB getRenderBoundingBox()
 	{
 		// the top reaches past the block on every side
-		return new AABB(worldPosition).inflate(0.5, 0.5, 0.5);
+		return new AABB(worldPosition).inflate(1.0, 1.0, 1.0);
 	}
 }
