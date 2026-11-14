@@ -594,12 +594,25 @@ end
 -- so the UI task reads them from this queue instead.
 local gateEvents = {}
 
+-- Keys, clicks and touches are queued by the listener too, for the same reason:
+-- the UI task polls the gate, and input that comes in meanwhile would be lost.
+local INPUT_EVENTS = {
+    key = true, key_up = true, char = true, paste = true, terminate = true,
+    mouse_click = true, mouse_up = true, mouse_drag = true, mouse_scroll = true,
+    monitor_touch = true, term_resize = true, monitor_resize = true,
+    peripheral = true, peripheral_detach = true,
+}
+local inputQueue = {}
+
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEvent())
+        local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
             os.queueEvent("hub_gate_event")
+        elseif INPUT_EVENTS[e[1]] then
+            inputQueue[#inputQueue + 1] = e
+            os.queueEvent("hub_input")
         end
     end
 end
@@ -639,7 +652,14 @@ local function uiTask()
     local nextPoll = os.clock() + CONFIG.pollInterval
     draw()
     while running do
-        local e = table.pack(os.pullEventRaw())
+        local e
+        if #inputQueue > 0 then
+            e = table.remove(inputQueue, 1)
+        else
+            e = table.pack(os.pullEventRaw())
+            -- input comes through the queue, in order
+            if INPUT_EVENTS[e[1]] then e = { n = 1, "hub_input" } end
+        end
         local name = e[1]
         local redraw = true
         local polled = false

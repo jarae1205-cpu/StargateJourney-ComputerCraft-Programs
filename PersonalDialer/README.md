@@ -6,7 +6,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 
 - **SGCraft** through its ComputerCraft interface: Greg Ewing's original and the 1.12.2 SGCraft 2.x line (2.3 shows ZPMs in the gate info panel). SGCraft doesn't tell the computer the gate type, so pick the Pegasus or Universe theme by hand for those gates.
 - **Lantea: Stargates** 0.7.7.0+ (1.20.1 / 1.21.1): a gate controller with a Stargate Power Coupler Kit. Milky Way gates dial; Pegasus gates can't be dialed by a computer.
-- **Just Stargate Mod** (1.20.1): the gate's base block. Addresses are symbol names, typed with commas: `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput`.
+- **Just Stargate Mod** (1.20.1): the gate's base block. Addresses are symbol names, typed with commas: `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput`. Tested in a live game with JSG 5.1.2.0.
 - **[Chevron Seven](../ChevronSeven/)** (1.20.1): any block of the gate ring. Its gate behaves like a Stargate Journey gate with a crystal interface, numbers and all.
 - **LanteaCraft** 0.2.5+ (NeoForge 1.21.1): the gate's base block. Addresses are typed exactly as the gate shows them, such as `S9X-EGA`: `-` and `+` are glyphs. Tested in a live game.
 

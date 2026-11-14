@@ -748,6 +748,16 @@ end
 -- opened) until the wormhole is open, and closes then; other mods' irises stop the
 -- kawoosh and close straight away.
 local irisReclose = false
+-- closes the iris for an incoming wormhole; says so if the gate won't
+local function autoCloseIris(message)
+    local ok, why = gate:closeIris()
+    if ok == false then
+        setMessage("Could not close the iris: " .. tostring(why), colors.orange)
+    elseif message then
+        setMessage(message, colors.red)
+    end
+end
+
 local function irisBeforeCall()
     if gate.kawooshBreaksIris then
         if (gate.iris or 0) > 0 then
@@ -755,9 +765,10 @@ local function irisBeforeCall()
             irisReclose = true
         end
         setMessage("Unscheduled offworld activation - iris closes after the kawoosh", colors.red)
+    elseif (gate.iris or 0) < 100 then
+        autoCloseIris("Unscheduled offworld activation - closing the iris")
     else
-        if (gate.iris or 0) < 100 then gate:closeIris() end
-        setMessage("Unscheduled offworld activation - closing the iris", colors.red)
+        setMessage("Unscheduled offworld activation", colors.red)
     end
 end
 
@@ -778,7 +789,7 @@ local function onGateEvent(info)
         local who = info.address and book:describe(info.address)
         setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
         irisReclose = false
-        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then gate:closeIris() end
+        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then autoCloseIris() end
         beginCall("in", info.address and book:find(info.address) and who or nil, info.address)
     elseif ty == "outgoing" then
         local who = (dial.entry and dial.entry.name) or (info.address and book:describe(info.address))
@@ -879,12 +890,25 @@ end
 -- arrive in the meantime, so the UI task reads them from this queue instead.
 local gateEvents = {}
 
+-- Keys, clicks and touches are queued by the listener too, for the same reason:
+-- the UI task polls the gate, and input that comes in meanwhile would be lost.
+local INPUT_EVENTS = {
+    key = true, key_up = true, char = true, paste = true, terminate = true,
+    mouse_click = true, mouse_up = true, mouse_drag = true, mouse_scroll = true,
+    monitor_touch = true, term_resize = true, monitor_resize = true,
+    peripheral = true, peripheral_detach = true,
+}
+local inputQueue = {}
+
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEvent())
+        local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
             os.queueEvent("gateroom_gate_event")
+        elseif INPUT_EVENTS[e[1]] then
+            inputQueue[#inputQueue + 1] = e
+            os.queueEvent("gateroom_input")
         end
     end
 end
@@ -906,7 +930,14 @@ local function uiTask()
     local nextPoll, nextFrame = os.clock() + CONFIG.pollInterval, 0
     local redraw = true
     while running do
-        local e = table.pack(os.pullEventRaw())
+        local e
+        if #inputQueue > 0 then
+            e = table.remove(inputQueue, 1)
+        else
+            e = table.pack(os.pullEventRaw())
+            -- input comes through the queue, in order
+            if INPUT_EVENTS[e[1]] then e = { n = 1, "gateroom_input" } end
+        end
         local name = e[1]
         local now = os.clock()
         if now >= nextPoll then

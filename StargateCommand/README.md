@@ -240,15 +240,29 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 ## Just Stargate Mod notes
 
 - JSG addresses are symbol names. The program sends the whole address to the gate (`dialAddress`), lets the gate dial it, then opens it (`engageGate`) if it did not open by itself.
-- JSG's iris can only be toggled by a computer when its mode is OC/computer.
+- JSG's iris can only be toggled by a computer when its mode is OC/computer. Otherwise JSG refuses, and the Gate Room says so ("Could not close the iris: Iris mode must be set to OC").
+- JSG's iris stops the kawoosh, so with `autoIris` the Gate Room closes it as soon as another gate starts dialing in.
+- A gate built with `/jsg buildgate` has its base block (the bottom middle of the ring) one block into the ground: put the computer against it there, or use a wired modem.
 - JSG Movie gates get the Movie look; Pegasus, Universe and Tollan gates get theirs.
+
+## Stargate Journey notes
+
+- Stargate Journey's kawoosh destroys an iris that is closed when the wormhole forms (in 0.6.54 a full iron iris is gone at once), so with `autoIris` the Gate Room keeps the iris open until the wormhole is open, then closes it. It shuts in about three seconds and keeps its durability.
+- The gates run on Forge Energy (FE) unless the server turns energy off. BuildCraft Community Edition's engines make MJ, which the gates don't take: a Creative Engine against a crystal interface sent it nothing. BuildCraft's FE Engine turns FE into MJ, not the other way. BuildCraft's Forge Energy pipes should be able to carry FE from another mod's generator; that hasn't been tried.
 
 ## Notes
 
 - Dialing reads the gate state from events and also polls it, so a missed event does not leave the screen stuck.
+- Gate events, keys, clicks and touches are queued by a task that never calls the gate, so none are lost while the screen waits for a slow gate.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Tested in a live game with LanteaCraft 0.2.5 and CC: Tweaked 1.121.0 (NeoForge 1.21.1). The other mods were tested against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
+- Tested in live games with Stargate Journey 0.6.54, JSG 1.20.1 5.1.2.0 (both with CC: Tweaked 1.120.2 on Forge 1.20.1) and LanteaCraft 0.2.5 (CC: Tweaked 1.121.0, NeoForge 1.21.1). SGCraft (original and 2.3) and Lantea: Stargates 0.7.7.0 were tested against simulated interfaces built from each mod's source code or its method and event names.
+- Stargate Journey in a live game: dialing through the basic, crystal and advanced crystal interfaces, *Invalid address* for an address with no gate, and an incoming wormhole with `autoIris` on. The iris was opened for the kawoosh and closed after it, at full durability.
+- JSG in a live game, in a world that also had JSG Decoration, Stargate Additions, Stargate Journey and BuildCraft: the Personal Dialer dialed the other gate and the Gate Room there showed it coming in. With the iris mode on OC the Gate Room closed the iris as the dial began; with another mode it said why it couldn't.
+
+![JSG in a Minecraft 1.20.1 world](../imgs/JSGInGame.jpg)
+
+*JSG 5.1.2.0 in a Minecraft 1.20.1 world (in the rain). Left: the gate the Personal Dialer dialed from. Middle: the gate it reached, its iris closed by the Gate Room. Right: that Gate Room's screen.*
 - LanteaCraft in a live game: the Gate Room and the Personal Dialer dialed each other's gates, including an address with a `-` glyph. Closing worked from the dialing side, and the receiving side was refused with LanteaCraft's reason. The iris closed from the Gate Room. A GDO code the gate accepted opened the iris by itself; a code the gate refused but `idc` trusted opened it through the Gate Room. A player who walked through was logged.
 
 ![LanteaCraft in a Minecraft 1.21.1 world](../imgs/LanteaCraft.jpg)
