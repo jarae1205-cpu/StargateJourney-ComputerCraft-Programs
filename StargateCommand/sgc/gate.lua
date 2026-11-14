@@ -70,23 +70,60 @@ G.TYPES = {
     { match = "chevron7",  id = "milky_way", name = "Chevron Seven", symbols = 39 },
 }
 
--- Stargate Journey feedback codes, used when the interface gives no description
+-- Stargate Journey's feedback codes (0.6.54), used when the interface gives no description.
+-- Older versions numbered some of them differently; crystal interfaces send the
+-- description along, and that is used first.
 G.FEEDBACK = {
     [0] = "No feedback", [-1] = "Unknown error",
     [1] = "Symbol encoded", [-2] = "Symbol already in address", [-3] = "Symbol out of bounds",
     [2] = "Connected (same system)", [3] = "Connected (interstellar)", [4] = "Connected (intergalactic)",
-    [-4] = "Incomplete address", [-5] = "Invalid address", [-6] = "Not enough power",
-    [-7] = "This gate is obstructed", [-8] = "Target gate is obstructed", [-9] = "A gate can't dial itself",
-    [-10] = "Target is in the same system", [-11] = "Already connected", [-12] = "No galaxy",
-    [-13] = "No dimensions", [-14] = "No stargates", [-15] = "Target restricted",
+    [-4] = "Can't encode while connected", [-5] = "Incomplete address", [-6] = "Invalid address",
+    [-7] = "Not enough power", [-8] = "This gate is obstructed", [-9] = "Target gate is obstructed",
+    [-10] = "A gate can't dial itself", [-11] = "Target is in the same system", [-12] = "Already connected",
+    [-13] = "No galaxy", [-14] = "No dimensions", [-15] = "No stargates there",
+    [-16] = "This gate is restricted", [-17] = "Target restricted", [-18] = "Invalid 8-chevron address",
+    [-19] = "Invalid system-wide connection", [-20] = "Target not whitelisted",
+    [-21] = "Not whitelisted by the target", [-22] = "Target blacklisted", [-23] = "Blacklisted by the target",
+    [-24] = "Exceeded connection time", [-25] = "Ran out of power", [-26] = "Connection rerouted",
+    [-27] = "Can't disconnect from this side", [-28] = "Connection forming", [-29] = "Stargate destroyed",
+    [-30] = "Could not reach the target gate", [-31] = "Interrupted by an incoming connection",
     [7] = "Disconnected", [8] = "Closed by the point of origin", [9] = "Closed by the network",
-    [10] = "Closed by autoclose", [-17] = "Ran out of power", [-20] = "Connection forming",
-    [-21] = "Stargate destroyed", [-22] = "Could not reach the target gate",
-    [-23] = "Interrupted by an incoming connection",
-    [11] = "Chevron opened", [12] = "Rotating", [-24] = "Rotation blocked", [-25] = "Not rotating",
-    [13] = "Rotation stopped", [-26] = "Chevron already open", [-27] = "Chevron already closed",
-    [-28] = "Chevron not open", [-29] = "Cannot encode the point of origin",
+    [10] = "Closed by autoclose", [11] = "Chevron opened", [12] = "Rotating", [13] = "Rotation stopped",
+    [-32] = "Rotation blocked", [-33] = "Not rotating", [-34] = "Chevron already open",
+    [-35] = "Chevron already closed", [-36] = "Chevron not open", [-37] = "Target gate not loaded",
+    [-38] = "This gate is outside the network", [-39] = "Target is outside the network",
 }
+-- the names crystal interfaces send with each code, and the code 0.6.54 gives them
+G.FEEDBACK_NAMES = {
+    none = 0, unknown = -1, symbol_encoded = 1, symbol_in_address = -2, symbol_out_of_bounds = -3,
+    encode_when_connected = -4, ["connection_established.system_wide"] = 2,
+    ["connection_established.interstellar"] = 3, ["connection_established.intergalactic"] = 4,
+    incomplete_address = -5, invalid_address = -6, not_enough_power = -7, self_obstructed = -8,
+    target_obstructed = -9, self_dial = -10, same_system_dial = -11, already_connected = -12,
+    no_galaxy = -13, no_dimensions = -14, no_stargates = -15, self_restricted = -16,
+    target_restricted = -17, ["invalid_8_chevron_address"] = -18,
+    invalid_system_wide_connection = -19, target_not_whitelisted = -20,
+    not_whitelisted_by_target = -21, target_blacklisted = -22, blacklisted_by_target = -23,
+    ["connection_ended.disconnect"] = 7, ["connection_ended.point_of_origin"] = 8,
+    ["connection_ended.stargate_network"] = 9, ["connection_ended.autoclose"] = 10,
+    exceeded_connection_time = -24, ran_out_of_power = -25, connection_rerouted = -26,
+    wrong_disconnect_side = -27, connection_forming = -28, stargate_destroyed = -29,
+    could_not_reach_target_stargate = -30, interrupted_by_incoming_connection = -31,
+    chevron_opened = 11, rotating = 12, rotation_blocked = -32, not_rotating = -33,
+    rotation_stopped = 13, chevron_already_opened = -34, chevron_already_closed = -35,
+    chevron_not_open = -36, target_not_loaded = -37, self_outside_stargate_network = -38,
+    target_outside_stargate_network = -39,
+}
+
+-- readable text for a feedback name such as "invalid_address"
+function G.feedbackName(desc)
+    if type(desc) ~= "string" or desc == "" then return nil end
+    local code = G.FEEDBACK_NAMES[desc]
+    if code and G.FEEDBACK[code] then return G.FEEDBACK[code] end
+    desc = desc:gsub("_", " ")
+    return (desc:gsub("^%l", string.upper))
+end
+
 
 -- SGCraft 2.x reports errors as message keys
 G.SGCRAFT_ERRORS = {
@@ -159,6 +196,8 @@ function G.new(p, name, ptype)
         -- the point of origin as the gate names it (nil: SGCraft addresses have none)
         originSymbol = (mod ~= "sgcraft") and 0 or nil,
         energyUnit = (mod == "sgcraft") and "SU" or "FE",
+        -- Stargate Journey's kawoosh destroys an iris that is closed when the wormhole forms
+        kawooshBreaksIris = mod == "sgjourney" and ptype ~= "chevron7_stargate",
         state = "IDLE", chevrons = 0, connected = false, outgoing = false,
         engaged = {},          -- symbols locked so far (for display)
         remote = nil,          -- address on the other side, if known
@@ -204,8 +243,7 @@ function G:feedbackText(code)
     if type(code) ~= "number" then return tostring(code) end
     local recent, desc = self:call("getRecentFeedback")
     if recent == code and type(desc) == "string" and desc ~= "" then
-        desc = desc:gsub("_", " ")
-        return (desc:gsub("^%l", string.upper))
+        return G.feedbackName(desc)
     end
     return G.FEEDBACK[code] or ("Feedback code " .. code)
 end
@@ -433,7 +471,7 @@ function G:event(e)
         info = { type = "outgoing", address = self.remote }
     elseif name == "stargate_disconnected" or name == "stargate_reset" then
         local code, desc = e[o], e[o + 1]
-        local text = (type(desc) == "string" and desc ~= "") and desc:gsub("_", " ") or (type(code) == "number" and self:feedbackText(code)) or nil
+        local text = G.feedbackName(desc) or (type(code) == "number" and self:feedbackText(code)) or nil
         if self.connected then self.closingAt = now() end
         self.outgoing, self.remote, self.incomingChevrons, self.connected = false, nil, false, false
         self.engaged, self.openedAt = {}, nil
@@ -678,9 +716,9 @@ function G:dialJourney(address, opts)
                 end
             end
             pause(opts, chevronDelay)
-            self:checkFeedback(self:call(openName), { -26 })
+            self:checkFeedback(self:call(openName), { -26, -34 })
             pause(opts, chevronDelay)
-            self:checkFeedback(self:call(closeName), { -2, -27 })
+            self:checkFeedback(self:call(closeName), { -2, -27, -35 })
             if not last then
                 if not waitUntil(opts, chevronsAtLeast(i), 5) then fail("Chevron " .. i .. " did not lock") end
                 pause(opts, chevronDelay)

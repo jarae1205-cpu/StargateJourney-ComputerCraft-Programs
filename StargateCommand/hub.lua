@@ -624,23 +624,34 @@ local function onGateEvent(e)
     end
 end
 
+-- Ticks for the UI task. A task that is waiting for a gate call loses the events
+-- that arrive meanwhile, timers included, so the UI task keeps no timers of its
+-- own: it checks its deadlines on every tick, and a lost tick doesn't matter.
+local function tickTask()
+    while true do
+        sleep(0.5)
+        os.queueEvent("hub_tick")
+    end
+end
+
 local function uiTask()
     local held = {}
-    local pollTimer = os.startTimer(CONFIG.pollInterval)
+    local nextPoll = os.clock() + CONFIG.pollInterval
     draw()
     while running do
         local e = table.pack(os.pullEventRaw())
         local name = e[1]
         local redraw = true
+        local polled = false
+        if os.clock() >= nextPoll then
+            if gate then gate:poll() end
+            nextPoll = os.clock() + CONFIG.pollInterval
+            polled = true
+        end
         if name == "terminate" then
             running = false
-        elseif name == "timer" then
-            if e[2] == pollTimer then
-                if gate then gate:poll() end
-                pollTimer = os.startTimer(CONFIG.pollInterval)
-            else
-                redraw = false
-            end
+        elseif name == "timer" or name == "hub_tick" then
+            redraw = polled
         elseif Gate.EVENTS[name] or name == "hub_gate_event" then
             -- handled below, from the queue
         elseif name == "peripheral" then
@@ -700,7 +711,7 @@ else
     setMessage("Tap a destination, tap again to dial", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 Styles.reset(target)
 target.setBackgroundColor(colors.black)

@@ -117,7 +117,7 @@ Settings at the top of `gateroom.lua`:
 - `interfaceName`: which gate interface to use if the computer reaches several
 - `textScale`, `frameTime`: monitor detail and animation speed (raise `frameTime` on a busy server)
 - `fastDial`: engage symbols directly instead of turning the Milky Way ring
-- `autoIris`: close the iris when another gate dials in. Off by default, because your own team coming home hits the iris too
+- `autoIris`: close the iris when another gate dials in. Off by default, because your own team coming home hits the iris too. On Stargate Journey the kawoosh destroys an iris that is closed when the wormhole forms, so there the Gate Room keeps the iris open (opening it if needed) until the wormhole is open, then closes it: it shuts within about three seconds, and survives
 - `alarmSide`: redstone side powered while an incoming wormhole forms, e.g. `"back"`
 - `klaxon`: speaker alarm on or off
 - `autoClose`: close an outgoing wormhole this many seconds after someone steps through (0 = never)
