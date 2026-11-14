@@ -3,13 +3,17 @@ package io.github.stargatecommand.chevron7;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -119,6 +123,15 @@ public class StargateBlockEntity extends BlockEntity
 	private BlockPos remotePos;
 	private int[] remoteAddress = new int[0];
 
+	/**
+	 * This gate's chunk is force-loaded (Forge's chunk manager) while it is connected. A region
+	 * ticket alone keeps a chunk loaded, but a dimension with no players in it stops ticking its
+	 * block entities: the gate on the Moon would never finish opening or closing.
+	 */
+	private boolean forced;
+
+	private GateLook look = GateLook.SG1;
+
 	// iris
 	private boolean irisInstalled, irisClosed;
 	private long irisTick = -1000;
@@ -126,6 +139,13 @@ public class StargateBlockEntity extends BlockEntity
 
 	private int feedback;
 	private String feedbackText = "";
+
+	/**
+	 * Which side of the event horizon each entity near it was last seen on (true: in front).
+	 * A player's previous position is no help here: the server moves players between ticks,
+	 * so by the time the gate looks, where they were and where they are are the same.
+	 */
+	private final Map<UUID, Boolean> sides = new HashMap<>();
 
 	private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
 	/** The ComputerCraft peripheral of this gate, made when a computer first asks for it. */
@@ -394,8 +414,50 @@ public class StargateBlockEntity extends BlockEntity
 		}
 	}
 
+	/** True for an Ori supergate, which is SupergateBlock.SCALE times the size of a gate. */
+	public boolean isSupergate()
+	{
+		return getBlockState().getBlock() instanceof SupergateBlock;
+	}
+
+	/** How many times bigger than an ordinary gate this one is. */
+	public int scale()
+	{
+		return isSupergate() ? SupergateBlock.SCALE : 1;
+	}
+
+	/** How far above the bottom of this block the middle of the ring is. */
+	public double centerHeight()
+	{
+		return GateShape.CENTER_HEIGHT - 3.42 + 3.42 * scale();
+	}
+
+	/** The middle of the event horizon. */
+	public Vec3 center()
+	{
+		return new Vec3(worldPosition.getX() + 0.5, worldPosition.getY() + centerHeight(), worldPosition.getZ() + 0.5);
+	}
+
+	public double horizonRadius()
+	{
+		return GateShape.HORIZON_RADIUS * scale();
+	}
+
+	public GateLook getLook()
+	{
+		return look;
+	}
+
+	public void setLook(GateLook look)
+	{
+		this.look = look;
+		sync();
+	}
+
 	public void installIris()
 	{
+		if(isSupergate())
+			return;
 		irisInstalled = true;
 		irisClosed = false;
 		irisFrom = 0;
@@ -481,6 +543,8 @@ public class StargateBlockEntity extends BlockEntity
 				}
 			}
 		}
+		if(forced && !state.connected())
+			force(false);
 		if(state.connected())
 		{
 			if(now % 20 == 0 && !remoteStillConnected())
@@ -602,6 +666,8 @@ public class StargateBlockEntity extends BlockEntity
 			fail(INVALID_ADDRESS, "invalid_address", now);
 			return;
 		}
+		// a gate in a dimension nobody is in hasn't ticked: let it catch up before calling it busy
+		other.settle(targetLevel.getGameTime());
 		if(other.state.connected() || other.state == State.CLOSING)
 		{
 			fail(TARGET_BUSY, "target_busy", now);
@@ -618,6 +684,8 @@ public class StargateBlockEntity extends BlockEntity
 		feedback(CONNECTED, "connected");
 		keepLoaded(level);
 		other.acceptIncoming(this, targetLevel.getGameTime());
+		force(true);
+		other.force(true);
 		fire("stargate_outgoing_wormhole", GateAddress.list(target));
 		sound(SoundEvents.GENERIC_EXPLODE, 1.2F, 0.6F);
 		sync();
@@ -660,6 +728,8 @@ public class StargateBlockEntity extends BlockEntity
 	private void closeLocal(int code, String text)
 	{
 		long now = now();
+		force(false);
+		sides.clear();
 		feedback(code, text);
 		remoteDimension = null;
 		remotePos = null;
@@ -751,6 +821,49 @@ public class StargateBlockEntity extends BlockEntity
 		}
 	}
 
+	/** Force-loads this gate's chunk, or lets it go. The ticket is saved, so a wormhole survives a restart. */
+	private void force(boolean on)
+	{
+		if(on == forced || !(level instanceof ServerLevel server))
+			return;
+		ChunkPos chunk = new ChunkPos(worldPosition);
+		ForgeChunkManager.forceChunk(server, Chevron7.MOD_ID, worldPosition, chunk.x, chunk.z, on, true);
+		forced = on;
+		setChanged();
+	}
+
+	/**
+	 * Does what the gate would have done had it been ticking: a gate in a dimension with no
+	 * players in it stands still, so it can be left closing, or open to a gate that has gone.
+	 */
+	private void settle(long now)
+	{
+		if(state == State.CLOSING && now - stateTick >= CLOSE_TICKS)
+		{
+			encoded.clear();
+			remoteAddress = new int[0];
+			setState(State.IDLE, now);
+			sync();
+		}
+		else if(state == State.RESETTING && now - stateTick >= RESET_TICKS)
+		{
+			setState(State.IDLE, now);
+			sync();
+		}
+		else if(state.connected() && !remoteStillConnected())
+		{
+			force(false);
+			feedback(CONNECTION_LOST, "connection_lost");
+			remoteDimension = null;
+			remotePos = null;
+			remoteAddress = new int[0];
+			encoded.clear();
+			setState(State.IDLE, now);
+			fire("stargate_disconnected", CONNECTION_LOST, "connection_lost");
+			sync();
+		}
+	}
+
 	//============================================================================================
 	// kawoosh and travel
 	//============================================================================================
@@ -760,15 +873,16 @@ public class StargateBlockEntity extends BlockEntity
 		float p = (float) (now - stateTick) / KAWOOSH_TICKS;
 		if(p < 0.15F || p > 0.6F || !Config.KAWOOSH_KILLS.get() || irisProgress(now) > 0.5F)
 			return;
-		Vec3 center = GateShape.center(worldPosition);
+		Vec3 center = center();
 		Vec3 normal = GateShape.normal(getFacing());
-		AABB box = new AABB(center, center).inflate(3.0).expandTowards(normal.scale(4.5));
+		double s = scale();
+		AABB box = new AABB(center, center).inflate(3.0 * s).expandTowards(normal.scale(4.5 * s));
 		for(LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box))
 		{
 			Vec3 offset = entity.position().add(0, entity.getBbHeight() / 2, 0).subtract(center);
 			double depth = offset.dot(normal);
 			double lateral = offset.subtract(normal.scale(depth)).length();
-			if(depth > -0.3 && depth < 4.2 && lateral < GateShape.HORIZON_RADIUS * (1.0 - depth / 6.0))
+			if(depth > -0.3 && depth < 4.2 * s && lateral < horizonRadius() * (1.0 - depth / (6.0 * s)))
 				entity.hurt(new net.minecraft.world.damagesource.DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
 						.getHolderOrThrow(Chevron7.KAWOOSH)), 1000.0F);
 		}
@@ -777,44 +891,56 @@ public class StargateBlockEntity extends BlockEntity
 	private void transport(ServerLevel level, long now)
 	{
 		Direction facing = getFacing();
-		Vec3 center = GateShape.center(worldPosition);
+		Vec3 center = center();
 		Vec3 normal = GateShape.normal(facing);
-		AABB box = new AABB(center, center).inflate(GateShape.HORIZON_RADIUS + 0.5).inflate(Math.abs(normal.x) * 2, 0, Math.abs(normal.z) * 2);
+		AABB box = new AABB(center, center).inflate(horizonRadius() + 0.5).inflate(Math.abs(normal.x) * 2, 0, Math.abs(normal.z) * 2);
 		List<Entity> travelers = new ArrayList<>();
+		Map<Entity, Boolean> fromFront = new HashMap<>();
+		Map<UUID, Boolean> seen = new HashMap<>();
 		for(Entity entity : level.getEntities((Entity) null, box, e -> e.isAlive() && !e.isSpectator() && !e.isPassenger()))
 		{
+			Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0);
+			double depthNow = middle.subtract(center).dot(normal);
+			Boolean side = sides.get(entity.getUUID());
+			if(side == null)
+			{
+				Vec3 before = new Vec3(entity.xo, entity.yo + entity.getBbHeight() / 2, entity.zo);
+				side = before.subtract(center).dot(normal) > 0;
+			}
+			// remembered while clear of the horizon; inside it, the side they came from counts
+			seen.put(entity.getUUID(), Math.abs(depthNow) >= 0.35 ? depthNow > 0 : side);
 			if(now - entity.getPersistentData().getLong("chevron7_arrived") < 10)
 				continue;
-			Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0);
-			Vec3 before = new Vec3(entity.xo, entity.yo + entity.getBbHeight() / 2, entity.zo);
-			double depthNow = middle.subtract(center).dot(normal);
-			double depthBefore = before.subtract(center).dot(normal);
-			boolean crossed = Math.abs(depthNow) < 0.35 || (depthBefore > 0) != (depthNow > 0) && Math.abs(depthBefore) < 3;
+			boolean crossed = Math.abs(depthNow) < 0.35 || side != (depthNow > 0);
 			if(!crossed)
 				continue;
 			Vec3 flat = middle.subtract(center).subtract(normal.scale(depthNow));
-			if(flat.length() > GateShape.HORIZON_RADIUS - 0.1)
+			if(flat.length() > horizonRadius() - 0.1)
 				continue;
 			travelers.add(entity);
+			fromFront.put(entity, side);
 		}
+		sides.clear();
+		sides.putAll(seen);
 		if(travelers.isEmpty())
 			return;
 		StargateBlockEntity remote = remote();
 		if(remote == null)
 			return;
 		for(Entity entity : travelers)
-			send(level, entity, remote, center, normal, now);
+			send(level, entity, remote, center, normal, fromFront.get(entity), now);
 	}
 
-	private void send(ServerLevel level, Entity entity, StargateBlockEntity remote, Vec3 center, Vec3 normal, long now)
+	private void send(ServerLevel level, Entity entity, StargateBlockEntity remote, Vec3 center, Vec3 normal, boolean fromFront, long now)
 	{
-		Vec3 before = new Vec3(entity.xo, entity.yo, entity.zo).subtract(center);
 		// moving in from the front goes against the normal
-		Vec3 travel = before.dot(normal) >= 0 ? normal.scale(-1) : normal;
+		Vec3 travel = fromFront ? normal.scale(-1) : normal;
 		Vec3 travelRight = new Vec3(-travel.z, 0, travel.x);
 		Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0).subtract(center);
-		double across = middle.dot(travelRight);
-		double up = middle.y;
+		// where in the horizon they went in, scaled to the other gate's size (a supergate is bigger)
+		double ratio = (double) remote.scale() / scale();
+		double across = middle.dot(travelRight) * ratio;
+		double up = middle.y * ratio;
 
 		String type = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
 		String name = entity.getName().getString();
@@ -822,13 +948,23 @@ public class StargateBlockEntity extends BlockEntity
 
 		if(remote.irisProgress(remote.now()) > 0.5F)
 		{
-			// the iris is closed on the other side
-			Vec3 back = travel.scale(-0.9).add(0, 0.25, 0);
-			entity.setDeltaMovement(back);
+			// the iris is closed on the other side: back out of the horizon the way they came, every
+			// time they try (no grace ticks, or someone who keeps walking ends up behind the gate)
+			double past = entity.position().subtract(center).dot(travel);
+			Vec3 out = entity.position().subtract(travel.scale(past + 0.6 + entity.getBbWidth() / 2));
+			if(entity instanceof ServerPlayer player)
+				player.connection.teleport(out.x, out.y, out.z, player.getYRot(), player.getXRot()); // the client has to agree
+			else
+				entity.teleportTo(out.x, out.y, out.z);
+			entity.setDeltaMovement(travel.scale(-0.6).add(0, 0.2, 0));
 			entity.hurtMarked = true;
-			entity.getPersistentData().putLong("chevron7_arrived", now);
-			remote.fire("iris_thud", type, name, uuid);
-			remote.sound(SoundEvents.ANVIL_LAND, 0.7F, 0.5F);
+			long lastThud = entity.getPersistentData().getLong("chevron7_thud");
+			if(now - lastThud > 20 || now < lastThud)
+			{
+				entity.getPersistentData().putLong("chevron7_thud", now);
+				remote.fire("iris_thud", type, name, uuid);
+				remote.sound(SoundEvents.ANVIL_LAND, 0.7F, 0.5F);
+			}
 			return;
 		}
 
@@ -836,9 +972,10 @@ public class StargateBlockEntity extends BlockEntity
 		Direction exitFacing = remote.getFacing();
 		Vec3 exit = GateShape.normal(exitFacing);
 		Vec3 exitRight = new Vec3(-exit.z, 0, exit.x);
-		Vec3 target = GateShape.center(remote.getBlockPos()).add(exitRight.scale(across)).add(0, up, 0)
+		Vec3 target = remote.center().add(exitRight.scale(across)).add(0, up, 0)
 				.add(exit.scale(0.9 + entity.getBbWidth() / 2));
-		double feet = target.y - entity.getBbHeight() / 2;
+		// never below the bottom of the ring (an ordinary gate's bottom block is solid)
+		double feet = Math.max(target.y - entity.getBbHeight() / 2, remote.getBlockPos().getY() + (remote.isSupergate() ? 0 : 1));
 
 		Vec3 velocity = entity.getDeltaMovement();
 		double forward = Math.max(0.05, velocity.dot(travel));
@@ -925,6 +1062,7 @@ public class StargateBlockEntity extends BlockEntity
 	{
 		if(!(level instanceof ServerLevel server))
 			return;
+		force(false);
 		if(state.connected())
 		{
 			StargateBlockEntity remote = remote();
@@ -964,7 +1102,8 @@ public class StargateBlockEntity extends BlockEntity
 	@Override
 	public AABB getRenderBoundingBox()
 	{
-		return new AABB(worldPosition).inflate(7.0, 0, 7.0).expandTowards(0, 8.0, 0);
+		int s = scale();
+		return new AABB(worldPosition).inflate(7.0 * s, 0, 7.0 * s).expandTowards(0, 8.0 * s, 0);
 	}
 
 	//============================================================================================
@@ -996,6 +1135,8 @@ public class StargateBlockEntity extends BlockEntity
 			tag.putLong("RemotePos", remotePos.asLong());
 		}
 		tag.putIntArray("RemoteAddress", remoteAddress);
+		tag.putBoolean("Forced", forced);
+		tag.putString("Look", look.id);
 		tag.putBoolean("Iris", irisInstalled);
 		tag.putBoolean("IrisClosed", irisClosed);
 		tag.putLong("IrisTick", irisTick);
@@ -1038,6 +1179,9 @@ public class StargateBlockEntity extends BlockEntity
 		remoteDimension = dimension == null ? null : ResourceKey.create(Registries.DIMENSION, dimension);
 		remotePos = tag.contains("RemotePos") ? BlockPos.of(tag.getLong("RemotePos")) : null;
 		remoteAddress = tag.getIntArray("RemoteAddress");
+		forced = tag.getBoolean("Forced");
+		GateLook saved = GateLook.byId(tag.getString("Look"));
+		look = saved == null ? GateLook.SG1 : saved;
 		irisInstalled = tag.getBoolean("Iris");
 		irisClosed = tag.getBoolean("IrisClosed");
 		irisTick = tag.contains("IrisTick") ? tag.getLong("IrisTick") : -1000;

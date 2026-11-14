@@ -262,6 +262,8 @@ local THEMES = {
     atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
     sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
+    -- the Carter Addon Pack (Garry's Mod): red carpet, the orange DHD and its blue dome
+    cap       = { name = "Carter Addon Pack", header = colors.red, title = colors.orange,   address = colors.orange,    lit = colors.orange,    master = colors.cyan,      button = colors.orange },
     continuum = { name = "Continuum",     header = colors.gray,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.red,       button = colors.lightBlue },
     ark       = { name = "Ark of Truth",  header = colors.brown, title = colors.yellow,    address = colors.yellow,    lit = colors.yellow,    master = colors.white,     button = colors.yellow },
     origins   = { name = "Origins",       header = colors.brown, title = colors.orange,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
@@ -271,7 +273,7 @@ local THEMES = {
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -290,7 +292,7 @@ local VARIANT_THEMES = {
     { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
-    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" },
+    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
 }
 
 local STATE_STYLE = {
@@ -301,23 +303,51 @@ local STATE_STYLE = {
     OFFLINE  = { label = "NO GATE",  fg = colors.white, bg = colors.gray },
 }
 
--- Stargate Journey feedback codes (used when the interface gives no description)
+-- Stargate Journey's feedback codes (0.6.54), used when the interface gives no description.
+-- Older versions numbered some of them differently; crystal interfaces send the
+-- description along, and that is used first.
 local FEEDBACK = {
     [0] = "No feedback", [-1] = "Unknown error",
     [1] = "Symbol encoded", [-2] = "Symbol already in address", [-3] = "Symbol out of bounds",
     [2] = "Connected (same system)", [3] = "Connected (interstellar)", [4] = "Connected (intergalactic)",
-    [-4] = "Incomplete address", [-5] = "Invalid address", [-6] = "Not enough power",
-    [-7] = "This gate is obstructed", [-8] = "Target gate is obstructed", [-9] = "A gate can't dial itself",
-    [-10] = "Target is in the same system", [-11] = "Already connected", [-12] = "No galaxy",
-    [-13] = "No dimensions", [-14] = "No stargates", [-15] = "Target restricted",
+    [-4] = "Can't encode while connected", [-5] = "Incomplete address", [-6] = "Invalid address",
+    [-7] = "Not enough power", [-8] = "This gate is obstructed", [-9] = "Target gate is obstructed",
+    [-10] = "A gate can't dial itself", [-11] = "Target is in the same system", [-12] = "Already connected",
+    [-13] = "No galaxy", [-14] = "No dimensions", [-15] = "No stargates there",
+    [-16] = "This gate is restricted", [-17] = "Target restricted", [-18] = "Invalid 8-chevron address",
+    [-19] = "Invalid system-wide connection", [-20] = "Target not whitelisted",
+    [-21] = "Not whitelisted by the target", [-22] = "Target blacklisted", [-23] = "Blacklisted by the target",
+    [-24] = "Exceeded connection time", [-25] = "Ran out of power", [-26] = "Connection rerouted",
+    [-27] = "Can't disconnect from this side", [-28] = "Connection forming", [-29] = "Stargate destroyed",
+    [-30] = "Could not reach the target gate", [-31] = "Interrupted by an incoming connection",
     [7] = "Disconnected", [8] = "Closed by the point of origin", [9] = "Closed by the network",
-    [10] = "Closed by autoclose", [-17] = "Ran out of power", [-20] = "Connection forming",
-    [-21] = "Stargate destroyed", [-22] = "Could not reach the target gate",
-    [-23] = "Interrupted by an incoming connection",
-    [11] = "Chevron opened", [12] = "Rotating", [-24] = "Rotation blocked", [-25] = "Not rotating",
-    [13] = "Rotation stopped", [-26] = "Chevron already open", [-27] = "Chevron already closed",
-    [-28] = "Chevron not open", [-29] = "Cannot encode the point of origin",
+    [10] = "Closed by autoclose", [11] = "Chevron opened", [12] = "Rotating", [13] = "Rotation stopped",
+    [-32] = "Rotation blocked", [-33] = "Not rotating", [-34] = "Chevron already open",
+    [-35] = "Chevron already closed", [-36] = "Chevron not open", [-37] = "Target gate not loaded",
+    [-38] = "This gate is outside the network", [-39] = "Target is outside the network",
 }
+-- the names crystal interfaces send with each code, and the code 0.6.54 gives them
+local FEEDBACK_NAMES = {
+    none = 0, unknown = -1, symbol_encoded = 1, symbol_in_address = -2, symbol_out_of_bounds = -3,
+    encode_when_connected = -4, ["connection_established.system_wide"] = 2,
+    ["connection_established.interstellar"] = 3, ["connection_established.intergalactic"] = 4,
+    incomplete_address = -5, invalid_address = -6, not_enough_power = -7, self_obstructed = -8,
+    target_obstructed = -9, self_dial = -10, same_system_dial = -11, already_connected = -12,
+    no_galaxy = -13, no_dimensions = -14, no_stargates = -15, self_restricted = -16,
+    target_restricted = -17, ["invalid_8_chevron_address"] = -18,
+    invalid_system_wide_connection = -19, target_not_whitelisted = -20,
+    not_whitelisted_by_target = -21, target_blacklisted = -22, blacklisted_by_target = -23,
+    ["connection_ended.disconnect"] = 7, ["connection_ended.point_of_origin"] = 8,
+    ["connection_ended.stargate_network"] = 9, ["connection_ended.autoclose"] = 10,
+    exceeded_connection_time = -24, ran_out_of_power = -25, connection_rerouted = -26,
+    wrong_disconnect_side = -27, connection_forming = -28, stargate_destroyed = -29,
+    could_not_reach_target_stargate = -30, interrupted_by_incoming_connection = -31,
+    chevron_opened = 11, rotating = 12, rotation_blocked = -32, not_rotating = -33,
+    rotation_stopped = 13, chevron_already_opened = -34, chevron_already_closed = -35,
+    chevron_not_open = -36, target_not_loaded = -37, self_outside_stargate_network = -38,
+    target_outside_stargate_network = -39,
+}
+
 
 ---------------------------------------------------------------------------
 -- Address book (persistence)
@@ -682,6 +712,8 @@ local function feedbackText(code)
     if type(code) ~= "number" then return tostring(code) end
     local recent, desc = call("getRecentFeedback")
     if recent == code and type(desc) == "string" and desc ~= "" then
+        local known = FEEDBACK_NAMES[desc]
+        if known and FEEDBACK[known] then return FEEDBACK[known] end
         desc = desc:gsub("_", " ")
         return (desc:gsub("^%l", string.upper))
     end
@@ -763,14 +795,11 @@ local function refreshGate()
 end
 
 local function disarmAutoClose()
-    if autoClose.timer then os.cancelTimer(autoClose.timer) end
-    autoClose.timer, autoClose.deadline = nil, nil
+    autoClose.deadline = nil
 end
 
 local function armAutoClose(seconds)
-    disarmAutoClose()
     autoClose.deadline = os.clock() + seconds
-    autoClose.timer = os.startTimer(seconds)
 end
 
 ---------------------------------------------------------------------------
@@ -892,8 +921,17 @@ local function runDialLantea()
             if dial.abort then return end
             fail("The gate is not ready for chevron " .. i)
         end
-        -- turns the ring and locks the symbol; the point of origin reaches out
-        local ok, err = pcall(p.encodeSymbol, symbol)
+        -- turns the ring and locks the symbol; the point of origin reaches out.
+        -- Lantea counts a chevron as locked about a second before it has finished
+        -- locking, and refuses the next symbol until then: wait and try again.
+        local ok, err
+        local deadline = os.clock() + CONFIG.stepTimeout
+        while true do
+            ok, err = pcall(p.encodeSymbol, symbol)
+            if ok or not tostring(err):find("still locking", 1, true) or os.clock() > deadline then break end
+            if dial.abort then return end
+            sleep(0.25)
+        end
         if not ok then fail(cleanError(err)) end
         if i < #address then
             if not waitUntil(function()
@@ -1059,10 +1097,10 @@ local function runDial()
             end
             sleep(delay)
             if dial.abort then return end
-            checkFeedback(call(openName), { -26 })
+            checkFeedback(call(openName), { -26, -34 })
             sleep(delay)
             if dial.abort then return end
-            checkFeedback(call(closeName), { -2, -27 })
+            checkFeedback(call(closeName), { -2, -27, -35 })
             if not last then
                 if not waitUntil(chevronsAtLeast(i), 5) then
                     if dial.abort then return end
@@ -2465,44 +2503,77 @@ end
 -- so the UI task reads them from this queue instead.
 local gateEventQueue = {}
 
+-- Keys, clicks and touches are queued by the listener too, for the same reason:
+-- the UI task polls the gate, and input that comes in meanwhile would be lost.
+local INPUT_EVENTS = {
+    key = true, key_up = true, char = true, paste = true, terminate = true,
+    mouse_click = true, mouse_up = true, mouse_drag = true, mouse_scroll = true,
+    monitor_touch = true, term_resize = true, monitor_resize = true,
+    peripheral = true, peripheral_detach = true,
+}
+local inputQueue = {}
+
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEvent())
+        local e = table.pack(os.pullEventRaw())
         if GATE_EVENTS[e[1]] then
             gateEventQueue[#gateEventQueue + 1] = e
             os.queueEvent("dialer_gate_event")
+        elseif INPUT_EVENTS[e[1]] then
+            inputQueue[#inputQueue + 1] = e
+            os.queueEvent("dialer_input")
         end
+    end
+end
+
+-- Ticks for the UI task. A task that is waiting for a gate call loses the events
+-- that arrive meanwhile, timers included, so the UI task keeps no timers of its
+-- own: it checks its deadlines on every tick, and a lost tick doesn't matter.
+local function tickTask()
+    while true do
+        sleep(0.3)
+        os.queueEvent("dialer_tick")
     end
 end
 
 local function uiTask()
     draw()
-    local pollTimer = os.startTimer(CONFIG.pollInterval)
+    local nextPoll = os.clock() + CONFIG.pollInterval
     while running do
-        local e = table.pack(os.pullEventRaw())
+        local e
+        if #inputQueue > 0 then
+            e = table.remove(inputQueue, 1)
+        else
+            e = table.pack(os.pullEventRaw())
+            -- input comes through the queue, in order
+            if INPUT_EVENTS[e[1]] then e = { n = 1, "dialer_input" } end
+        end
         local name = e[1]
         local redraw = true
+        local due = false
+        if os.clock() >= nextPoll then
+            refreshGate()
+            -- the gate picture animates the open wormhole and the iris
+            local L = layout()
+            local fast = (gateView or L.side) and gate.state ~= "IDLE" and gate.state ~= "OFFLINE"
+            nextPoll = os.clock() + (fast and 0.3 or CONFIG.pollInterval)
+            due = true
+        end
+        if autoClose.deadline and os.clock() >= autoClose.deadline then
+            autoClose.deadline = nil
+            refreshGate()
+            if gate.state == "OPEN" then
+                autoClose.closedAt = os.clock()
+                call("disconnectStargate")
+                setMessage("Wormhole closed by auto-close", colors.lightGray)
+            end
+            due = true
+        end
 
         if name == "terminate" then
             quit()
-        elseif name == "timer" then
-            if e[2] == pollTimer then
-                refreshGate()
-                -- the gate picture animates the open wormhole and the iris
-                local L = layout()
-                local fast = (gateView or L.side) and gate.state ~= "IDLE" and gate.state ~= "OFFLINE"
-                pollTimer = os.startTimer(fast and 0.3 or CONFIG.pollInterval)
-            elseif e[2] == autoClose.timer then
-                autoClose.timer, autoClose.deadline = nil, nil
-                refreshGate()
-                if gate.state == "OPEN" then
-                    autoClose.closedAt = os.clock()
-                    call("disconnectStargate")
-                    setMessage("Wormhole closed by auto-close", colors.lightGray)
-                end
-            else
-                redraw = false
-            end
+        elseif name == "timer" or name == "dialer_tick" then
+            redraw = due
         elseif GATE_EVENTS[name] or name == "dialer_gate_event" then
             -- handled below, from the queue
         elseif name == "peripheral" then
@@ -2562,7 +2633,7 @@ else
     setMessage("Ready - [?] or Ctrl+H for help", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 term.redirect(native)
 if monitor then

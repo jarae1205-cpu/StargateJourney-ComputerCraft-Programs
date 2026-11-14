@@ -60,6 +60,9 @@ public class Chevron7
 	/** The bottom middle block of the ring: owns the gate and draws all of it. */
 	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate",
 			() -> new StargateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
+	/** An Ori supergate's base: the giant ring is drawn around it. Built with /chevron7 supergate. */
+	public static final RegistryObject<SupergateBlock> SUPERGATE = BLOCKS.register("supergate",
+			() -> new SupergateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
 	/** The other 23 blocks of the ring, invisible: they give the ring its collision. */
 	public static final RegistryObject<GateFrameBlock> GATE_FRAME = BLOCKS.register("gate_frame",
 			() -> new GateFrameBlock(gateProperties().noLootTable().lightLevel(state -> state.getValue(GateFrameBlock.LIT) ? 12 : 0)));
@@ -75,9 +78,13 @@ public class Chevron7
 			() -> new IrisItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> ADDRESS_BOOK = ITEMS.register("address_book",
 			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> LOOK_CRYSTAL = ITEMS.register("look_crystal",
+			() -> new LookCrystalItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
-			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));
+			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), SUPERGATE.get()).build(null));
+	public static final RegistryObject<BlockEntityType<DHDBlockEntity>> DHD_ENTITY = BLOCK_ENTITIES.register("dhd",
+			() -> BlockEntityType.Builder.of(DHDBlockEntity::new, DHD.get()).build(null));
 
 	public static final RegistryObject<CreativeModeTab> TAB = TABS.register("chevron7", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.chevron7"))
@@ -96,6 +103,8 @@ public class Chevron7
 		context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 		Net.register();
 		MinecraftForge.EVENT_BUS.addListener(GateCommands::register);
+		// open wormholes force-load their gates' chunks; the gates let go themselves once closed
+		net.minecraftforge.common.world.ForgeChunkManager.setForcedChunkLoadingCallback(MOD_ID, (level, tickets) -> {});
 		if(ModList.get().isLoaded("computercraft"))
 			runSafely(() -> io.github.stargatecommand.chevron7.compat.CCIntegration::init);
 	}

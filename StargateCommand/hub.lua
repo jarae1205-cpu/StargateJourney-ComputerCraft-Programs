@@ -594,12 +594,25 @@ end
 -- so the UI task reads them from this queue instead.
 local gateEvents = {}
 
+-- Keys, clicks and touches are queued by the listener too, for the same reason:
+-- the UI task polls the gate, and input that comes in meanwhile would be lost.
+local INPUT_EVENTS = {
+    key = true, key_up = true, char = true, paste = true, terminate = true,
+    mouse_click = true, mouse_up = true, mouse_drag = true, mouse_scroll = true,
+    monitor_touch = true, term_resize = true, monitor_resize = true,
+    peripheral = true, peripheral_detach = true,
+}
+local inputQueue = {}
+
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEvent())
+        local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
             os.queueEvent("hub_gate_event")
+        elseif INPUT_EVENTS[e[1]] then
+            inputQueue[#inputQueue + 1] = e
+            os.queueEvent("hub_input")
         end
     end
 end
@@ -624,23 +637,41 @@ local function onGateEvent(e)
     end
 end
 
+-- Ticks for the UI task. A task that is waiting for a gate call loses the events
+-- that arrive meanwhile, timers included, so the UI task keeps no timers of its
+-- own: it checks its deadlines on every tick, and a lost tick doesn't matter.
+local function tickTask()
+    while true do
+        sleep(0.5)
+        os.queueEvent("hub_tick")
+    end
+end
+
 local function uiTask()
     local held = {}
-    local pollTimer = os.startTimer(CONFIG.pollInterval)
+    local nextPoll = os.clock() + CONFIG.pollInterval
     draw()
     while running do
-        local e = table.pack(os.pullEventRaw())
+        local e
+        if #inputQueue > 0 then
+            e = table.remove(inputQueue, 1)
+        else
+            e = table.pack(os.pullEventRaw())
+            -- input comes through the queue, in order
+            if INPUT_EVENTS[e[1]] then e = { n = 1, "hub_input" } end
+        end
         local name = e[1]
         local redraw = true
+        local polled = false
+        if os.clock() >= nextPoll then
+            if gate then gate:poll() end
+            nextPoll = os.clock() + CONFIG.pollInterval
+            polled = true
+        end
         if name == "terminate" then
             running = false
-        elseif name == "timer" then
-            if e[2] == pollTimer then
-                if gate then gate:poll() end
-                pollTimer = os.startTimer(CONFIG.pollInterval)
-            else
-                redraw = false
-            end
+        elseif name == "timer" or name == "hub_tick" then
+            redraw = polled
         elseif Gate.EVENTS[name] or name == "hub_gate_event" then
             -- handled below, from the queue
         elseif name == "peripheral" then
@@ -700,7 +731,7 @@ else
     setMessage("Tap a destination, tap again to dial", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 Styles.reset(target)
 target.setBackgroundColor(colors.black)

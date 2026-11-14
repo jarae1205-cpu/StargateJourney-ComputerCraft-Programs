@@ -131,10 +131,42 @@ local function infinityWall(x, y, cx, cy, R)
     return colors.orange
 end
 
+-- the Carter Addon Pack scene: sky, a red marble floor, the gate on a stepped grey
+-- pedestal with a red carpet up the middle, and the round orange DHD in front
+local function capScene(x, y, cx, cy, R)
+    local dx, dy = (x - 0.5) - cx, (y - 0.5) - cy
+    -- the DHD: an orange disc seen at an angle, with keys round a blue dome
+    local ex, ey = dx / (R * 0.42), (dy - R * 1.62) / (R * 0.2)
+    local e = ex * ex + ey * ey
+    if e <= 1 then
+        if e < 0.12 then return colors.lightBlue end
+        if e < 0.2 then return colors.cyan end
+        if e > 0.82 then return colors.yellow end
+        if e > 0.3 and e < 0.72 and (floor(math.deg(atan2(ex, ey)) / 18) % 2 == 0) then return colors.gray end
+        return colors.orange
+    end
+    if ey > 0 and ey < 2.6 and abs(dx) < R * 0.32 * (1 - (ey - 1) * 0.08) and dy > R * 1.62 then return colors.orange end
+    -- the pedestal: three steps out from under the gate
+    local top = R * 0.9
+    if dy >= top and dy < top + R * 0.39 then
+        local step = floor((dy - top) / (R * 0.13))
+        local half = R * 1.08 + step * R * 0.2
+        if abs(dx) <= half then
+            if abs(dx) < R * 0.2 then return colors.red end   -- the carpet
+            local edge = (dy - top) % (R * 0.13) < R * 0.04
+            return edge and colors.gray or colors.lightGray
+        end
+    end
+    -- the floor and the sky
+    if dy > R * 0.62 then return colors.red end
+    return colors.lightBlue
+end
+
 -- what is behind the gate: black, a starfield, or a style's own wall (nil = black)
 function Ring.backdropAt(style, x, y, cx, cy, R)
     if style.stars then return Ring.starAt(x, y) end
     if style.backdrop == "infinity" then return infinityWall(x, y, cx, cy, R) end
+    if style.backdrop == "cap" then return capScene(x, y, cx, cy, R) end
     return nil
 end
 
