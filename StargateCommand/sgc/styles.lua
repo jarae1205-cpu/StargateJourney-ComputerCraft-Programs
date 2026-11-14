@@ -183,6 +183,17 @@ S.LIST = {
                             [colors.yellow] = 0xFFE6A0, [colors.magenta] = 0x3E2A3A }),
     },
     {
+        -- the Carter Addon Pack for Garry's Mod: the gate on a stepped stone pedestal with a
+        -- red carpet up to it, the big round orange DHD in front, under an open sky
+        id = "cap", room = "GATE ROOM", name = "Carter Addon Pack", series = "Garry's Mod",
+        shape = "v", track = true, backdrop = "cap", gateScale = 0.72, gateLift = 0.16,
+        palette = palette({
+            [colors.red] = 0x8E2A20, [colors.lightBlue] = 0xA9C8F0, [colors.cyan] = 0x3FB6E6,
+            [colors.orange] = 0xE8762A, [colors.yellow] = 0xF6BE48,
+            [colors.lightGray] = 0x8A8D93, [colors.gray] = 0x55585E,
+        }),
+    },
+    {
         id = "sgcraft", room = "GATE ROOM", name = "SGCraft", series = "Greg's SGCraft",
         shape = "v", track = true,
         palette = palette({ [colors.orange] = 0xFF5A20, [colors.lightGray] = 0x8E8E8E, [colors.gray] = 0x474747,
@@ -207,7 +218,7 @@ local VARIANT_MATCH = {
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
-    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" },
+    { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
 }
 
 function S.forGate(gate)

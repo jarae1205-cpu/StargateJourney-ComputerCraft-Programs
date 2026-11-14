@@ -200,9 +200,14 @@ local function paintBackground()
     canvas:invalidate()
 end
 
+local ringKey
 local function chooseStyle()
     style = Styles.resolve(book:setting("gateroomStyle", "auto"), gate)
     Styles.apply(target, style)
+    -- a style that draws the gate at another size needs the layout done again
+    local key = (style.gateScale or 1) .. "/" .. (style.gateLift or 0)
+    if canvas and ringKey and key ~= ringKey then os.queueEvent("gateroom_relayout") end
+    ringKey = key
     if canvas then paintBackground() end
 end
 
@@ -225,8 +230,10 @@ local function layout()
     L.gh = H - 1
     if L.pw == 0 then L.gh = H - 2 end
     canvas = Pixels.new(L.gw, L.gh, colors.black)
-    local r = math.min(canvas.w, canvas.h) / 2 / 1.1
-    ring = Ring.new(canvas, canvas.w / 2, canvas.h / 2 + 0.5, r)
+    -- a style can draw the gate smaller and higher, to leave room for its scene below
+    local scale, lift = style and style.gateScale or 1, style and style.gateLift or 0
+    local r = math.min(canvas.w, canvas.h) / 2 / 1.1 * scale
+    ring = Ring.new(canvas, canvas.w / 2, canvas.h / 2 + 0.5 - lift * canvas.h, r)
     paintBackground()
     target.setBackgroundColor(colors.black)
     target.clear()
@@ -994,7 +1001,7 @@ local function uiTask()
         elseif name == "char" or name == "paste" then
             keyEvent(e, held)
             redraw, nativeDirty = true, true
-        elseif name == "monitor_resize" or name == "term_resize" then
+        elseif name == "monitor_resize" or name == "term_resize" or name == "gateroom_relayout" then
             layout()
             redraw = true
         elseif name == "gateroom_redraw" then
