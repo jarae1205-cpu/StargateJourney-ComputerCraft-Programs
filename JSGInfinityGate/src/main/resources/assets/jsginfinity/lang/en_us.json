@@ -1,0 +1,12 @@
+{
+  "itemGroup.jsginfinity": "Infinity Stargate",
+  "block.jsginfinity.infinity_stargate_base_block": "Infinity Stargate Base",
+  "block.jsginfinity.infinity_stargate_base_block.tooltip": "The main block of the Infinity gate",
+  "block.jsginfinity.infinity_stargate_base_block.tooltip.extended": "Place this block first when building a stargate.%nl%When placed, it will show you a diagram%nl%of how the stargate should be built.",
+  "block.jsginfinity.infinity_stargate_ring_block": "Infinity Stargate Ring",
+  "block.jsginfinity.infinity_stargate_ring_block.tooltip": "The construction block of the Infinity gate",
+  "block.jsginfinity.infinity_stargate_ring_block.tooltip.extended": "You need this block to complete building a new stargate.",
+  "block.jsginfinity.infinity_stargate_chevron_block": "Infinity Stargate Chevron",
+  "block.jsginfinity.infinity_stargate_chevron_block.tooltip": "The locking mechanism of the Infinity gate",
+  "block.jsginfinity.infinity_stargate_chevron_block.tooltip.extended": "You need this block to complete building a new stargate."
+}

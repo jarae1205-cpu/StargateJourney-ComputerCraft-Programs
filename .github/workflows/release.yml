@@ -1,4 +1,4 @@
-# Publishes a GitHub release with the built mod jars (*/dist/*.jar), the variant pack zip and the JSG look packs.
+# Publishes a GitHub release with the built mod jars (*/dist/*.jar) and the variant pack zip.
 #
 # Write the notes first in .github/release-notes/<tag>.md: the first line ("# Title") is the
 # release title, the rest is the text. Then either
@@ -36,7 +36,7 @@ jobs:
           title=$(head -n 1 "$notes" | sed 's/^#* *//')
           tail -n +2 "$notes" > "$RUNNER_TEMP/notes.md"
           shopt -s nullglob
-          files=( */dist/*.jar StargateJourneyVariants/*.zip JustStargateModLooks/*.zip )
+          files=( */dist/*.jar StargateJourneyVariants/*.zip )
           if [ ${#files[@]} -eq 0 ]; then echo "nothing to attach"; exit 1; fi
           printf 'attaching %s\n' "${files[@]}"
           gh release create "$TAG" "${files[@]}" --target "$GITHUB_SHA" --title "$title" --notes-file "$RUNNER_TEMP/notes.md"

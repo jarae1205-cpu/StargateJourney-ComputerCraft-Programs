@@ -74,10 +74,11 @@ A Forge 1.20.1 add-on for Stargate Journey:
 ### [Stargate Journey Variants](./StargateJourneyVariants/)
 A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth and Infinity looks, made in the crystallizer.
 
-### [Just Stargate Mod Looks](./JustStargateModLooks/)
-Two resource packs for Just Stargate Mod 1.20.1, with textures drawn from scratch:
- - **Infinity Gate**: the Milky Way gate as drawn in *Stargate Infinity*: pale stone with ink outlines, lime-yellow chevrons, and an iris that closes into a pale spiral
- - **Orange DHD**: an orange DHD in the style of Carter's Addon Pack, with a dark console and a turquoise dome
+### [Infinity Stargate for JSG](./JSGInfinityGate/)
+An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity*, built from its own base, ring and chevron blocks in JSG's pattern:
+ - JSG's own Milky Way gate underneath, so it has Milky Way addresses and is meant to take the DHD, upgrades, the iris and computers like one (see [what was tested](./JSGInfinityGate/README.md#tested))
+ - Drawn with JSG's models, in the cartoon's colours: pale stone with ink outlines, lime-yellow chevrons and a pale wormhole
+ - `/jsginfinity build` lays out a whole gate for operators
 
 ![Infinity gate](./imgs/JSGInfinityGate.png)
 
@@ -102,7 +103,7 @@ Two resource packs for Just Stargate Mod 1.20.1, with textures drawn from scratc
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, the tools that build the variant pack, and the Just Stargate Mod Looks (the script and the textures it draws).
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, the tools that build the variant pack, and the Infinity Stargate for JSG (its code and the textures its script draws).
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.
