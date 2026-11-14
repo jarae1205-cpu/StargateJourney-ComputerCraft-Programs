@@ -64,20 +64,31 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		int light = LevelRenderer.getLightColor(level, gate.getBlockPos().above(3).relative(facing));
 
 		pose.pushPose();
-		pose.translate(0.5, 3.5, 0.5);
+		pose.translate(0.5, gate.centerHeight(), 0.5);
 		pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+		boolean supergate = gate.isSupergate();
+		if(supergate)
+			pose.scale(gate.scale(), gate.scale(), gate.scale());
 
 		float angle = gate.ringAngle(time);
 		Matrix4f m = pose.last().pose();
 		Matrix3f n = pose.last().normal();
 
 		GateLook look = gate.getLook();
-		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.stoneTexture())), m, n, R_MID, R_OUT, D_OUT, 36, 0, light, 1.0F);
-		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.trackTexture())), m, n, R_IN, R_MID, D_TRACK, GateAddress.SYMBOLS, angle, light, 1.0F);
-		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(GLYPHS)), m, n, angle, look, light);
-		chevrons(gate, look, time, buffers, m, n, light);
+		if(supergate)
+		{
+			supergate(gate, look, time, buffers, m, n, light);
+		}
+		else
+		{
+			ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.stoneTexture())), m, n, R_MID, R_OUT, D_OUT, 36, 0, light, 1.0F);
+			ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.trackTexture())), m, n, R_IN, R_MID, D_TRACK, GateAddress.SYMBOLS, angle, light, 1.0F);
+			glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(GLYPHS)), m, n, angle, look, light);
+			chevrons(gate, look, time, buffers, m, n, light);
+		}
 		horizon(gate, look, time, buffers.getBuffer(RenderType.entityTranslucent(look.horizonTexture())), m, n);
-		iris(gate, look, time, buffers.getBuffer(RenderType.entityCutoutNoCull(IRIS)), m, n, light);
+		if(!supergate)
+			iris(gate, look, time, buffers.getBuffer(RenderType.entityCutoutNoCull(IRIS)), m, n, light);
 
 		pose.popPose();
 	}
@@ -145,6 +156,67 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 				quad(vc, m, n, p, new float[] {u0, v0, u1, v0, u1, v1, u0, v1}, look.glyphR, look.glyphG, look.glyphB, 1, light, 0, 0, side);
 			}
 		}
+	}
+
+	static final int SUPER_SEGMENTS = 40;
+
+	/**
+	 * An Ori supergate: a ring of separate dark segments with gaps between them and no symbols or
+	 * chevrons. Their seams light one after another, clockwise from the top, as the chevrons lock,
+	 * and all of them pulse while the wormhole is open.
+	 */
+	private static void supergate(StargateBlockEntity gate, GateLook look, float time, MultiBufferSource buffers, Matrix4f m, Matrix3f n, int light)
+	{
+		VertexConsumer stone = buffers.getBuffer(RenderType.entityCutoutNoCull(GateLook.ORI.stoneTexture()));
+		State state = gate.getState();
+		int lit;
+		if(state.connected())
+			lit = SUPER_SEGMENTS;
+		else if(state == State.RESETTING || state == State.CLOSING)
+			lit = 0;
+		else
+			lit = Math.min(SUPER_SEGMENTS, Math.round(SUPER_SEGMENTS * gate.getChevronsEngaged() / 7.0F));
+		float pulse = state.connected() ? 0.75F + 0.25F * Mth.sin(time * 0.15F) : 1;
+		float r1 = R_IN, r2 = R_OUT - 0.2F, d = D_OUT * 0.8F;
+		float span = 360.0F / SUPER_SEGMENTS, gap = 1.3F;
+		for(int k = 0; k < SUPER_SEGMENTS; k++)
+		{
+			float a0 = (float) Math.toRadians(k * span + gap), a1 = (float) Math.toRadians((k + 1) * span - gap);
+			segment(stone, m, n, r1, r2, d, a0, a1, light);
+		}
+		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(CHEVRON));
+		for(int k = 0; k < lit; k++)
+		{
+			float a0 = (float) Math.toRadians(k * span + gap * 1.6F), a1 = (float) Math.toRadians((k + 1) * span - gap * 1.6F);
+			float s0 = Mth.sin(a0), c0 = Mth.cos(a0), s1 = Mth.sin(a1), c1 = Mth.cos(a1);
+			float q1 = r1 + 0.05F, q2 = r1 + 0.32F;
+			float[] uv = {0.3F, 0.3F, 0.7F, 0.3F, 0.7F, 0.7F, 0.3F, 0.7F};
+			float r = look.chevronR * pulse, g = look.chevronG * pulse, b = look.chevronB * pulse;
+			for(int side = 1; side >= -1; side -= 2)
+			{
+				float z = side * (d + 0.004F);
+				float[] p = side > 0
+						? new float[] {q1 * s0, q1 * c0, z, q2 * s0, q2 * c0, z, q2 * s1, q2 * c1, z, q1 * s1, q1 * c1, z}
+						: new float[] {q1 * s1, q1 * c1, z, q2 * s1, q2 * c1, z, q2 * s0, q2 * c0, z, q1 * s0, q1 * c0, z};
+				quad(glow, m, n, p, uv, r, g, b, 1, FULL_BRIGHT, 0, 0, side);
+			}
+		}
+	}
+
+	/** One supergate segment: a short block of the ring from angle a0 to a1, r1 to r2, d thick each side. */
+	private static void segment(VertexConsumer vc, Matrix4f m, Matrix3f n, float r1, float r2, float d, float a0, float a1, int light)
+	{
+		float s0 = Mth.sin(a0), c0 = Mth.cos(a0), s1 = Mth.sin(a1), c1 = Mth.cos(a1);
+		float sm = Mth.sin((a0 + a1) / 2), cm = Mth.cos((a0 + a1) / 2);
+		float[] uv = {0, 1, 0, 0, 1, 0, 1, 1};
+		float shade = 0.85F, rim = 0.65F;
+		quad(vc, m, n, new float[] {r1 * s0, r1 * c0, d, r2 * s0, r2 * c0, d, r2 * s1, r2 * c1, d, r1 * s1, r1 * c1, d}, uv, shade, shade, shade, 1, light, 0, 0, 1);
+		quad(vc, m, n, new float[] {r1 * s1, r1 * c1, -d, r2 * s1, r2 * c1, -d, r2 * s0, r2 * c0, -d, r1 * s0, r1 * c0, -d}, uv, shade, shade, shade, 1, light, 0, 0, -1);
+		quad(vc, m, n, new float[] {r2 * s0, r2 * c0, d, r2 * s0, r2 * c0, -d, r2 * s1, r2 * c1, -d, r2 * s1, r2 * c1, d}, uv, rim, rim, rim, 1, light, sm, cm, 0);
+		quad(vc, m, n, new float[] {r1 * s1, r1 * c1, d, r1 * s1, r1 * c1, -d, r1 * s0, r1 * c0, -d, r1 * s0, r1 * c0, d}, uv, rim, rim, rim, 1, light, -sm, -cm, 0);
+		// the ends, facing the gaps
+		quad(vc, m, n, new float[] {r1 * s0, r1 * c0, -d, r2 * s0, r2 * c0, -d, r2 * s0, r2 * c0, d, r1 * s0, r1 * c0, d}, uv, rim, rim, rim, 1, light, -c0, s0, 0);
+		quad(vc, m, n, new float[] {r1 * s1, r1 * c1, d, r2 * s1, r2 * c1, d, r2 * s1, r2 * c1, -d, r1 * s1, r1 * c1, -d}, uv, rim, rim, rim, 1, light, c1, -s1, 0);
 	}
 
 	/** Which chevron slots are lit, and how far the top chevron has moved while locking. */

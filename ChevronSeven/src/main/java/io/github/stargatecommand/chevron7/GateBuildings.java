@@ -274,8 +274,69 @@ public final class GateBuildings
 	}
 
 	/**
+	 * An Ori supergate: SupergateBlock.SCALE times the size of a gate, its ring drawn as separate
+	 * segments. Clears the space for the ring and stands its base on the ground.
+	 * @param ground the first block above the ground, under the middle of the ring
+	 * @return the gate
+	 */
+	@Nullable
+	public static StargateBlockEntity supergate(LevelAccessor level, BlockPos ground, Direction facing)
+	{
+		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
+		int reach = (int) Math.ceil(3.5 * SupergateBlock.SCALE), height = 7 * SupergateBlock.SCALE + 1;
+		f.fill(-reach, 0, -1, reach, height, 1, Blocks.AIR);
+		f.foundation(0, 0, Blocks.STONE);
+		level.setBlock(ground, Chevron7.SUPERGATE.get().defaultBlockState().setValue(StargateBlock.FACING, facing), FLAGS);
+		if(level.getBlockEntity(ground) instanceof StargateBlockEntity gate)
+		{
+			gate.setLook(GateLook.ORI);
+			return gate;
+		}
+		return null;
+	}
+
+	/**
+	 * One gate in every look side by side on a paved strip, each on its step, with a DHD in front
+	 * of the middle one and an Ori supergate behind them.
+	 * @param ground the first block above the ground, under the middle gate
+	 */
+	public static void gateRow(LevelAccessor level, BlockPos ground, Direction facing)
+	{
+		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
+		GateLook[] looks = GateLook.values();
+		int spacing = 9, half = looks.length / 2 * spacing + 5;
+		f.fill(-half, 0, -2, half, 8, 4, Blocks.AIR);
+		for(int x = -half; x <= half; x++)
+			for(int d = -2; d <= 4; d++)
+			{
+				f.foundation(x, d, Blocks.STONE);
+				f.set(x, -1, d, d == -2 || d == 4 || Math.abs(x) == half ? Blocks.STONE_BRICKS : Blocks.POLISHED_ANDESITE);
+			}
+		for(int i = 0; i < looks.length; i++)
+		{
+			BlockPos core = f.at((i - looks.length / 2) * spacing, 0, 0);
+			placeGate(level, core, facing, looks[i]);
+			GateField.placeStep(level, core, facing, Blocks.STONE_BRICK_STAIRS, FLAGS);
+		}
+		level.setBlock(f.at(0, 0, 4), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
+		supergate(level, f.at(0, 0, -18), facing);
+	}
+
+	/** The gate room's golden-brown wall, with darker and lighter patches like the painted walls of the show. */
+	private static Block mottled(int a, int b, int c)
+	{
+		int h = (a * 73856093) ^ (b * 19349663) ^ (c * 83492791);
+		h = (h ^ (h >>> 13)) & 15;
+		if(h < 3)
+			return Blocks.BROWN_TERRACOTTA;
+		if(h < 8)
+			return Blocks.YELLOW_TERRACOTTA;
+		return Blocks.TERRACOTTA;
+	}
+
+	/**
 	 * A gate room after the animated series: the gate (Infinity look) on a base at the top of a
-	 * copper ramp with red rails, in front of a wall with a pale halo around the gate and lime
+	 * brown ramp with hot pink rails, in front of a wall with a pale halo around the gate and lime
 	 * light bars fanned out around it. The room is open at the front.
 	 * @param ground the floor, under the middle of the gate
 	 * @return the gate
@@ -286,20 +347,20 @@ public final class GateBuildings
 		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
 		final int half = 12, back = -3, front = 14, height = 15;
 
-		// clear it, then floor, walls and ceiling
+		// clear it, then floor, walls and ceiling: the show's mottled golden-brown walls and a brown floor
 		f.fill(-half, 0, back, half, height, front, Blocks.AIR);
 		for(int x = -half; x <= half; x++)
 			for(int d = back; d <= front; d++)
 			{
 				f.foundation(x, d, Blocks.STONE);
-				f.set(x, -1, d, (x + d) % 2 == 0 ? Blocks.POLISHED_DEEPSLATE : Blocks.DEEPSLATE_TILES);
-				f.set(x, height, d, Blocks.TERRACOTTA);
+				f.set(x, -1, d, (x + d) % 2 == 0 ? Blocks.MUD_BRICKS : Blocks.PACKED_MUD);
+				f.set(x, height, d, mottled(x, d, height));
 			}
 		for(int d = back; d <= front; d++)
 			for(int y = 0; y < height; y++)
 			{
-				f.set(-half, y, d, Blocks.TERRACOTTA);
-				f.set(half, y, d, Blocks.TERRACOTTA);
+				f.set(-half, y, d, mottled(-half, y, d));
+				f.set(half, y, d, mottled(half, y, d));
 			}
 		// lights in the ceiling, and invisible light blocks so the whole room is bright
 		for(int x = -8; x <= 8; x += 8)
@@ -319,7 +380,7 @@ public final class GateBuildings
 			for(int y = 0; y < height; y++)
 			{
 				double r = Math.sqrt(x * x + (y - cy) * (y - cy));
-				Block block = r < 4.6 ? Blocks.SMOOTH_SANDSTONE : r < 5.8 ? Blocks.SANDSTONE : Blocks.TERRACOTTA;
+				Block block = r < 4.6 ? Blocks.SMOOTH_SANDSTONE : r < 5.8 ? Blocks.SANDSTONE : mottled(x, y, back);
 				f.set(x, y, back, block);
 			}
 		for(int bar = 0; bar < 18; bar++)
@@ -336,9 +397,10 @@ public final class GateBuildings
 		}
 
 		// the gate's base and the ramp up to it, five wide with red rails
-		f.fill(-4, 0, -2, 4, 1, 1, Blocks.POLISHED_DEEPSLATE);
-		f.fill(-4, 1, -2, 4, 1, 1, Blocks.WAXED_CUT_COPPER);
-		BlockState slab = Blocks.WAXED_CUT_COPPER_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
+		// (brown, with hot pink rails, as in the show)
+		f.fill(-4, 0, -2, 4, 1, 1, Blocks.PACKED_MUD);
+		f.fill(-4, 1, -2, 4, 1, 1, Blocks.MUD_BRICKS);
+		BlockState slab = Blocks.MUD_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
 		// height of the ramp's surface in half blocks, from the base down to the floor
 		int[] surface = {4, 3, 2, 1};
 		for(int i = 0; i < surface.length; i++)
@@ -347,26 +409,26 @@ public final class GateBuildings
 			for(int x = -2; x <= 2; x++)
 			{
 				for(int y = 0; y < h / 2; y++)
-					f.set(x, y, d, Blocks.WAXED_CUT_COPPER);
+					f.set(x, y, d, Blocks.MUD_BRICKS);
 				if(h % 2 == 1)
 					f.set(x, h / 2, d, slab);
 			}
 			int rail = (h + 1) / 2;
 			for(int x : new int[] {-3, 3})
 			{
-				f.fill(x, 0, d, x, rail, d, Blocks.RED_CONCRETE);
+				f.fill(x, 0, d, x, rail, d, Blocks.MAGENTA_CONCRETE);
 			}
 		}
 		for(int x : new int[] {-3, 3})
-			f.set(x, 0, 6, Blocks.RED_CONCRETE);
+			f.set(x, 0, 6, Blocks.MAGENTA_CONCRETE);
 		// the edges of the base
 		for(int x = -4; x <= 4; x++)
 			if(Math.abs(x) >= 3)
-				f.set(x, 2, 1, Blocks.RED_CONCRETE);
+				f.set(x, 2, 1, Blocks.MAGENTA_CONCRETE);
 
 		BlockPos core = f.at(0, 2, 0);
 		StargateBlockEntity gate = placeGate(level, core, facing, GateLook.INFINITY);
-		GateField.placeStep(level, core, facing, Blocks.WAXED_CUT_COPPER_STAIRS, FLAGS);
+		GateField.placeStep(level, core, facing, Blocks.MUD_BRICK_STAIRS, FLAGS);
 		level.setBlock(f.at(6, 0, 8), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
 		return gate;
 	}

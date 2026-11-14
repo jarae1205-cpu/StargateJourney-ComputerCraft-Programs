@@ -93,6 +93,8 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	public final String getStargateVariant()
 	{
 		// the Gate Room and the Personal Dialer pick their style from this
+		if(gate.isSupergate())
+			return "chevron7:supergate";
 		GateLook look = gate.getLook();
 		return look == GateLook.SG1 ? "" : "chevron7:" + look.id;
 	}

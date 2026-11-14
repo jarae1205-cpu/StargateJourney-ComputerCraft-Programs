@@ -414,6 +414,35 @@ public class StargateBlockEntity extends BlockEntity
 		}
 	}
 
+	/** True for an Ori supergate, which is SupergateBlock.SCALE times the size of a gate. */
+	public boolean isSupergate()
+	{
+		return getBlockState().getBlock() instanceof SupergateBlock;
+	}
+
+	/** How many times bigger than an ordinary gate this one is. */
+	public int scale()
+	{
+		return isSupergate() ? SupergateBlock.SCALE : 1;
+	}
+
+	/** How far above the bottom of this block the middle of the ring is. */
+	public double centerHeight()
+	{
+		return GateShape.CENTER_HEIGHT - 3.42 + 3.42 * scale();
+	}
+
+	/** The middle of the event horizon. */
+	public Vec3 center()
+	{
+		return new Vec3(worldPosition.getX() + 0.5, worldPosition.getY() + centerHeight(), worldPosition.getZ() + 0.5);
+	}
+
+	public double horizonRadius()
+	{
+		return GateShape.HORIZON_RADIUS * scale();
+	}
+
 	public GateLook getLook()
 	{
 		return look;
@@ -427,6 +456,8 @@ public class StargateBlockEntity extends BlockEntity
 
 	public void installIris()
 	{
+		if(isSupergate())
+			return;
 		irisInstalled = true;
 		irisClosed = false;
 		irisFrom = 0;
@@ -842,15 +873,16 @@ public class StargateBlockEntity extends BlockEntity
 		float p = (float) (now - stateTick) / KAWOOSH_TICKS;
 		if(p < 0.15F || p > 0.6F || !Config.KAWOOSH_KILLS.get() || irisProgress(now) > 0.5F)
 			return;
-		Vec3 center = GateShape.center(worldPosition);
+		Vec3 center = center();
 		Vec3 normal = GateShape.normal(getFacing());
-		AABB box = new AABB(center, center).inflate(3.0).expandTowards(normal.scale(4.5));
+		double s = scale();
+		AABB box = new AABB(center, center).inflate(3.0 * s).expandTowards(normal.scale(4.5 * s));
 		for(LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box))
 		{
 			Vec3 offset = entity.position().add(0, entity.getBbHeight() / 2, 0).subtract(center);
 			double depth = offset.dot(normal);
 			double lateral = offset.subtract(normal.scale(depth)).length();
-			if(depth > -0.3 && depth < 4.2 && lateral < GateShape.HORIZON_RADIUS * (1.0 - depth / 6.0))
+			if(depth > -0.3 && depth < 4.2 * s && lateral < horizonRadius() * (1.0 - depth / (6.0 * s)))
 				entity.hurt(new net.minecraft.world.damagesource.DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
 						.getHolderOrThrow(Chevron7.KAWOOSH)), 1000.0F);
 		}
@@ -859,9 +891,9 @@ public class StargateBlockEntity extends BlockEntity
 	private void transport(ServerLevel level, long now)
 	{
 		Direction facing = getFacing();
-		Vec3 center = GateShape.center(worldPosition);
+		Vec3 center = center();
 		Vec3 normal = GateShape.normal(facing);
-		AABB box = new AABB(center, center).inflate(GateShape.HORIZON_RADIUS + 0.5).inflate(Math.abs(normal.x) * 2, 0, Math.abs(normal.z) * 2);
+		AABB box = new AABB(center, center).inflate(horizonRadius() + 0.5).inflate(Math.abs(normal.x) * 2, 0, Math.abs(normal.z) * 2);
 		List<Entity> travelers = new ArrayList<>();
 		Map<Entity, Boolean> fromFront = new HashMap<>();
 		Map<UUID, Boolean> seen = new HashMap<>();
@@ -883,7 +915,7 @@ public class StargateBlockEntity extends BlockEntity
 			if(!crossed)
 				continue;
 			Vec3 flat = middle.subtract(center).subtract(normal.scale(depthNow));
-			if(flat.length() > GateShape.HORIZON_RADIUS - 0.1)
+			if(flat.length() > horizonRadius() - 0.1)
 				continue;
 			travelers.add(entity);
 			fromFront.put(entity, side);
@@ -905,8 +937,10 @@ public class StargateBlockEntity extends BlockEntity
 		Vec3 travel = fromFront ? normal.scale(-1) : normal;
 		Vec3 travelRight = new Vec3(-travel.z, 0, travel.x);
 		Vec3 middle = entity.position().add(0, entity.getBbHeight() / 2, 0).subtract(center);
-		double across = middle.dot(travelRight);
-		double up = middle.y;
+		// where in the horizon they went in, scaled to the other gate's size (a supergate is bigger)
+		double ratio = (double) remote.scale() / scale();
+		double across = middle.dot(travelRight) * ratio;
+		double up = middle.y * ratio;
 
 		String type = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
 		String name = entity.getName().getString();
@@ -938,9 +972,10 @@ public class StargateBlockEntity extends BlockEntity
 		Direction exitFacing = remote.getFacing();
 		Vec3 exit = GateShape.normal(exitFacing);
 		Vec3 exitRight = new Vec3(-exit.z, 0, exit.x);
-		Vec3 target = GateShape.center(remote.getBlockPos()).add(exitRight.scale(across)).add(0, up, 0)
+		Vec3 target = remote.center().add(exitRight.scale(across)).add(0, up, 0)
 				.add(exit.scale(0.9 + entity.getBbWidth() / 2));
-		double feet = target.y - entity.getBbHeight() / 2;
+		// never below the bottom of the ring (an ordinary gate's bottom block is solid)
+		double feet = Math.max(target.y - entity.getBbHeight() / 2, remote.getBlockPos().getY() + (remote.isSupergate() ? 0 : 1));
 
 		Vec3 velocity = entity.getDeltaMovement();
 		double forward = Math.max(0.05, velocity.dot(travel));
@@ -1067,7 +1102,8 @@ public class StargateBlockEntity extends BlockEntity
 	@Override
 	public AABB getRenderBoundingBox()
 	{
-		return new AABB(worldPosition).inflate(7.0, 0, 7.0).expandTowards(0, 8.0, 0);
+		int s = scale();
+		return new AABB(worldPosition).inflate(7.0 * s, 0, 7.0 * s).expandTowards(0, 8.0 * s, 0);
 	}
 
 	//============================================================================================

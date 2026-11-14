@@ -451,6 +451,7 @@ def particle():
 LANG = {
     "itemGroup.chevron7": "Chevron Seven",
     "block.chevron7.stargate": "Stargate",
+    "block.chevron7.supergate": "Ori Supergate",
     "block.chevron7.gate_frame": "Stargate",
     "block.chevron7.dhd": "Dial Home Device",
     "item.chevron7.iris": "Gate Iris",
@@ -514,6 +515,9 @@ LANG = {
     "message.chevron7.gate_room_built": "Built a gate room",
     "message.chevron7.dhd_cap": "DHD: Carter Addon Pack (orange)",
     "message.chevron7.dhd_dark": "DHD: dark, with a red dome",
+    "message.chevron7.supergate_built": "Built an Ori supergate",
+    "message.chevron7.gaterow_built": "Built a row of gates in every look, with a supergate behind them",
+    "message.chevron7.no_iris_supergate": "A supergate can't have an iris",
     "message.chevron7.pedestal_built": "Pedestal built: put the gate's base (the bottom middle of the ring) at %s %s %s, facing %s",
     "message.chevron7.bad_size": "Sizes: small (7-wide gates: Chevron Seven, Stargate Journey, Lantea) or large (JSG)",
     "look.chevron7.sg1": "SG-1",
@@ -536,6 +540,7 @@ def data_files():
     # blockstates and models
     write_json(os.path.join(ASSETS, "blockstates", "stargate.json"), {"variants": {"": {"model": "chevron7:block/stargate"}}})
     write_json(os.path.join(ASSETS, "blockstates", "gate_frame.json"), {"variants": {"": {"model": "chevron7:block/gate_frame"}}})
+    write_json(os.path.join(ASSETS, "blockstates", "supergate.json"), {"variants": {"": {"model": "chevron7:block/stargate"}}})
     write_json(os.path.join(ASSETS, "models", "block", "stargate.json"), {"textures": {"particle": "chevron7:block/gate_stone"}})
     write_json(os.path.join(ASSETS, "models", "block", "gate_frame.json"), {"textures": {"particle": "chevron7:block/gate_stone"}})
     variants = {}

@@ -31,6 +31,12 @@ public class IrisItem extends Item
 		if(level.isClientSide())
 			return InteractionResult.SUCCESS;
 		Player player = context.getPlayer();
+		if(gate.isSupergate())
+		{
+			if(player != null)
+				player.displayClientMessage(Component.translatable("message.chevron7.no_iris_supergate"), true);
+			return InteractionResult.FAIL;
+		}
 		if(gate.hasIris())
 		{
 			if(player != null)
