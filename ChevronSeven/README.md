@@ -22,7 +22,7 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
-| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it looks like the Carter Addon Pack's DHD: a round orange top about two blocks across, with two rings of glyph keys and a blue dome. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
+| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it has a round top about two blocks across, with two rings of glyph keys and a dome in the middle. Since 1.4.0 it is dark with a red dome, like the DHD of JSG and the show; the one on a CAP pedestal is the Carter Addon Pack's orange one with a blue dome, and a Gate Look Crystal used on a DHD swaps the two. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
 | **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
 | **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
 | **Gate Address Book** | Use it to read the address of every planet's gate (see [planet gates](#planet-gates)). | a book and an eye of ender |
@@ -63,7 +63,7 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 
 ![The Infinity gate room](../imgs/GateRoomInfinity.jpg)
 
-*`/chevron7 gateroom`, with the wormhole open, in a Minecraft 1.20.1 client.*
+*`/chevron7 gateroom` (1.4.0), in a Minecraft 1.20.1 client.*
 
 ### The Carter Addon Pack pedestal
 
@@ -75,7 +75,21 @@ After the dial sequence of the Carter Addon Pack for Garry's Mod: `/chevron7 pla
 
 `/chevron7 pedestal <pos> [direction] [small|large]` builds the same pedestal and carpet with no gate, so a gate of another mod can stand on it. `small` fits the 7-wide gates of Chevron Seven, Stargate Journey and Lantea: Stargates; `large` fits JSG's bigger ones. It answers with where the gate's base (the bottom middle of the ring) goes; place your gate there, facing the way the carpet comes up.
 
-`/chevron7 gateroom <pos> [direction]` builds a gate room after the animated series: an Infinity-look gate on a base at the top of a copper ramp with red rails, a pale halo on the wall behind it and yellow and lime light bars fanned out around it. The room is lit and open at the front, and has a DHD by the ramp.
+`/chevron7 gateroom <pos> [direction]` builds a gate room after the animated series: an Infinity-look gate on a base at the top of a brown ramp with hot pink rails, warm golden-brown walls with a pale halo behind the gate, and yellow and lime light bars fanned out around it. The room is lit and open at the front, and has a DHD by the ramp.
+
+## The Ori supergate and the gate row
+
+![The gate row](../imgs/GateRow.jpg)
+
+*`/chevron7 gaterow`: a gate in every look, an Ori supergate behind them and a DHD in front. In a Minecraft 1.20.1 client.*
+
+![The supergate](../imgs/Supergate.jpg)
+
+*Left: the supergate with a wormhole open. Middle: the stairs up to its horizon. Right: the dark DHD (1.4.0).*
+
+`/chevron7 supergate <pos> [direction]` builds an Ori supergate, four times the size of a gate: a ring of 40 separate dark segments about 27 blocks across, with no symbols or chevrons. Its segments light one after another as it dials out, and they all glow while the wormhole is open. It dials and is dialed like any other gate (the DHD, the commands and computers all work), and you can travel through it both ways. Only its base, at the bottom middle of the ring, is solid. The bottom of its horizon is four blocks up, so it comes with a landing and stairs up the front. A supergate can't have an iris. Computers see it as the variant `chevron7:supergate`, so the Gate Room draws it as the Ori Supergate.
+
+`/chevron7 gaterow <pos> [direction]` builds one gate in every look side by side, each on its step, with a DHD in front of the middle gate and a supergate behind the row.
 
 ## Gate fields
 
@@ -144,6 +158,8 @@ For operators:
 /chevron7 platform <pos> [direction] [look] [style]   build a gate on a platform
 /chevron7 gateroom <pos> [direction]    build an Infinity gate room
 /chevron7 pedestal <pos> [direction] [small|large]   build a CAP pedestal for any mod's gate
+/chevron7 supergate <pos> [direction]   build an Ori supergate
+/chevron7 gaterow <pos> [direction]     build a gate in every look, and a supergate
 ```
 
 `<pos>` can be any block of the ring.
@@ -162,7 +178,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.3.0.jar`](dist/chevron7-1.3.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.4.0.jar`](dist/chevron7-1.4.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -227,6 +243,12 @@ Put [`dist/chevron7-1.3.0.jar`](dist/chevron7-1.3.0.jar) in the `mods` folder (c
 - **The CAP pedestal and DHD (1.3.0)**, in a Minecraft 1.20.1 client:
   - `/chevron7 platform … cap` built an SG-1 and an Infinity gate on pedestals, and `/chevron7 pedestal` built a small and a large one with no gate.
   - Dialing from the SG-1 gate lit the DHD's keys for the dialed symbols and made the dome glow once the wormhole was open (the middle picture above).
+- **The supergate, the gate row, the dark DHD and the room (1.4.0)**, in a Minecraft 1.20.1 client:
+  - `/chevron7 gaterow` built all 13 looks in a row with a supergate behind them.
+  - A gate dialed the supergate and the supergate dialed a gate: the wormhole opened both ways, and the supergate's segments lit while it dialed out.
+  - A player walked up the supergate's stairs into its horizon and came out at the other gate.
+  - The DHD in front of the row is the dark one with the red dome; the CAP pedestal's stays orange.
+  - `/chevron7 gateroom` built the reworked room.
 
 ## Build
 
@@ -235,7 +257,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.3.0.jar`.
+The jar is `build/libs/chevron7-1.4.0.jar`.
 
 ## License
 
