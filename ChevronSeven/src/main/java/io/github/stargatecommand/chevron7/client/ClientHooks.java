@@ -17,6 +17,7 @@ public final class ClientHooks
 	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event)
 	{
 		event.registerBlockEntityRenderer(Chevron7.STARGATE_ENTITY.get(), StargateRenderer::new);
+		event.registerBlockEntityRenderer(Chevron7.DHD_ENTITY.get(), DHDRenderer::new);
 	}
 
 	public static void openDhd(BlockPos pos)

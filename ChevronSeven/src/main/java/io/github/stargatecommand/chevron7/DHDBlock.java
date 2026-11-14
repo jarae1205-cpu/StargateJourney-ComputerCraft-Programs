@@ -2,6 +2,10 @@ package io.github.stargatecommand.chevron7;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -20,9 +24,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 
 /**
- * Dial Home Device: dials the nearest gate within 16 blocks.
+ * Dial Home Device: dials the nearest gate within 16 blocks. The block model is its pedestal; the
+ * round top with its keys and dome is drawn by the client from the block entity.
  */
-public class DHDBlock extends HorizontalDirectionalBlock
+public class DHDBlock extends HorizontalDirectionalBlock implements EntityBlock
 {
 	public static final int RANGE = 16;
 	private static final VoxelShape SHAPE = Shapes.or(Block.box(3, 0, 3, 13, 9, 13), Block.box(0, 9, 0, 16, 13, 16));
@@ -50,6 +55,30 @@ public class DHDBlock extends HorizontalDirectionalBlock
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
+	}
+
+	@Override
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+	{
+		return new DHDBlockEntity(pos, state);
+	}
+
+	/** DHDs from before 1.3.0 have no block entity yet; a random tick makes one, so their top appears. */
+	@Override
+	public boolean isRandomlyTicking(BlockState state)
+	{
+		return true;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random)
+	{
+		if(level.getChunkAt(pos).getBlockEntity(pos, net.minecraft.world.level.chunk.LevelChunk.EntityCreationType.CHECK) == null)
+		{
+			level.getBlockEntity(pos);
+			level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+		}
 	}
 
 	@SuppressWarnings("deprecation")

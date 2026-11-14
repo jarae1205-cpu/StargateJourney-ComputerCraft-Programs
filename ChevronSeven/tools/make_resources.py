@@ -315,32 +315,76 @@ def glyph_atlas():
 # DHD and icons
 # --------------------------------------------------------------------------
 
+# The DHD after the Carter Addon Pack's: orange, with yellow trim and a blue dome.
+DHD_ORANGE = (214, 104, 36)
+DHD_TRIM = (246, 190, 72)
+
+
 def dhd_side():
-    img = noise_tile(16, 16, (150, 118, 92), 50, 31, grain=2)
+    img = noise_tile(16, 16, DHD_ORANGE, 34, 31, grain=2)
     d = ImageDraw.Draw(img)
-    d.line([(0, 3), (15, 3)], fill=(108, 82, 62, 255))
-    d.line([(0, 12), (15, 12)], fill=(108, 82, 62, 255))
-    d.rectangle([5, 6, 10, 9], outline=(176, 142, 110, 255))
+    d.line([(0, 3), (15, 3)], fill=DHD_TRIM + (255,))
+    d.line([(0, 12), (15, 12)], fill=(150, 66, 22, 255))
+    d.rectangle([5, 6, 10, 9], outline=DHD_TRIM + (255,))
     return img
 
 
 def dhd_bottom():
-    return noise_tile(16, 16, (120, 94, 74), 40, 37, grain=2)
+    return noise_tile(16, 16, (170, 80, 28), 30, 37, grain=2)
+
+
+def dhd_body():
+    """The DHD's slanted collar, drawn by the DHD renderer: orange panels with yellow trim."""
+    img = noise_tile(32, 32, DHD_ORANGE, 30, 43, grain=2)
+    d = ImageDraw.Draw(img)
+    for x in (0, 16):
+        d.line([(x, 0), (x, 31)], fill=(150, 66, 22, 255))
+        d.polygon([(x + 3, 6), (x + 12, 6), (x + 9, 26), (x + 6, 26)], outline=DHD_TRIM + (255,))
+    d.line([(0, 1), (31, 1)], fill=DHD_TRIM + (255,))
+    return img
+
+
+def dhd_button():
+    """A neutral bevelled key, tinted by the renderer."""
+    img = Image.new("RGBA", (16, 16), (170, 170, 170, 255))
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 15, 15], outline=(110, 110, 110, 255))
+    d.line([(1, 1), (14, 1)], fill=(235, 235, 235, 255))
+    d.line([(1, 1), (1, 14)], fill=(220, 220, 220, 255))
+    d.line([(1, 14), (14, 14)], fill=(120, 120, 120, 255))
+    d.line([(14, 1), (14, 14)], fill=(130, 130, 130, 255))
+    return img
+
+
+def dhd_body_elements(side):
+    """The DHD's pedestal: two boxes, one turned 45 degrees, make an octagon."""
+    faces = {
+        "north": {"uv": [3, 7, 13, 16], "texture": side},
+        "south": {"uv": [3, 7, 13, 16], "texture": side},
+        "east": {"uv": [3, 7, 13, 16], "texture": side},
+        "west": {"uv": [3, 7, 13, 16], "texture": side},
+        "up": {"uv": [3, 3, 13, 13], "texture": "#bottom"},
+        "down": {"uv": [3, 3, 13, 13], "texture": "#bottom", "cullface": "down"}}
+    return [
+        {"from": [3, 0, 3], "to": [13, 9, 13], "faces": faces},
+        {"from": [3, 0, 3], "to": [13, 9, 13], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "faces": faces},
+    ]
 
 
 def dhd_top():
     s = 64
-    img = noise_tile(s, s, (120, 94, 74), 40, 41, grain=2)
+    img = noise_tile(s, s, DHD_ORANGE, 30, 41, grain=2)
     d = ImageDraw.Draw(img)
     c = s / 2
-    for ring, count, r in ((0, 20, 26), (1, 19, 17)):
+    d.ellipse([c - 30, c - 30, c + 30, c + 30], fill=(58, 40, 28, 255), outline=DHD_TRIM + (255,))
+    for ring, count, r in ((0, 20, 25), (1, 19, 16)):
         for i in range(count):
             a = math.tau * i / count
             x, y = c + r * math.sin(a), c - r * math.cos(a)
-            d.rectangle([x - 2, y - 2, x + 2, y + 2], fill=(176, 150, 120, 255), outline=(70, 52, 40, 255))
-    d.ellipse([c - 9, c - 9, c + 9, c + 9], fill=(70, 20, 14, 255))
-    d.ellipse([c - 7, c - 7, c + 7, c + 7], fill=(196, 44, 26, 255))
-    d.ellipse([c - 5, c - 6, c - 1, c - 2], fill=(240, 120, 100, 255))
+            d.rectangle([x - 2, y - 2, x + 2, y + 2], fill=(214, 176, 120, 255), outline=(40, 28, 20, 255))
+    d.ellipse([c - 9, c - 9, c + 9, c + 9], fill=(20, 60, 90, 255))
+    d.ellipse([c - 7, c - 7, c + 7, c + 7], fill=(60, 180, 230, 255))
+    d.ellipse([c - 5, c - 6, c - 1, c - 2], fill=(200, 240, 255, 255))
     return img
 
 
@@ -498,14 +542,14 @@ def data_files():
         "parent": "block/block",
         "textures": {"particle": "chevron7:block/dhd_side", "side": "chevron7:block/dhd_side",
                      "top": "chevron7:block/dhd_top", "bottom": "chevron7:block/dhd_bottom"},
-        "elements": [
-            {"from": [3, 0, 3], "to": [13, 9, 13], "faces": {
-                "north": {"uv": [3, 7, 13, 16], "texture": side},
-                "south": {"uv": [3, 7, 13, 16], "texture": side},
-                "east": {"uv": [3, 7, 13, 16], "texture": side},
-                "west": {"uv": [3, 7, 13, 16], "texture": side},
-                "up": {"uv": [3, 3, 13, 13], "texture": "#bottom"},
-                "down": {"uv": [3, 3, 13, 13], "texture": "#bottom", "cullface": "down"}}},
+        "elements": dhd_body_elements(side),
+    })
+    write_json(os.path.join(ASSETS, "models", "item", "dhd.json"), {
+        "parent": "block/block",
+        "display": {"gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.625, 0.625, 0.625]}},
+        "textures": {"particle": "chevron7:block/dhd_side", "side": "chevron7:block/dhd_side",
+                     "top": "chevron7:block/dhd_top", "bottom": "chevron7:block/dhd_bottom"},
+        "elements": dhd_body_elements(side) + [
             {"from": [1, 9, 1], "to": [15, 12, 15],
              "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 10.5, 8]},
              "faces": {
@@ -521,7 +565,6 @@ def data_files():
     write_json(os.path.join(ASSETS, "models", "item", "iris.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/iris"}})
     write_json(os.path.join(ASSETS, "models", "item", "address_book.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/address_book"}})
     write_json(os.path.join(ASSETS, "models", "item", "look_crystal.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/look_crystal"}})
-    write_json(os.path.join(ASSETS, "models", "item", "dhd.json"), {"parent": "chevron7:block/dhd"})
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), LANG)
 
     # loot
@@ -618,6 +661,8 @@ def main():
     save(glyph_atlas(), "gui", "glyphs")
     save(particle(), "block", "gate_stone")
     save(dhd_side(), "block", "dhd_side")
+    save(dhd_body(), "entity", "dhd_body")
+    save(dhd_button(), "entity", "dhd_button")
     save(dhd_top(), "block", "dhd_top")
     save(dhd_bottom(), "block", "dhd_bottom")
     save(gate_icon(), "item", "stargate")

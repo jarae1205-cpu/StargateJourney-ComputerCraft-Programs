@@ -80,6 +80,8 @@ public class Chevron7
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
 			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));
+	public static final RegistryObject<BlockEntityType<DHDBlockEntity>> DHD_ENTITY = BLOCK_ENTITIES.register("dhd",
+			() -> BlockEntityType.Builder.of(DHDBlockEntity::new, DHD.get()).build(null));
 
 	public static final RegistryObject<CreativeModeTab> TAB = TABS.register("chevron7", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.chevron7"))
