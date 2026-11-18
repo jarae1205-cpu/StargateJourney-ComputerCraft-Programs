@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "jsginfinity:block/infinity_stargate_sides",
+    "north": "jsginfinity:block/infinity_stargate_base_front",
+    "south": "jsginfinity:block/infinity_stargate_sides",
+    "west": "jsginfinity:block/infinity_stargate_sides",
+    "east": "jsginfinity:block/infinity_stargate_sides",
+    "up": "jsginfinity:block/infinity_stargate_sides",
+    "down": "jsginfinity:block/infinity_stargate_sides"
+  }
+}

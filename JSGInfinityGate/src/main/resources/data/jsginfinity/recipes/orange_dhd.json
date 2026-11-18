@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "jsginfinity",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "jsg:dhd_milkyway"
+    },
+    {
+      "item": "minecraft:orange_dye"
+    }
+  ],
+  "result": {
+    "item": "jsginfinity:orange_dhd"
+  }
+}

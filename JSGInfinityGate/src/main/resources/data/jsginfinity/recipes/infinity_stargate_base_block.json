@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "jsginfinity",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "jsg:stargate_milkyway_base_block"
+    },
+    {
+      "item": "minecraft:lime_dye"
+    }
+  ],
+  "result": {
+    "item": "jsginfinity:infinity_stargate_base_block"
+  }
+}
