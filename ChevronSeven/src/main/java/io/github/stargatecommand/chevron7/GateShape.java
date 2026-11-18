@@ -25,6 +25,14 @@ public final class GateShape
 	/** Cells inside the ring, where the event horizon forms. */
 	public static final int[][] INSIDE;
 
+	/**
+	 * The frame cells behind the nine chevrons, which the renderer draws every 40 degrees from
+	 * the top: the frame cell nearest each one. A gate built from blocks has its Chevron Blocks
+	 * here and Ring Blocks in the other 14 cells. The pattern is the same mirrored, so it doesn't
+	 * matter which way the gate faces.
+	 */
+	public static final int[][] CHEVRON_CELLS = {{0, 6}, {2, 5}, {3, 4}, {3, 1}, {1, 0}, {-1, 0}, {-3, 1}, {-3, 4}, {-2, 5}};
+
 	public static final double CENTER_HEIGHT = 3.5;
 	public static final double HORIZON_RADIUS = 2.45;
 
@@ -45,6 +53,18 @@ public final class GateShape
 		}
 		FRAME = frame.toArray(new int[0][]);
 		INSIDE = inside.toArray(new int[0][]);
+	}
+
+	/** Whether a frame cell (by its PART index) holds a chevron. */
+	public static boolean isChevron(int part)
+	{
+		int[] cell = FRAME[part];
+		for(int[] chevron : CHEVRON_CELLS)
+		{
+			if(chevron[0] == cell[0] && chevron[1] == cell[1])
+				return true;
+		}
+		return false;
 	}
 
 	/** To the right of someone looking at the front of the gate. */

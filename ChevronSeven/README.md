@@ -47,12 +47,39 @@ Dashes, spaces and case don't matter: `1ka09kthy` is the same address.
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
-| **Stargate (Stargate Network)** | The [Stargate Network gate](#the-stargate-network-gate), placed the same way. | a stargate with a block of lapis lazuli |
-| **SG Computer Interface** | Place it within 6 blocks of a gate and put a computer next to it: the computer gets an SGCraft-style `stargate` peripheral for the nearest gate (see [computers](#computers-cc-tweaked)). Right-click it to see which gate it controls. | iron ingots in the corners, redstone on the sides, a comparator in the middle |
+| **Stargate (Stargate Network)** (1.6.0) | The [Stargate Network gate](#the-stargate-network-gate), placed the same way. | a stargate with a block of lapis lazuli |
+| **Stargate Base Block**, **Stargate Ring Block**, **Stargate Chevron Block** (1.5.0) | Build a gate block by block, as in SGCraft: see [building a gate from blocks](#building-a-gate-from-blocks). | base: an iron ingot in each corner, eyes of ender on three sides, a lodestone in the middle, a Ring Block at the bottom. Ring Blocks (4): stone bricks in the corners, iron ingots on the sides, the middle empty. Chevron Block: a Ring Block, a gold ingot and glowstone dust |
+| **Gate Computer Interface** (1.5.0) | Like SGCraft's computer interface: put it against any block of a gate, and a computer against it (see [computers](#computers-cc-tweaked)). | iron ingots in the corners, redstone on the sides, a comparator in the middle |
+| **SG Computer Interface** (1.6.0) | Speaks SGCraft's computer language: place it within 6 blocks of a gate and put a computer next to it, and the computer gets an SGCraft-style `stargate` peripheral for the nearest gate, with letter addresses (see [the SG Computer Interface](#the-sg-computer-interface)). Right-click it to see which gate it controls. | a Gate Computer Interface and lapis lazuli |
 | **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it has a round top about two blocks across, with two rings of glyph keys and a dome in the middle. Since 1.4.0 it is dark with a red dome, like the DHD of JSG and the show; the one on a CAP pedestal is the Carter Addon Pack's orange one with a blue dome, and a Gate Look Crystal used on a DHD swaps the two. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
 | **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
 | **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
 | **Gate Address Book** | Use it to read the address of every planet's gate (see [planet gates](#planet-gates)). | a book and an eye of ender |
+
+## Building a gate from blocks
+
+Since 1.5.0 a gate can also be built the way SGCraft builds one: from a **Stargate Base Block**, 14 **Stargate Ring Blocks** and 9 **Stargate Chevron Blocks**, in any order.
+
+![Building a gate from blocks](../imgs/ChevronSevenBlocks.jpg)
+
+*In a Minecraft 1.20.1 client (1.5.0).*
+
+```
+  R R C R R        C  Chevron Block (9)
+R C . . . C R      R  Ring Block (14)
+C . . . . . C      B  Stargate Base Block
+R . . . . . R      .  empty: the inside must be clear
+R . . . . . R
+C R . . . R C
+  R C B C R
+```
+
+- The ring is the same seven-block ring the Stargate item builds. The base goes in the bottom middle and faces you when you place it: that side is the front, where the gate opens.
+- When the last block is in place, and nothing is inside the ring, the blocks become a gate. Right-click the base to see how many Ring and Chevron Blocks are still missing.
+- Breaking any block of a gate built this way gives that block back and turns the rest of the gate into its blocks again, as in SGCraft. Put the block back and the gate forms again, with the same address and look: the base keeps them, and so does the base's item if you break it.
+- The Stargate item still builds a whole gate in one go, as before.
+
+The creative tab is laid out like SGCraft's: the gate, its base, Ring and Chevron Blocks, the DHD and the computer interface, then the iris, the Look Crystal and the Address Book.
 
 ## Gate looks
 
@@ -150,6 +177,8 @@ Galacticraft isn't available for Forge 1.20.1 (only the 1.12.2 Galacticraft Lega
 
 Put a computer against any block of the ring, or connect one with a wired modem. The peripheral type is `chevron7_stargate`.
 
+Or do it the SGCraft way (1.5.0): put a **Gate Computer Interface** against any block of the ring and the computer against the interface. The computer sees the same `chevron7_stargate` peripheral. It finds a gate that forms after the computer was placed, too.
+
 | Method | |
 |---|---|
 | `getLocalAddress()` | this gate's address, e.g. `{12, 5, 30, 21, 7, 1}` |
@@ -175,7 +204,7 @@ The names, the feedback codes and the events follow Stargate Journey's crystal i
 
 ### The SG Computer Interface
 
-A computer next to the SG Computer Interface (or on a wired modem) gets a peripheral of type `stargate` that speaks like SGCraft's computer interface, with letter addresses. It controls the nearest gate within 6 blocks, of any kind. The Gate Room, Network Hub and Personal Dialer treat it as an SGCraft gate; on a Stargate Network gate they use the Stargate Network look, with blue chevrons.
+A computer next to the SG Computer Interface (or on a wired modem) gets a peripheral of type `stargate` that speaks like SGCraft's computer interface, with letter addresses. (The Gate Computer Interface gives the gate's own `chevron7_stargate` peripheral instead.) It controls the nearest gate within 6 blocks, of any kind. The Gate Room, Network Hub and Personal Dialer treat it as an SGCraft gate; on a Stargate Network gate they use the Stargate Network look, with blue chevrons.
 
 | Method | |
 |---|---|
@@ -227,11 +256,11 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.5.0.jar`](dist/chevron7-1.5.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.6.0.jar`](dist/chevron7-1.6.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
-- **1.5.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
+- **1.6.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
   - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
   - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, look (`chevron7:network`) and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris, and `selfBusy` while dialing.
   - **The Stargate Network gate dialed the other gates by their letters**: nine chevrons locked, one letter each, then `sgDialOut`, Opening and Connected. A message reached the other gate's computer, and the wormhole closed from the dialing side.
@@ -313,6 +342,14 @@ Put [`dist/chevron7-1.5.0.jar`](dist/chevron7-1.5.0.jar) in the `mods` folder (c
   - A player walked up the supergate's stairs into its horizon and came out at the other gate.
   - The DHD in front of the row is the dark one with the red dome; the CAP pedestal's stays orange.
   - `/chevron7 gateroom` built the reworked room.
+- **Gates built from blocks and the computer interface (1.5.0)**, on a dedicated Forge 47.4.29 server with CC: Tweaked 1.120.2, Stargate Journey 0.6.54 and JSG 5.1.2.0, in the world the 1.4.0 tests had used. The blocks were placed and broken with commands; 16 checks passed:
+  - The 1.4.0 gates loaded unchanged and still dialed.
+  - A ring built first and the base placed last became a gate, all 23 ring blocks part of it. So did a base placed first, once its last Chevron Block went in.
+  - A Ring Block in a chevron's place, or stone inside the ring, kept the blocks from forming a gate; with them fixed, the gate formed.
+  - Breaking one Ring Block of a built gate dropped that block and turned the other 22 and the base back into blocks, the base keeping the address. Putting the block back formed the gate again with the same address.
+  - Breaking the stargate block of a built gate dropped a Stargate Base Block carrying the address, and left the 23 blocks standing.
+  - A computer behind a Gate Computer Interface, set down before the gate was finished, found the gate when its last Chevron Block went in. Through the interface it dialed a 1.4.0 gate with the Stargate Command `sgc` library: the ring turned, seven chevrons locked, the wormhole opened and then closed.
+  - In a Minecraft 1.20.1 client joined to a server with 1.5.0 (the picture above): the new blocks' textures, a ring one Chevron Block short staying as blocks, the last Chevron Block turning the blocks into a gate in front of the player, and the creative tab with its SGCraft-style order. The blocks were placed with commands there too; placing them by hand hasn't been tried.
 
 ## Build
 
@@ -321,7 +358,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.5.0.jar`.
+The jar is `build/libs/chevron7-1.6.0.jar`.
 
 ## License
 

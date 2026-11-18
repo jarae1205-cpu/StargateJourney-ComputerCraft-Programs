@@ -569,7 +569,18 @@ function G:close()
     end
     self:call("endRotation")
     if self:has("isChevronOpen") and self:call("isChevronOpen") then self:call("closeChevron") end
-    return self:call("disconnectStargate") ~= nil
+    local result = self:call("disconnectStargate")
+    if result == false then
+        -- refused, e.g. Stargate Journey while the wormhole is still forming (connection_forming)
+        return false, G.closeRefusal(self:call("getRecentFeedback"))
+    end
+    return result ~= nil
+end
+
+-- why a gate refused to close, from its feedback code and name
+function G.closeRefusal(code, desc)
+    if code == -28 or desc == "connection_forming" then return "The wormhole is still forming, close it in a moment" end
+    return G.feedbackName(desc) or (type(code) == "number" and G.FEEDBACK[code]) or "The gate refused to close"
 end
 
 -- sends a text message through an open wormhole (iris codes use this)

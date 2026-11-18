@@ -94,6 +94,8 @@ public class StargateBlockEntity extends BlockEntity
 	// identity
 	private int[] address = new int[0];
 	private boolean registered;
+	/** Built SGCraft style from a base, Ring Blocks and Chevron Blocks: breaking it gives them back. */
+	private boolean builtFromParts;
 
 	// dialing
 	private final List<Integer> encoded = new ArrayList<>();
@@ -1096,6 +1098,17 @@ public class StargateBlockEntity extends BlockEntity
 			address = preset.clone();
 	}
 
+	public boolean isBuiltFromParts()
+	{
+		return builtFromParts;
+	}
+
+	public void setBuiltFromParts(boolean builtFromParts)
+	{
+		this.builtFromParts = builtFromParts;
+		setChanged();
+	}
+
 	/** Puts the gate on the network now, instead of on its first tick. */
 	public void ensureRegistered(ServerLevel level)
 	{
@@ -1206,6 +1219,7 @@ public class StargateBlockEntity extends BlockEntity
 		tag.putIntArray("RemoteAddress", remoteAddress);
 		tag.putBoolean("Forced", forced);
 		tag.putString("Look", look.id);
+		tag.putBoolean("BuiltFromParts", builtFromParts);
 		tag.putBoolean("Iris", irisInstalled);
 		tag.putBoolean("IrisClosed", irisClosed);
 		tag.putLong("IrisTick", irisTick);
@@ -1251,6 +1265,7 @@ public class StargateBlockEntity extends BlockEntity
 		forced = tag.getBoolean("Forced");
 		GateLook saved = GateLook.byId(tag.getString("Look"));
 		look = saved != null ? saved : style() == GateStyle.NETWORK ? GateLook.NETWORK : GateLook.SG1;
+		builtFromParts = tag.getBoolean("BuiltFromParts");
 		irisInstalled = tag.getBoolean("Iris");
 		irisClosed = tag.getBoolean("IrisClosed");
 		irisTick = tag.contains("IrisTick") ? tag.getLong("IrisTick") : -1000;

@@ -318,7 +318,8 @@ local function closeGate()
     gate:poll()
     if gate.state == "IDLE" then setMessage("The gate is already idle", colors.gray) return end
     autoCloseAt = nil
-    gate:close()
+    local ok, why = gate:close()
+    if ok == false and why then setMessage(tostring(why), colors.orange) return end
     setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
 end
 

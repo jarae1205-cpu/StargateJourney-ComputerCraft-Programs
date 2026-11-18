@@ -208,7 +208,8 @@ local function closeGate()
     if not gate then return end
     gate:poll()
     if gate.state == "IDLE" then setMessage("The gate is already idle", colors.gray) return end
-    gate:close()
+    local ok, why = gate:close()
+    if ok == false and why then setMessage(tostring(why), colors.orange) return end
     setMessage("Closing the gate", colors.lightGray)
 end
 

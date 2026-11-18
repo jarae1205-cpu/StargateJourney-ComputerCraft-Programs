@@ -554,6 +554,126 @@ def network_icon():
 
 
 # --------------------------------------------------------------------------
+# the blocks a gate is built from, SGCraft style, and the computer interface
+# (16x16 like vanilla blocks, in the ring's blue-grey stone)
+# --------------------------------------------------------------------------
+
+STONE = (104, 108, 116)
+STONE_DARK = (64, 66, 74)
+STONE_LIGHT = (150, 154, 162)
+
+
+def block_stone(seed):
+    """Ring stone with a bevelled edge: light on top and left, dark on the bottom and right."""
+    img = noise_tile(16, 16, STONE, 46, seed, grain=2)
+    d = ImageDraw.Draw(img)
+    d.line([(0, 0), (15, 0)], fill=STONE_LIGHT + (255,))
+    d.line([(0, 0), (0, 15)], fill=STONE_LIGHT + (255,))
+    d.line([(0, 15), (15, 15)], fill=STONE_DARK + (255,))
+    d.line([(15, 0), (15, 15)], fill=STONE_DARK + (255,))
+    return img
+
+
+def small_glyph(symbol, size):
+    """A symbol scaled down to a few pixels, keeping only the pixels it mostly covers."""
+    small = glyph(symbol).resize((size, size), Image.LANCZOS)
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    out.putalpha(small.getchannel("A").point(lambda v: 255 if v > 70 else 0))
+    return out
+
+
+def carve(img, mask, offset):
+    """Cuts a shape into the stone: a dark groove with a light lower-right edge."""
+    px = img.load()
+    m = mask.load()
+    w, h = mask.size
+    ox, oy = offset
+    for y in range(h):
+        for x in range(w):
+            if m[x, y][3] > 0:
+                px[ox + x, oy + y] = STONE_DARK + (255,)
+    for y in range(h):
+        for x in range(w):
+            if m[x, y][3] > 0 and (x + 1 >= w or y + 1 >= h or m[min(x + 1, w - 1), min(y + 1, h - 1)][3] == 0):
+                tx, ty = ox + x + 1, oy + y + 1
+                if tx < 15 and ty < 15 and px[tx, ty][:3] != STONE_DARK:
+                    px[tx, ty] = STONE_LIGHT + (255,)
+
+
+def ring_block():
+    """A block of the ring: stone with one of the gate's symbols carved in it."""
+    img = block_stone(101)
+    d = ImageDraw.Draw(img)
+    d.rectangle([2, 2, 13, 13], outline=(84, 88, 96, 255))
+    carve(img, small_glyph(17, 10), (3, 3))
+    return img
+
+
+def chevron_block():
+    """A chevron set in the ring stone: an unlit amber V with a lamp at its point."""
+    img = block_stone(102)
+    d = ImageDraw.Draw(img)
+    d.polygon([(2, 3), (13, 3), (7.5, 12)], fill=(126, 70, 34, 255))
+    d.polygon([(5, 3), (10, 3), (7.5, 7)], fill=STONE + (255,))
+    d.line([(2, 3), (5, 3)], fill=(196, 124, 64, 255))
+    d.line([(10, 3), (13, 3)], fill=(196, 124, 64, 255))
+    d.line([(5, 4), (7, 7)], fill=(88, 48, 24, 255))
+    d.line([(8, 7), (10, 4)], fill=(88, 48, 24, 255))
+    d.rectangle([7, 10, 8, 11], fill=(232, 150, 60, 255))
+    return img
+
+
+def base_side():
+    img = block_stone(103)
+    d = ImageDraw.Draw(img)
+    d.rectangle([2, 2, 13, 13], outline=(84, 88, 96, 255))
+    return img
+
+
+def base_front():
+    """The base's front: the point of origin over a strip of lights, as on SGCraft's base."""
+    img = base_side()
+    d = ImageDraw.Draw(img)
+    d.rectangle([3, 3, 12, 12], fill=(40, 42, 48, 255))
+    # the point of origin: a ring with a star in it
+    d.ellipse([4, 3, 11, 10], outline=(226, 150, 64, 255))
+    d.line([(7, 5), (8, 5)], fill=(226, 150, 64, 255))
+    d.line([(6, 6), (9, 6)], fill=(226, 150, 64, 255))
+    d.line([(6, 7), (9, 7)], fill=(226, 150, 64, 255))
+    d.line([(7, 8), (8, 8)], fill=(226, 150, 64, 255))
+    for i, x in enumerate(range(4, 12, 2)):
+        d.point((x, 12), fill=(110, 180, 240, 255) if i % 2 == 0 else (60, 90, 120, 255))
+    return img
+
+
+def interface_side():
+    """A grey machine with a little screen showing a gate, like SGCraft's computer interface."""
+    img = noise_tile(16, 16, (150, 152, 158), 24, 104)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 15, 15], outline=(96, 98, 104, 255))
+    d.line([(1, 1), (14, 1)], fill=(190, 192, 198, 255))
+    d.rectangle([2, 2, 13, 9], fill=(18, 22, 30, 255))
+    d.ellipse([3, 3, 8, 8], outline=(110, 170, 235, 255))
+    d.point((5, 3), fill=(240, 150, 40, 255))
+    for y in (4, 6, 8):
+        d.line([(10, y), (12, y)], fill=(90, 200, 120, 255))
+    for i, x in enumerate((3, 6, 9, 12)):
+        d.rectangle([x, 11, x + 1, 12], fill=((220, 70, 60, 255), (240, 190, 60, 255), (90, 200, 120, 255), (110, 170, 235, 255))[i])
+    d.line([(2, 14), (13, 14)], fill=(112, 114, 120, 255))
+    return img
+
+
+def interface_top():
+    img = noise_tile(16, 16, (150, 152, 158), 24, 105)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 15, 15], outline=(96, 98, 104, 255))
+    d.rectangle([4, 4, 11, 11], outline=(116, 118, 124, 255))
+    for x, y in ((2, 2), (13, 2), (2, 13), (13, 13)):
+        d.point((x, y), fill=(200, 202, 208, 255))
+    return img
+
+
+# --------------------------------------------------------------------------
 # data
 # --------------------------------------------------------------------------
 
@@ -650,6 +770,16 @@ LANG = {
     "look.chevron7.goauld": "Goa'uld",
     "look.chevron7.wraith": "Wraith",
     "look.chevron7.crimson": "Crimson",
+    "block.chevron7.stargate_base": "Stargate Base Block",
+    "block.chevron7.stargate_ring_block": "Stargate Ring Block",
+    "block.chevron7.stargate_chevron_block": "Stargate Chevron Block",
+    "block.chevron7.gate_interface": "Gate Computer Interface",
+    "tooltip.chevron7.stargate_base": "Build the ring around it: 14 Ring Blocks, 9 Chevron Blocks",
+    "tooltip.chevron7.saved_address": "Gate address: %s",
+    "tooltip.chevron7.gate_interface": "Put it against a gate, and a computer against it (CC: Tweaked)",
+    "message.chevron7.base_missing": "Still to place: %s Ring Blocks and %s Chevron Blocks",
+    "message.chevron7.base_inside": "The ring is complete: clear the inside of the ring",
+    "message.chevron7.base_complete": "The ring is complete",
 }
 
 
@@ -708,6 +838,21 @@ def data_files():
     write_json(os.path.join(ASSETS, "models", "item", "iris.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/iris"}})
     write_json(os.path.join(ASSETS, "models", "item", "address_book.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/address_book"}})
     write_json(os.path.join(ASSETS, "models", "item", "look_crystal.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/look_crystal"}})
+    # the blocks a gate is built from, and the computer interface
+    for name in ("stargate_ring_block", "stargate_chevron_block"):
+        write_json(os.path.join(ASSETS, "blockstates", name + ".json"), {"variants": {"": {"model": "chevron7:block/" + name}}})
+        write_json(os.path.join(ASSETS, "models", "block", name + ".json"),
+                   {"parent": "minecraft:block/cube_all", "textures": {"all": "chevron7:block/" + name}})
+    write_json(os.path.join(ASSETS, "blockstates", "stargate_base.json"), {"variants": {
+        "facing=" + f: ({"model": "chevron7:block/stargate_base", "y": y} if y else {"model": "chevron7:block/stargate_base"})
+        for f, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270))}})
+    write_json(os.path.join(ASSETS, "models", "block", "stargate_base.json"), {"parent": "minecraft:block/orientable", "textures": {
+        "front": "chevron7:block/stargate_base_front", "side": "chevron7:block/stargate_base_side", "top": "chevron7:block/stargate_base_side"}})
+    write_json(os.path.join(ASSETS, "blockstates", "gate_interface.json"), {"variants": {"": {"model": "chevron7:block/gate_interface"}}})
+    write_json(os.path.join(ASSETS, "models", "block", "gate_interface.json"), {"parent": "minecraft:block/cube_bottom_top", "textures": {
+        "side": "chevron7:block/gate_interface_side", "top": "chevron7:block/gate_interface_top", "bottom": "chevron7:block/gate_interface_top"}})
+    for name in ("stargate_ring_block", "stargate_chevron_block", "stargate_base", "gate_interface"):
+        write_json(os.path.join(ASSETS, "models", "item", name + ".json"), {"parent": "chevron7:block/" + name})
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), LANG)
 
     # loot
@@ -717,6 +862,22 @@ def data_files():
             "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "chevron7:" + name}],
                        "conditions": [{"condition": "minecraft:survives_explosion"}]}],
         })
+
+    for name in ("stargate_ring_block", "stargate_chevron_block", "gate_interface"):
+        write_json(os.path.join(DATA, "loot_tables", "blocks", name + ".json"), {
+            "type": "minecraft:block",
+            "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "chevron7:" + name}],
+                       "conditions": [{"condition": "minecraft:survives_explosion"}]}],
+        })
+    # the base keeps the address and look of the gate it was part of
+    write_json(os.path.join(DATA, "loot_tables", "blocks", "stargate_base.json"), {
+        "type": "minecraft:block",
+        "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "chevron7:stargate_base", "functions": [{
+            "function": "minecraft:copy_nbt", "source": "block_entity", "ops": [
+                {"source": "Address", "target": "BlockEntityTag.Address", "op": "replace"},
+                {"source": "Look", "target": "BlockEntityTag.Look", "op": "replace"}]}]}],
+                   "conditions": [{"condition": "minecraft:survives_explosion"}]}],
+    })
 
     # recipes
     def shaped(name, pattern, key, result, count=1):
@@ -732,28 +893,41 @@ def data_files():
            {"R": "minecraft:redstone_block", "G": "minecraft:gold_ingot", "C": "minecraft:compass", "S": "minecraft:smooth_sandstone"},
            "chevron7:dhd")
     shaped("iris", ["III", "ITI", "III"], {"I": "minecraft:iron_ingot", "T": "minecraft:iron_trapdoor"}, "chevron7:iris")
-    def shapeless(name, ingredients, result):
+    def shapeless(name, ingredients, result, count=1):
         write_json(os.path.join(DATA, "recipes", name + ".json"), {
             "type": "minecraft:crafting_shapeless", "category": "misc",
             "ingredients": [{"item": i} for i in ingredients],
-            "result": {"item": result, "count": 1},
+            "result": {"item": result, "count": count},
         })
 
+    # SGCraft style: about the same iron as the whole-gate recipe, spread over the blocks
+    shaped("stargate_ring_block", ["SIS", "I I", "SIS"], {"S": "minecraft:stone_bricks", "I": "minecraft:iron_ingot"},
+           "chevron7:stargate_ring_block", 4)
+    shapeless("stargate_chevron_block", ["chevron7:stargate_ring_block", "minecraft:gold_ingot", "minecraft:glowstone_dust"],
+              "chevron7:stargate_chevron_block")
+    shaped("stargate_base", ["IEI", "ELE", "IRI"],
+           {"I": "minecraft:iron_ingot", "E": "minecraft:ender_eye", "L": "minecraft:lodestone", "R": "chevron7:stargate_ring_block"},
+           "chevron7:stargate_base")
+    shaped("gate_interface", ["IRI", "RCR", "IRI"],
+           {"I": "minecraft:iron_ingot", "R": "minecraft:redstone", "C": "minecraft:comparator"}, "chevron7:gate_interface")
     shapeless("look_crystal", ["minecraft:amethyst_shard", "minecraft:quartz", "minecraft:glowstone_dust"], "chevron7:look_crystal")
     shapeless("address_book", ["minecraft:book", "minecraft:ender_eye"], "chevron7:address_book")
     # the Stargate Network gate is made from a gate, and turns back into one on its own
     shapeless("network_stargate", ["chevron7:stargate", "minecraft:lapis_block"], "chevron7:network_stargate")
     shapeless("stargate_from_network", ["chevron7:network_stargate"], "chevron7:stargate")
-    shaped("sg_interface", ["IRI", "RCR", "IRI"],
-           {"I": "minecraft:iron_ingot", "R": "minecraft:redstone", "C": "minecraft:comparator"}, "chevron7:sg_interface")
+    # the SGCraft-speaking interface: a Gate Computer Interface with lapis
+    shapeless("sg_interface", ["chevron7:gate_interface", "minecraft:lapis_lazuli"], "chevron7:sg_interface")
 
     # tags
     tags = os.path.join(RES, "data", "minecraft", "tags")
     write_json(os.path.join(tags, "blocks", "mineable", "pickaxe.json"),
-               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:dhd",
+               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:dhd", "chevron7:stargate_base",
+                                             "chevron7:stargate_ring_block", "chevron7:stargate_chevron_block", "chevron7:gate_interface",
                                              "chevron7:network_stargate", "chevron7:sg_interface"]})
     write_json(os.path.join(tags, "blocks", "needs_iron_tool.json"),
-               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:network_stargate"]})
+               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:stargate_base",
+                                             "chevron7:stargate_ring_block", "chevron7:stargate_chevron_block",
+                                             "chevron7:network_stargate"]})
     write_json(os.path.join(tags, "damage_type", "bypasses_armor.json"), {"replace": False, "values": ["chevron7:kawoosh"]})
     # gate fields: a feature added to plains, meadows and savannas by a Forge biome modifier
     write_json(os.path.join(DATA, "worldgen", "configured_feature", "gate_field.json"),
@@ -808,6 +982,12 @@ def main():
     save(iris(), "entity", "iris")
     save(glyph_atlas(), "gui", "glyphs")
     save(particle(), "block", "gate_stone")
+    save(ring_block(), "block", "stargate_ring_block")
+    save(chevron_block(), "block", "stargate_chevron_block")
+    save(base_side(), "block", "stargate_base_side")
+    save(base_front(), "block", "stargate_base_front")
+    save(interface_side(), "block", "gate_interface_side")
+    save(interface_top(), "block", "gate_interface_top")
     for prefix, colours in (("dhd", DHD_DARK), ("dhd_cap", DHD_CAP)):
         save(dhd_side(colours), "block", prefix + "_side")
         save(dhd_top(colours), "block", prefix + "_top")

@@ -1,0 +1,15 @@
+[
+  {
+    "modid": "sginfinity",
+    "name": "Infinity Stargate for SGCraft",
+    "description": "The gate from the animated series Stargate Infinity, for SGCraft 2.3: an Infinity Stargate Base, built into a ring of SGCraft's own Ring and Chevron Blocks.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "authorList": [
+      "Stargate Command (ComputerCraft programs)"
+    ],
+    "dependencies": [
+      "sgcraft"
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IEI",
+    "ELE",
+    "IRI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "L": {
+      "item": "minecraft:lodestone"
+    },
+    "R": {
+      "item": "chevron7:stargate_ring_block"
+    }
+  },
+  "result": {
+    "item": "chevron7:stargate_base",
+    "count": 1
+  }
+}

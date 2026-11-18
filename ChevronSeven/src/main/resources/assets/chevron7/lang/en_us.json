@@ -90,5 +90,15 @@
   "look.chevron7.tollan": "Tollan",
   "look.chevron7.goauld": "Goa'uld",
   "look.chevron7.wraith": "Wraith",
-  "look.chevron7.crimson": "Crimson"
+  "look.chevron7.crimson": "Crimson",
+  "block.chevron7.stargate_base": "Stargate Base Block",
+  "block.chevron7.stargate_ring_block": "Stargate Ring Block",
+  "block.chevron7.stargate_chevron_block": "Stargate Chevron Block",
+  "block.chevron7.gate_interface": "Gate Computer Interface",
+  "tooltip.chevron7.stargate_base": "Build the ring around it: 14 Ring Blocks, 9 Chevron Blocks",
+  "tooltip.chevron7.saved_address": "Gate address: %s",
+  "tooltip.chevron7.gate_interface": "Put it against a gate, and a computer against it (CC: Tweaked)",
+  "message.chevron7.base_missing": "Still to place: %s Ring Blocks and %s Chevron Blocks",
+  "message.chevron7.base_inside": "The ring is complete: clear the inside of the ring",
+  "message.chevron7.base_complete": "The ring is complete"
 }

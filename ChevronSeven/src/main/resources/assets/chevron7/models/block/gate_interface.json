@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "chevron7:block/gate_interface_side",
+    "top": "chevron7:block/gate_interface_top",
+    "bottom": "chevron7:block/gate_interface_top"
+  }
+}
