@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "jsginfinity",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "jsg:dhd_milkyway"
+    },
+    {
+      "item": "minecraft:lime_dye"
+    }
+  ],
+  "result": {
+    "item": "jsginfinity:infinity_dhd"
+  }
+}

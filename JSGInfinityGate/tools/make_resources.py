@@ -7,7 +7,8 @@ Writes into src/main/resources/:
   assets/jsginfinity/textures/gate/infinity_gate.png   the ring, symbol track and chevron housings
   assets/jsginfinity/textures/gate/chevron*.png        the chevrons: unlit, lit, off
   assets/jsginfinity/textures/block/*.png              the blocks you build the gate from
-  block states, models, names, recipes and loot tables
+  assets/jsginfinity/textures/dhd/*.png                the Infinity DHD: its body, keys and dome
+  block states, models, names, recipes, loot tables, and JSG's block tags
 
 The gate is drawn with Just Stargate Mod's own Milky Way models, so its
 textures must line up with their UV layouts. The script reads only the
@@ -281,6 +282,103 @@ def paint_chevron_texture(models, size, lens, tint, glow=False):
 
 
 
+# ---------------------------------------------------------------- Infinity DHD
+
+DHD_INK_WIDTH = 0.012  # blocks; the DHD is small, so its lines are finer
+
+
+def dhd_models(z):
+    """JSG's Milky Way DHD parts that are drawn with the DHD's own texture."""
+    dhd = MODELS + "milkyway/dhd/"
+    models = {}
+    for name in ("dhd_base", "button_console", "crystal_holder", "upgrade_cover"):
+        models[name] = Model(z.read(dhd + name + ".obj").decode("utf-8", "replace"))
+    for name in z.namelist():  # each key's base, and the big button's
+        if name.startswith(dhd + "buttons/") and name.endswith("_base.obj"):
+            models["key_" + os.path.basename(name)[:-9]] = Model(z.read(name).decode("utf-8", "replace"))
+    poo = "assets/jsg/models/point_of_origins/stargate/milkyway/default/dhd.obj"
+    if poo in z.namelist():  # the point of origin's key
+        models["key_origin"] = Model(z.read(poo).decode("utf-8", "replace"))
+    return models
+
+
+def paint_dhd_texture(models, size):
+    """The pedestal pale with ink outlines, a pale tray round a slate console, slate key bases."""
+    base = models["dhd_base"]
+    top = max(base.v[:, 1])
+    canvas = np.zeros((size, size, 3), float)
+    done = np.zeros((size, size), bool)
+
+    def inked(c, edge, width=DHD_INK_WIDTH):
+        return mix(c, INK, (edge < width).astype(float))
+
+    def paint_body(pos, n, edge, fi):
+        x, y, z = pos[:, 0], pos[:, 1], pos[:, 2]
+        if abs(n[1]) > 0.55 and np.mean(y) > top - 0.75:
+            # the top: a slate ring the keys sit in, inside a pale tray
+            d = np.hypot(x, z - 0.04)
+            c = np.tile(np.array(SLATE, float), (len(pos), 1))
+            c = mix(c, PALE, (d > 0.66).astype(float))
+            c = mix(c, INK, (np.abs(d - 0.66) < DHD_INK_WIDTH).astype(float))
+            return inked(c, edge)
+        # the pedestal: pale, lighter where it faces up, with a slate band under the top
+        c = mix(MID, PALE, np.full(len(pos), 0.4 + 0.6 * abs(n[1])))
+        c = mix(c, SLATE, (np.abs(y - (top - 0.62)) < 0.04).astype(float))
+        return inked(c, edge)
+
+    def flat(colour, width=DHD_INK_WIDTH * 0.8):
+        def paint(pos, n, edge, fi):
+            return inked(np.tile(np.array(colour, float), (len(pos), 1)), edge, width)
+        return paint
+
+    # Later parts win where parts share texels, so the ones you see most go last.
+    rasterise(canvas, done, models["crystal_holder"], flat(MID))
+    rasterise(canvas, done, models["upgrade_cover"], flat(MID))
+    rasterise(canvas, done, base, paint_body)
+    rasterise(canvas, done, models["button_console"], flat(SLATE))
+    for name, model in models.items():
+        if name.startswith("key_"):
+            rasterise(canvas, done, model, flat(SLATE_DARK))
+    return Image.fromarray(np.clip(bleed(canvas, done, 16), 0, 255).astype(np.uint8))
+
+
+def paint_key_light(level, size=256):
+    """The glowing part of a symbol key; JSG has six brightness levels, 0 off to 5 fully lit."""
+    t = level / 5.0
+    body = mix(np.array([SLATE_DARK]), np.array([LIME]), np.array([t]))[0]
+    rim = mix(np.array([MID]), np.array([LIME_HOT]), np.array([t]))[0]
+    img = Image.new("RGB", (size, size), tuple(int(v) for v in body))
+    d = ImageDraw.Draw(img)
+    for i in range(3):
+        k = size * (0.05 + i * 0.06)
+        d.rectangle([k, k, size - k, size - k], outline=tuple(int(v) for v in rim), width=max(2, size // 64))
+    return img
+
+
+def paint_dome(level, size=256):
+    """The big button in the middle: a slate dome that lights lime, brightest at its centre."""
+    t = level / 5.0
+    yy, xx = np.mgrid[0:size, 0:size] / (size - 1)
+    r = np.hypot(xx - 0.5, yy - 0.5) * 2
+    base = mix(np.array(SLATE_DARK, float), np.array(LIME, float), np.full(r.shape, t))
+    hot = mix(base, np.array(LIME_HOT, float), np.clip(1 - r, 0, 1) * t)
+    shine = np.clip(1 - np.hypot(xx - 0.36, yy - 0.32) / 0.16, 0, 1) * (0.35 + 0.4 * t)
+    img = mix(hot, np.array(LIGHT, float), shine)
+    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+
+
+def dhd_icon():
+    """The DHD's item, 16x16: the pedestal from the front, its top and the dome."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.polygon([(4, 7), (11, 7), (10, 15), (5, 15)], fill=PALE, outline=INK)
+    d.line([(5, 9), (10, 9)], fill=SLATE)
+    d.ellipse([0, 2, 15, 9], fill=PALE, outline=INK)
+    d.ellipse([3, 3, 12, 8], fill=SLATE, outline=INK)
+    d.ellipse([6, 4, 9, 6], fill=LIME, outline=INK)
+    return img
+
+
 # ---------------------------------------------------------------- blocks
 
 def block_textures():
@@ -372,8 +470,45 @@ def write_data():
             "rolls": 1.0, "bonus_rolls": 0.0,
             "conditions": [{"condition": "minecraft:survives_explosion"}],
             "entries": [entry]}]}, "data", MOD, "loot_tables", "blocks", block + ".json")
+    # The Infinity DHD: JSG's own Milky Way DHD underneath, drawn by the add-on's renderer.
+    dhd = "infinity_dhd"
+    write_json({"variants": {"": {"model": "jsg:block/dhd_generic"}}}, "assets", MOD, "blockstates", dhd + ".json")
+    write_json({"parent": "minecraft:item/generated", "textures": {"layer0": "%s:item/%s" % (MOD, dhd)}},
+               "assets", MOD, "models", "item", dhd + ".json")
+    key = "block.%s.%s" % (MOD, dhd)
+    lang.update({
+        key: "Infinity DHD",
+        key + ".tooltip": "Dials Milky Way gates, the Infinity gate among them",
+        key + ".no_crystal_warn": "The DHD has no control crystal",
+        key + ".not_linked_warn": "The DHD isn't linked to a gate",
+        key + ".not_enough_power": "Not enough power",
+        key + ".incoming_wormhole_warn": "An incoming wormhole can't be closed from here",
+        key + ".computer_dial": "A computer is dialling",
+    })
+    write_json({"type": "minecraft:crafting_shapeless", "group": "jsginfinity", "category": "redstone",
+                "ingredients": [{"item": "jsg:dhd_milkyway"}, {"item": "minecraft:lime_dye"}],
+                "result": {"item": "%s:%s" % (MOD, dhd)}}, "data", MOD, "recipes", dhd + ".json")
+    write_json({"type": "minecraft:block", "pools": [{
+        "rolls": 1.0, "bonus_rolls": 0.0,
+        "conditions": [{"condition": "minecraft:survives_explosion"}],
+        "entries": [{"type": "minecraft:item", "name": "%s:%s" % (MOD, dhd)}]}]},
+        "data", MOD, "loot_tables", "blocks", dhd + ".json")
+
+    # JSG finds gates, their parts and DHDs by block tags, and links a gate to a DHD only when
+    # each is in the other's tag. The Infinity blocks join the tags their Milky Way twins are in.
+    tags = {
+        "stargate/classic_stargate_bases": ["infinity_stargate_base_block"],
+        "stargate/classic_stargate_parts": ["infinity_stargate_ring_block", "infinity_stargate_chevron_block"],
+        "stargate/stargate_milkyway_linkable": [dhd],  # what a Milky Way gate links to
+        "dhd/dhd_milkyway_linkable": ["infinity_stargate_base_block"],  # what a Milky Way DHD links to
+        "dhd/dhd_any": [dhd],
+    }
+    for tag, blocks in tags.items():
+        write_json({"replace": False, "values": ["%s:%s" % (MOD, b) for b in blocks]},
+                   "data", "jsg", "tags", "blocks", tag + ".json")
+
     write_json(lang, "assets", MOD, "lang", "en_us.json")
-    print("wrote block states, models, names, recipes and loot tables")
+    print("wrote block states, models, names, recipes, loot tables and tags")
 
 
 def save(img, *path):
@@ -396,6 +531,11 @@ def main():
     save(paint_chevron_texture(mw, 256, (58, 64, 44), plain), "gate", "chevron_light_off.png")
     for name, img in block_textures().items():
         save(img, "block", name + ".png")
+    save(paint_dhd_texture(dhd_models(z), 2048), "dhd", "dhd_base.png")
+    for level in range(6):
+        save(paint_key_light(level), "dhd", "dhd_button_light_%d.png" % level)
+        save(paint_dome(level), "dhd", "dhd_brb_%d.png" % level)
+    save(dhd_icon(), "item", "infinity_dhd.png")
     write_data()
 
 
