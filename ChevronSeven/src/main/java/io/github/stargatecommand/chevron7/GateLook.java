@@ -27,7 +27,9 @@ public enum GateLook
 	TOLLAN("tollan", 0.45F, 1.00F, 0.52F, 0.70F, 0.14F, 0.24F, 0.18F, 0.66F, 0.76F, 0.70F, 0.20F, 0.30F, 0.24F, 1, 1, 1),
 	GOAULD("goauld", 1.00F, 0.70F, 0.20F, 0.70F, 0.26F, 0.16F, 0.06F, 0.80F, 0.62F, 0.34F, 0.36F, 0.24F, 0.08F, 1, 1, 1),
 	WRAITH("wraith", 0.86F, 0.36F, 1.00F, 0.56F, 0.70F, 0.52F, 0.86F, 0.44F, 0.38F, 0.52F, 0.16F, 0.10F, 0.22F, 1, 1, 1),
-	CRIMSON("crimson", 1.00F, 0.24F, 0.18F, 0.56F, 0.22F, 0.08F, 0.08F, 0.52F, 0.36F, 0.36F, 0.22F, 0.10F, 0.10F, 1, 1, 1);
+	CRIMSON("crimson", 1.00F, 0.24F, 0.18F, 0.56F, 0.22F, 0.08F, 0.08F, 0.52F, 0.36F, 0.36F, 0.22F, 0.10F, 0.10F, 1, 1, 1),
+	/** The Stargate Network gate's own look: dark steel-blue, blue chevrons, pale letters. */
+	NETWORK("network", 0.32F, 0.70F, 1.00F, 0.50F, 0.80F, 0.88F, 1.00F, 0.66F, 0.68F, 0.71F, 0.30F, 0.31F, 0.34F, 1, 1, 1);
 
 	public final String id;
 	public final float chevronR, chevronG, chevronB;
@@ -93,6 +95,8 @@ public enum GateLook
 			return ATLANTIS;
 		if(key.equals("destiny"))
 			return UNIVERSE;
+		if(key.equals("stargatenetwork") || key.equals("sgcraft"))
+			return NETWORK;
 		for(GateLook look : values())
 			if(look.id.equals(key))
 				return look;

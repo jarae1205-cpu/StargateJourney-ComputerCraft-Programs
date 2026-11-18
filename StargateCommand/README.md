@@ -13,7 +13,7 @@ They share one address book with the [Personal Dialer](../PersonalDialer/) and w
 | **SGCraft** (Greg Ewing's, and SGCraft 2.x, the "Stargate Network" mod) | 1.7.10 to 1.12.2 | the ComputerCraft stargate interface | every gate |
 | **Lantea: Stargates** 0.7.7.0+ | 1.20.1 (Forge), 1.21.1 (NeoForge) | a Stargate Power Coupler Kit on the gate controller | Milky Way gates (Pegasus gates can be watched, not dialed) |
 | **Just Stargate Mod** (JSG) | 1.20.1 | the gate's base block (it is a CC: Tweaked peripheral) | every gate |
-| **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral) | every gate |
+| **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral), or its SG Computer Interface | every gate, including its Infinity and Stargate Network gates |
 
 On OpenComputers (SGCraft, and Just Stargate Mod for 1.12.2), use [gatedial](../OpenComputers/) instead. It reads and writes the same address book, iris codes and gate log.
 
@@ -44,6 +44,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
+| Stargate Network | Chevron Seven's Stargate Network gate: a dark steel-blue ring of letters with blue chevrons |
 | Carter Addon Pack | pick it with STYLE, or a variant named "cap" or "carter". After the Garry's Mod addon: the gate a little smaller, on a stepped grey pedestal with a red carpet, under the sky, with the round orange DHD and its blue dome in front |
 
 ![The Carter Addon Pack style](../imgs/GateRoomCAP.png)
@@ -66,7 +67,7 @@ The supergate has no chevrons. Its segments light up one after another, clockwis
 - **SGCraft**: the ComputerCraft stargate interface under the gate base.
 - **Lantea: Stargates**: right-click a Stargate Power Coupler Kit onto the finished controller, then put the computer against the controller (or connect it with a wired modem). Needs Lantea 0.7.7.0 or newer.
 - **Just Stargate Mod**: put the computer against the gate's base block, or connect it with a wired modem. To open and close the iris from a computer, set the iris mode to OC/computer in the gate's GUI.
-- **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem.
+- **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem. Or put it next to an SG Computer Interface within 6 blocks of the gate: the programs then treat the gate as an SGCraft gate and dial letter addresses such as `1KA0-9KT-HY`.
 - **LanteaCraft** (NeoForge 1.21.1, 0.2.5 or newer): put the computer against the gate's base block, or connect it with a wired modem.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
@@ -271,6 +272,8 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 ![JSG in a Minecraft 1.20.1 world](../imgs/JSGInGame.jpg)
 
 *JSG 5.1.2.0 in a Minecraft 1.20.1 world (in the rain). Left: the gate the Personal Dialer dialed from. Middle: the gate it reached, its iris closed by the Gate Room. Right: that Gate Room's screen.*
+
+- Chevron Seven in a live game (Forge 1.20.1, CC: Tweaked 1.120.2): the `sgc.gate` library dialed its gates both on the ring and through the SG Computer Interface, including the Stargate Network gate by its letters, and picked each gate's look from its variant.
 - LanteaCraft in a live game: the Gate Room and the Personal Dialer dialed each other's gates, including an address with a `-` glyph. Closing worked from the dialing side, and the receiving side was refused with LanteaCraft's reason. The iris closed from the Gate Room. A GDO code the gate accepted opened the iris by itself; a code the gate refused but `idc` trusted opened it through the Gate Room. A player who walked through was logged.
 
 ![LanteaCraft in a Minecraft 1.21.1 world](../imgs/LanteaCraft.jpg)

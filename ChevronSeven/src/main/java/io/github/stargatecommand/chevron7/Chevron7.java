@@ -51,6 +51,11 @@ public class Chevron7
 
 	public static final ResourceKey<DamageType> KAWOOSH = ResourceKey.create(Registries.DAMAGE_TYPE, id("kawoosh"));
 
+	private static StargateBlock gate(GateStyle style)
+	{
+		return new StargateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0), style);
+	}
+
 	private static BlockBehaviour.Properties gateProperties()
 	{
 		return BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(8.0F, 1200.0F).sound(SoundType.NETHERITE_BLOCK)
@@ -64,8 +69,9 @@ public class Chevron7
 	}
 
 	/** The bottom middle block of the ring: owns the gate and draws all of it. */
-	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate",
-			() -> new StargateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
+	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate", () -> gate(GateStyle.CLASSIC));
+	/** A gate in the style of SGCraft's Stargate Network: a ring of letters, nine chevrons, letter addresses. */
+	public static final RegistryObject<StargateBlock> NETWORK_STARGATE = BLOCKS.register("network_stargate", () -> gate(GateStyle.NETWORK));
 	/** An Ori supergate's base: the giant ring is drawn around it. Built with /chevron7 supergate. */
 	public static final RegistryObject<SupergateBlock> SUPERGATE = BLOCKS.register("supergate",
 			() -> new SupergateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
@@ -87,8 +93,17 @@ public class Chevron7
 			() -> new DHDBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_BROWN).strength(4.0F, 1200.0F)
 					.sound(SoundType.STONE).noOcclusion().requiresCorrectToolForDrops().lightLevel(state -> 4)));
 
+	/** Put next to a gate, it is an SGCraft-style computer interface for it. */
+	public static final RegistryObject<SGInterfaceBlock> SG_INTERFACE = BLOCKS.register("sg_interface",
+			() -> new SGInterfaceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0F, 1200.0F)
+					.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+
 	public static final RegistryObject<Item> STARGATE_ITEM = ITEMS.register("stargate",
 			() -> new BlockItem(STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+	public static final RegistryObject<Item> NETWORK_STARGATE_ITEM = ITEMS.register("network_stargate",
+			() -> new BlockItem(NETWORK_STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+	public static final RegistryObject<Item> SG_INTERFACE_ITEM = ITEMS.register("sg_interface",
+			() -> new BlockItem(SG_INTERFACE.get(), new Item.Properties()));
 	public static final RegistryObject<Item> STARGATE_BASE_ITEM = ITEMS.register("stargate_base",
 			() -> new BlockItem(STARGATE_BASE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 	public static final RegistryObject<Item> RING_BLOCK_ITEM = ITEMS.register("stargate_ring_block",
@@ -107,11 +122,13 @@ public class Chevron7
 			() -> new LookCrystalItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
-			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), SUPERGATE.get()).build(null));
+			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), NETWORK_STARGATE.get(), SUPERGATE.get()).build(null));
 	public static final RegistryObject<BlockEntityType<StargateBaseBlockEntity>> STARGATE_BASE_ENTITY = BLOCK_ENTITIES.register("stargate_base",
 			() -> BlockEntityType.Builder.of(StargateBaseBlockEntity::new, STARGATE_BASE.get()).build(null));
 	public static final RegistryObject<BlockEntityType<DHDBlockEntity>> DHD_ENTITY = BLOCK_ENTITIES.register("dhd",
 			() -> BlockEntityType.Builder.of(DHDBlockEntity::new, DHD.get()).build(null));
+	public static final RegistryObject<BlockEntityType<SGInterfaceBlockEntity>> SG_INTERFACE_ENTITY = BLOCK_ENTITIES.register("sg_interface",
+			() -> BlockEntityType.Builder.of(SGInterfaceBlockEntity::new, SG_INTERFACE.get()).build(null));
 
 	/** Laid out like SGCraft's tab: the gate and the blocks it is built from, then what goes with it. */
 	public static final RegistryObject<CreativeModeTab> TAB = TABS.register("chevron7", () -> CreativeModeTab.builder()
@@ -119,11 +136,13 @@ public class Chevron7
 			.icon(() -> new ItemStack(CHEVRON_BLOCK_ITEM.get()))
 			.displayItems((parameters, output) -> {
 				output.accept(STARGATE_ITEM.get());
+				output.accept(NETWORK_STARGATE_ITEM.get());
 				output.accept(STARGATE_BASE_ITEM.get());
 				output.accept(RING_BLOCK_ITEM.get());
 				output.accept(CHEVRON_BLOCK_ITEM.get());
 				output.accept(DHD_ITEM.get());
 				output.accept(GATE_INTERFACE_ITEM.get());
+				output.accept(SG_INTERFACE_ITEM.get());
 				output.accept(IRIS.get());
 				output.accept(LOOK_CRYSTAL.get());
 				output.accept(ADDRESS_BOOK.get());

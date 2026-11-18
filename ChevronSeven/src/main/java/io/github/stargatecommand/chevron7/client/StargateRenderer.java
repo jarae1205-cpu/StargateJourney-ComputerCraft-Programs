@@ -8,8 +8,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
 import io.github.stargatecommand.chevron7.Chevron7;
-import io.github.stargatecommand.chevron7.GateAddress;
 import io.github.stargatecommand.chevron7.GateLook;
+import io.github.stargatecommand.chevron7.GateStyle;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 import io.github.stargatecommand.chevron7.StargateBlockEntity.State;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -34,6 +34,8 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 	static final ResourceLocation CHEVRON = Chevron7.id("textures/entity/chevron.png");
 	static final ResourceLocation IRIS = Chevron7.id("textures/entity/iris.png");
 	public static final ResourceLocation GLYPHS = Chevron7.id("textures/gui/glyphs.png");
+	/** The letters and digits of a Stargate Network gate, A to 9, in the same 8 by 5 grid as the symbols. */
+	public static final ResourceLocation LETTERS = Chevron7.id("textures/gui/letters.png");
 
 	static final float R_OUT = 3.42F, R_MID = 2.94F, R_IN = 2.45F;
 	static final float D_OUT = 0.42F, D_TRACK = 0.33F;
@@ -82,8 +84,9 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		else
 		{
 			ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.stoneTexture())), m, n, R_MID, R_OUT, D_OUT, 36, 0, light, 1.0F);
-			ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.trackTexture())), m, n, R_IN, R_MID, D_TRACK, GateAddress.SYMBOLS, angle, light, 1.0F);
-			glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(GLYPHS)), m, n, angle, look, light);
+			GateStyle style = gate.style();
+			ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.trackTexture())), m, n, R_IN, R_MID, D_TRACK, style.symbols, angle, light, 1.0F);
+			glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(style.letters() ? LETTERS : GLYPHS)), m, n, angle, style, look, light);
 			chevrons(gate, look, time, buffers, m, n, light);
 		}
 		horizon(gate, look, time, buffers.getBuffer(RenderType.entityTranslucent(look.horizonTexture())), m, n);
@@ -134,12 +137,12 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		}
 	}
 
-	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, float rot, GateLook look, int light)
+	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, float rot, GateStyle style, GateLook look, int light)
 	{
 		float rc = (R_IN + R_MID) / 2, h = 0.2F;
-		for(int k = 0; k < GateAddress.SYMBOLS; k++)
+		for(int k = 0; k < style.symbols; k++)
 		{
-			float a = (float) Math.toRadians(k * StargateBlockEntity.STEP + rot);
+			float a = (float) Math.toRadians(k * style.step() + rot);
 			float nx = Mth.sin(a), ny = Mth.cos(a); // outwards
 			float tx = ny, ty = -nx; // clockwise
 			float cx = rc * nx, cy = rc * ny;
@@ -226,8 +229,11 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		int count = gate.getChevronsEngaged();
 		boolean[] lit = new boolean[9];
 		if(state != State.RESETTING)
-			for(int i = 0; i < Math.min(count, StargateBlockEntity.CHEVRON_ORDER.length); i++)
-				lit[StargateBlockEntity.CHEVRON_ORDER[i]] = true;
+		{
+			int[] order = gate.chevronOrder();
+			for(int i = 0; i < Math.min(count, order.length); i++)
+				lit[order[i]] = true;
+		}
 		float lock = gate.lockProgress(time);
 		float topOffset = 0;
 		if(lock >= 0)

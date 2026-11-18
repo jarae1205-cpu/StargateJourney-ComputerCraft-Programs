@@ -12,6 +12,8 @@ import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.github.stargatecommand.chevron7.GateAddress;
 import io.github.stargatecommand.chevron7.GateLook;
+import io.github.stargatecommand.chevron7.GateStyle;
+import io.github.stargatecommand.chevron7.SGAddress;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 
 /**
@@ -54,6 +56,8 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	@Override
 	public void gateEvent(String name, Object... args)
 	{
+		if(name.startsWith("_"))
+			return; // internal events, for the SG interface
 		computers.forEach(computer -> {
 			Object[] withName = new Object[args.length + 1];
 			withName[0] = computer.getAttachmentName();
@@ -86,17 +90,31 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	@LuaFunction(mainThread = true)
 	public final String getStargateType()
 	{
-		return "chevron7:stargate";
+		return gate.style() == GateStyle.NETWORK ? "chevron7:network_stargate" : "chevron7:stargate";
 	}
 
+	/** The gate's look: "" for SG-1, otherwise e.g. "chevron7:infinity" or "chevron7:network". */
 	@LuaFunction(mainThread = true)
 	public final String getStargateVariant()
 	{
-		// the Gate Room and the Personal Dialer pick their style from this
+		return variantOf(gate);
+	}
+
+	/** "" for the SG-1 look, otherwise "chevron7:" and the look, e.g. "chevron7:infinity"; the Gate Room and the Personal Dialer pick their style from it. */
+	public static String variantOf(StargateBlockEntity gate)
+	{
 		if(gate.isSupergate())
 			return "chevron7:supergate";
 		GateLook look = gate.getLook();
 		return look == GateLook.SG1 ? "" : "chevron7:" + look.id;
+	}
+
+	/** The gate's letter address, e.g. "1KA09KTHY": any gate can dial it with {@link #dialLetters}. */
+	@LuaFunction(mainThread = true)
+	public final String getLocalLetters()
+	{
+		String letters = SGAddress.encode(gate.getAddress());
+		return letters == null ? "" : letters;
 	}
 
 	@LuaFunction(mainThread = true)
@@ -218,6 +236,13 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 		if(symbols.length == GateAddress.LENGTH + 1 && symbols[GateAddress.LENGTH] == GateAddress.POINT_OF_ORIGIN)
 			symbols = java.util.Arrays.copyOf(symbols, GateAddress.LENGTH);
 		return gate.dial(symbols);
+	}
+
+	/** Dials a letter address such as "1KA0-9KT-HY". */
+	@LuaFunction(mainThread = true)
+	public final int dialLetters(String address)
+	{
+		return gate.dialLetters(address);
 	}
 
 	@LuaFunction(mainThread = true)

@@ -30,13 +30,13 @@
  - Address book with live search: add, edit, remove and reorder gates
  - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates, LanteaCraft and Just Stargate Mod gates
  - Chevron progress bar, gate state, incoming caller lookup and a gate picture
- - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid...)
+ - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid, Stargate Network...)
  - Runs on the computer screen or an advanced monitor
 
 ![Personal Dialer image](./imgs/PersonalDialer.png)
 
 ## [Stargate Command: Gate Room and Network Hub](./StargateCommand/)
- - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
+ - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack, Chevron Seven's Stargate Network gate): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)
  - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
@@ -84,13 +84,21 @@ Not ComputerCraft programs, but made to go with them:
 A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - A 7-block ring gate with a turning symbol track, chevrons, kawoosh, event horizon and travel between gates, even across dimensions
  - Dial Home Device, a spiral iris, automatic closing, chunk loading while a wormhole is open
- - 13 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity and more), gate platforms and an Infinity-style gate room
+ - 14 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity, Stargate Network and more), gate platforms and an Infinity-style gate room
+ - A **Stargate Network gate** in the style of SGCraft: a ring of letters and nine chevrons; it dials letter addresses such as `1KA0-9KT-HY`, and every gate has one, so it can dial and be dialed by any other gate
  - A Carter Addon Pack pedestal with a red carpet, a round DHD whose keys light up as the gate dials, and `/chevron7 pedestal` to build the pedestal for a Stargate Journey, Lantea or JSG gate
  - An Ori supergate four times the size of a gate, a row of gates in every look, and a dark DHD with a red dome like JSG's
  - Gates built SGCraft style from a base, Ring Blocks and Chevron Blocks, which come apart into those blocks again, and a Gate Computer Interface for the computer
- - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate
+ - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate, and the SG Computer Interface block lets programs written for SGCraft drive it
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
+
+![A gate in the Infinity look and the Stargate Network gate, in the game](./imgs/ChevronSevenInGame.jpg)
+
+### [Stargate Infinity look for Just Stargate Mod](./JSGInfinity/)
+A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0. It restyles every JSG Milky Way gate; for a separate Infinity gate next to ordinary ones, use the [Infinity Stargate add-on](./JSGInfinityGate/) below.
+
+![JSG with the Infinity pack](./imgs/JSGInfinityInGame.jpg)
 
 ### [Infinity Stargate for SGCraft](./SGCraftInfinityGate/)
 An add-on for SGCraft 2.3 on Minecraft 1.12.2 (Forge): the gate from *Stargate Infinity*.
@@ -119,6 +127,21 @@ An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity
 
 ![Infinity gate](./imgs/JSGInfinityGate.png)
 
+## Stargate mods on Minecraft 1.20.1
+
+Which of the stargate mods run on Minecraft 1.20.1, and what this repository has for each (as of November 2026):
+
+| Mod | Minecraft | Here |
+|---|---|---|
+| **Stargate Journey** | 1.20.1 (Forge) | every program, the [Stargate Command Addon](./StargateCommandAddon/) and the [variant pack](./StargateJourneyVariants/) with an Infinity look |
+| **Just Stargate Mod** (JSG) | 1.20.1 (Forge and NeoForge, 5.1.x), and 1.12.2 | the ComputerCraft programs on 1.20.1, `gatedial` on 1.12.2, the [Infinity pack](./JSGInfinity/) and the [Infinity Stargate add-on](./JSGInfinityGate/) |
+| **Stargate Network** (SGCraft 2.x, the continuation of Greg's SGCraft) | 1.12.2 only; no 1.20.1 version found | the programs on 1.12.2; on 1.20.1, [Chevron Seven](./ChevronSeven/)'s Stargate Network gate and SG Computer Interface stand in for it |
+| **SGCraft** (Greg's original) | 1.7.10 to 1.12.2 | the programs, and `gatedial` |
+| **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/) and [JSG add-on](./JSGInfinityGate/), the [SGCraft add-on](./SGCraftInfinityGate/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
+| **Lantea: Stargates** | 1.20.1 (Forge) and 1.21.1 (NeoForge) | the ComputerCraft programs |
+| **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
+| **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program
@@ -140,10 +163,12 @@ An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Stargate Network, Stargate Hybrid Legacy, Chevron Seven, the Stargate Command Addon, and the tools that build the variant pack.
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Stargate Network, Stargate Hybrid Legacy, Chevron Seven, the Stargate Command Addon, the Infinity pack for JSG, and the tools that build the variant pack.
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.
  - The textures of the [Stargate Journey Variants](./StargateJourneyVariants/) pack, and of the variants inside the Stargate Command Addon, are recoloured from Stargate Journey's textures and are CC BY-NC-SA 4.0, like the originals.
+
+The textures of the [Infinity pack for JSG](./JSGInfinity/) are drawn by its script and are MIT; JSG itself is not included.
 
 The [Infinity Stargate for JSG](./JSGInfinityGate/) is MIT as well: its code and the textures its script draws.

@@ -38,10 +38,23 @@ public class StargateBlock extends BaseEntityBlock
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
+	private final GateStyle style;
+
 	public StargateBlock(Properties properties)
 	{
+		this(properties, GateStyle.CLASSIC);
+	}
+
+	public StargateBlock(Properties properties, GateStyle style)
+	{
 		super(properties);
+		this.style = style;
 		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
+	}
+
+	public GateStyle style()
+	{
+		return style;
 	}
 
 	@Override
@@ -145,7 +158,14 @@ public class StargateBlock extends BaseEntityBlock
 		if(held.getItem() instanceof IrisItem || held.getItem() instanceof LookCrystalItem)
 			return InteractionResult.PASS;
 		if(!level.isClientSide() && level.getBlockEntity(core) instanceof StargateBlockEntity gate)
-			player.displayClientMessage(Component.translatable("message.chevron7.address", GateAddress.format(gate.getAddress())), true);
+		{
+			// a Stargate Network gate is dialed by its letters; every gate can be dialed both ways
+			int[] address = gate.getAddress();
+			Component message = gate.style().letters()
+					? Component.translatable("message.chevron7.address_letters", SGAddress.formatOf(address), GateAddress.format(address))
+					: Component.translatable("message.chevron7.address_both", GateAddress.format(address), SGAddress.formatOf(address));
+			player.displayClientMessage(message, true);
+		}
 		return InteractionResult.sidedSuccess(level.isClientSide());
 	}
 
@@ -166,7 +186,7 @@ public class StargateBlock extends BaseEntityBlock
 	{
 		if(level.getBlockEntity(pos) instanceof StargateBlockEntity gate && gate.isBuiltFromParts())
 			return new ItemStack(Chevron7.STARGATE_BASE_ITEM.get());
-		return new ItemStack(Chevron7.STARGATE_ITEM.get());
+		return new ItemStack(this);
 	}
 
 	/** A gate built from blocks drops its base, carrying the address; the blocks stay in the ring. */

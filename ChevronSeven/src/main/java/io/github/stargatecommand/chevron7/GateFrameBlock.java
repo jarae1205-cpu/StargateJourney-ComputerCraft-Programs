@@ -64,7 +64,7 @@ public class GateFrameBlock extends Block
 		{
 			BlockPos core = core(pos, state);
 			BlockState coreState = level.getBlockState(core);
-			if(coreState.is(Chevron7.STARGATE.get()) && coreState.getValue(StargateBlock.FACING) == state.getValue(FACING))
+			if(coreState.getBlock() instanceof StargateBlock && coreState.getValue(StargateBlock.FACING) == state.getValue(FACING))
 			{
 				if(level instanceof ServerLevel server && level.getBlockEntity(core) instanceof StargateBlockEntity gate && gate.isBuiltFromParts())
 					GateAssembly.unform(server, core);
@@ -85,7 +85,10 @@ public class GateFrameBlock extends Block
 	@Override
 	public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state)
 	{
-		return state.getValue(BUILT) ? GateAssembly.partItem(state.getValue(PART)) : new ItemStack(Chevron7.STARGATE_ITEM.get());
+		if(state.getValue(BUILT))
+			return GateAssembly.partItem(state.getValue(PART));
+		BlockState core = level.getBlockState(core(pos, state));
+		return new ItemStack(core.getBlock() instanceof StargateBlock ? core.getBlock() : Chevron7.STARGATE.get());
 	}
 
 	/** Nothing, except in a gate built from blocks: the Ring or Chevron Block that was here. */
@@ -101,6 +104,6 @@ public class GateFrameBlock extends Block
 	{
 		// as hard to break as the stargate block itself
 		BlockState core = level.getBlockState(core(pos, state));
-		return core.is(Chevron7.STARGATE.get()) ? core.getDestroyProgress(player, level, core(pos, state)) : super.getDestroyProgress(state, player, level, pos);
+		return core.getBlock() instanceof StargateBlock ? core.getDestroyProgress(player, level, core(pos, state)) : super.getDestroyProgress(state, player, level, pos);
 	}
 }

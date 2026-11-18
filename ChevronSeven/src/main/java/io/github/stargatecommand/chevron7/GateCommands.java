@@ -39,7 +39,8 @@ public final class GateCommands
 				.then(Commands.literal("address").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.executes(context -> {
 							StargateBlockEntity gate = gate(context);
-							String text = GateAddress.format(gate.getAddress()) + " " + gate.getState().name().toLowerCase()
+							String text = GateAddress.format(gate.getAddress()) + "  " + SGAddress.formatOf(gate.getAddress()) + "  "
+									+ gate.getState().name().toLowerCase()
 									+ (gate.hasIris() ? (gate.isIrisClosing() ? ", iris closed" : ", iris open") : "");
 							context.getSource().sendSuccess(() -> Component.literal(text), false);
 							return 1;
@@ -47,14 +48,19 @@ public final class GateCommands
 				.then(Commands.literal("dial").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.then(Commands.argument("address", StringArgumentType.greedyString()).executes(context -> {
 							StargateBlockEntity gate = gate(context);
-							int[] address = GateAddress.parse(StringArgumentType.getString(context, "address"));
+							// symbols ("12-5-30-21-7-1") or letters ("1KA0-9KT-HY")
+							String typed = StringArgumentType.getString(context, "address");
+							int[] address = GateAddress.parse(typed);
+							if(address == null)
+								address = SGAddress.decode(typed);
 							if(address == null)
 							{
 								context.getSource().sendFailure(Component.translatable("feedback.chevron7.invalid_address"));
 								return 0;
 							}
 							int result = gate.dial(address);
-							context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.dialing", GateAddress.format(address),
+							String shown = gate.style().letters() ? SGAddress.formatOf(address) : GateAddress.format(address);
+							context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.dialing", shown,
 									Component.translatable("feedback.chevron7." + gate.getFeedbackText())), true);
 							return result > 0 ? 1 : 0;
 						}))))
@@ -123,7 +129,8 @@ public final class GateCommands
 		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.list", network.all().size()), false);
 		for(GateNetwork.Entry entry : network.all().values())
 		{
-			String line = GateAddress.format(entry.address()) + " " + entry.dimension().location() + " " + entry.pos().toShortString();
+			String line = GateAddress.format(entry.address()) + "  " + SGAddress.formatOf(entry.address()) + "  "
+					+ entry.dimension().location() + " " + entry.pos().toShortString();
 			context.getSource().sendSuccess(() -> Component.literal(line), false);
 		}
 		return network.all().size();

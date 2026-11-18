@@ -7,6 +7,8 @@ import javax.annotation.Nullable;
 import io.github.stargatecommand.chevron7.DHDBlock;
 import io.github.stargatecommand.chevron7.GateAddress;
 import io.github.stargatecommand.chevron7.GateShape;
+import io.github.stargatecommand.chevron7.GateStyle;
+import io.github.stargatecommand.chevron7.SGAddress;
 import io.github.stargatecommand.chevron7.Net;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 import io.github.stargatecommand.chevron7.StargateBlockEntity.State;
@@ -22,6 +24,7 @@ import net.minecraft.util.Mth;
 /**
  * The Dial Home Device: two rings of symbol keys around the big dial button.
  * Outer ring: symbols 0 (point of origin) to 19; inner ring: 20 to 38.
+ * For a Stargate Network gate the keys are its 36 letters and digits: A to R outside, S to 9 inside.
  */
 public class DHDScreen extends Screen
 {
@@ -89,12 +92,26 @@ public class DHDScreen extends Screen
 		return new int[] {cx - half, cx + half - 10, 4};
 	}
 
-	/** Centre of a key: symbol 0 at the top of the outer ring, going clockwise. */
-	private int[] keyCenter(int symbol)
+	/** The kind of gate the DHD dials: the keys follow its ring. */
+	private GateStyle style()
 	{
-		boolean outer = symbol < 20;
-		int index = outer ? symbol : symbol - 20;
-		int count = outer ? 20 : 19;
+		StargateBlockEntity gate = gate();
+		return gate == null ? GateStyle.CLASSIC : gate.style();
+	}
+
+	/** Keys on the outer ring. */
+	private static int outerKeys(GateStyle style)
+	{
+		return style.letters() ? 18 : 20;
+	}
+
+	/** Centre of a key: symbol 0 at the top of the outer ring, going clockwise. */
+	private int[] keyCenter(int symbol, GateStyle style)
+	{
+		int outerCount = outerKeys(style);
+		boolean outer = symbol < outerCount;
+		int index = outer ? symbol : symbol - outerCount;
+		int count = outer ? outerCount : style.symbols - outerCount;
 		double a = Math.PI * 2 * index / count;
 		int r = outer ? outerRadius : innerRadius;
 		return new int[] {cx + (int) Math.round(Math.sin(a) * r), cy - (int) Math.round(Math.cos(a) * r)};
@@ -102,10 +119,11 @@ public class DHDScreen extends Screen
 
 	private int keyAt(double mx, double my)
 	{
-		for(int s = 0; s < GateAddress.SYMBOLS; s++)
+		GateStyle style = style();
+		for(int s = 0; s < style.symbols; s++)
 		{
-			int[] c = keyCenter(s);
-			int half = (s < 20 ? keySize : keySize * 9 / 10) / 2;
+			int[] c = keyCenter(s, style);
+			int half = (s < outerKeys(style) ? keySize : keySize * 9 / 10) / 2;
 			if(Math.abs(mx - c[0]) <= half && Math.abs(my - c[1]) <= half)
 				return s;
 		}
@@ -181,10 +199,12 @@ public class DHDScreen extends Screen
 		List<Integer> locked = gate == null ? List.of() : gate.getEncoded();
 		boolean incoming = gate != null && gate.getState().connected() && !gate.isOutgoing();
 		int hover = keyAt(mx, my);
-		for(int s = 0; s < GateAddress.SYMBOLS; s++)
+		GateStyle style = style();
+		boolean letters = style.letters();
+		for(int s = 0; s < style.symbols; s++)
 		{
-			int[] c = keyCenter(s);
-			int size = s < 20 ? keySize : keySize * 9 / 10;
+			int[] c = keyCenter(s, style);
+			int size = s < outerKeys(style) ? keySize : keySize * 9 / 10;
 			int half = size / 2;
 			boolean lit = !incoming && planned.contains(s);
 			boolean done = !incoming && locked.contains(s);
@@ -196,7 +216,8 @@ public class DHDScreen extends Screen
 				g.setColor(1.0F, 0.95F, 0.85F, 1.0F);
 			else
 				g.setColor(0.12F, 0.1F, 0.08F, 1.0F);
-			g.blit(StargateRenderer.GLYPHS, c[0] - glyph / 2, c[1] - glyph / 2, glyph, glyph, (s % 8) * 32, (s / 8) * 32, 32, 32, 256, 160);
+			g.blit(letters ? StargateRenderer.LETTERS : StargateRenderer.GLYPHS, c[0] - glyph / 2, c[1] - glyph / 2, glyph, glyph,
+					(s % 8) * 32, (s / 8) * 32, 32, 32, 256, 160);
 			g.setColor(1, 1, 1, 1);
 		}
 
@@ -229,12 +250,14 @@ public class DHDScreen extends Screen
 			status = Component.translatable("screen.chevron7.no_gate").getString();
 		else
 		{
-			status = Component.translatable("screen.chevron7.this_gate", GateAddress.format(gate.getAddress())).getString() + "   "
+			String address = letters ? SGAddress.formatOf(gate.getAddress()) : GateAddress.format(gate.getAddress());
+			status = Component.translatable("screen.chevron7.this_gate", address).getString() + "   "
 					+ Component.translatable("screen.chevron7.state." + stateKey(gate)).getString();
 		}
 		g.drawCenteredString(font, status, cx, height - 28, 0xFFE8D9C0);
 		if(gate != null && !planned.isEmpty() && !gate.getState().connected())
-			g.drawCenteredString(font, Component.translatable("screen.chevron7.dialing", format(planned)), cx, height - 16, 0xFFFFB060);
+			g.drawCenteredString(font, Component.translatable("screen.chevron7.dialing", letters ? SGAddress.letters(planned) : format(planned)),
+					cx, height - 16, 0xFFFFB060);
 
 		int[] iris = irisButton();
 		if(iris != null && gate != null)
@@ -247,7 +270,8 @@ public class DHDScreen extends Screen
 
 		if(hover >= 0)
 		{
-			Component tip = hover == GateAddress.POINT_OF_ORIGIN ? Component.translatable("screen.chevron7.point_of_origin")
+			Component tip = letters ? Component.translatable("screen.chevron7.letter", SGAddress.letters(List.of(hover)))
+					: hover == GateAddress.POINT_OF_ORIGIN ? Component.translatable("screen.chevron7.point_of_origin")
 					: Component.translatable("screen.chevron7.symbol", hover);
 			g.renderTooltip(font, tip, mx, my);
 		}
