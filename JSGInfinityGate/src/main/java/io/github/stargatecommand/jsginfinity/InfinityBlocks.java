@@ -2,6 +2,7 @@ package io.github.stargatecommand.jsginfinity;
 
 import dev.tauri.jsg.api.block.stargate.IStargateChevronBlock;
 import dev.tauri.jsg.api.block.stargate.IStargateRingBlock;
+import dev.tauri.jsg.block.dialhomedevice.DHDMilkyWayBlock;
 import dev.tauri.jsg.block.stargate.StargateMilkyWayBaseBlock;
 import dev.tauri.jsg.block.stargate.StargateMilkyWayMemberBlock;
 import net.minecraft.core.BlockPos;
@@ -32,5 +33,12 @@ public final class InfinityBlocks {
         public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
             return new InfinityMemberBE(pos, state);
         }
+    }
+
+    /**
+     * JSG's Milky Way DHD as it is, block entity and all, under its own name; the add-on's
+     * DHD renderer draws it in the Infinity colours.
+     */
+    public static class Dhd extends DHDMilkyWayBlock {
     }
 }
