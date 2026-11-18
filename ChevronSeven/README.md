@@ -33,6 +33,10 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 
 Since 1.5.0 a gate can also be built the way SGCraft builds one: from a **Stargate Base Block**, 14 **Stargate Ring Blocks** and 9 **Stargate Chevron Blocks**, in any order.
 
+![Building a gate from blocks](../imgs/ChevronSevenBlocks.jpg)
+
+*In a Minecraft 1.20.1 client (1.5.0).*
+
 ```
   R R C R R        C  Chevron Block (9)
 R C . . . C R      R  Ring Block (14)
@@ -281,7 +285,7 @@ Put [`dist/chevron7-1.5.0.jar`](dist/chevron7-1.5.0.jar) in the `mods` folder (c
   - Breaking one Ring Block of a built gate dropped that block and turned the other 22 and the base back into blocks, the base keeping the address. Putting the block back formed the gate again with the same address.
   - Breaking the stargate block of a built gate dropped a Stargate Base Block carrying the address, and left the 23 blocks standing.
   - A computer behind a Gate Computer Interface, set down before the gate was finished, found the gate when its last Chevron Block went in. Through the interface it dialed a 1.4.0 gate with the Stargate Command `sgc` library: the ring turned, seven chevrons locked, the wormhole opened and then closed.
-  - Not tried in a game client yet: building by hand, the new blocks' textures and the creative tab.
+  - In a Minecraft 1.20.1 client joined to a server with 1.5.0 (the picture above): the new blocks' textures, a ring one Chevron Block short staying as blocks, the last Chevron Block turning the blocks into a gate in front of the player, and the creative tab with its SGCraft-style order. The blocks were placed with commands there too; placing them by hand hasn't been tried.
 
 ## Build
 
