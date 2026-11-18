@@ -145,6 +145,7 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - With a wormhole open (from `/jsg rig`), the whirlpool turned over the settled horizon, and not over the kawoosh.
 - With a titanium iris closed (set in the gate's data), the iris drew in the Infinity texture, and other gates kept JSG's iris.
 - `/jsginfinity platform` and `/jsginfinity room` built facing south, the gates formed, and each DHD linked to its gate. JSG's `/jsg rig` then opened a wormhole on each gate, and JSG's travellers came through onto the pyramid and down the ramp.
+- In a player's own game, 1.3.0 built Carter's platform and the Infinity gate room.
 
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
