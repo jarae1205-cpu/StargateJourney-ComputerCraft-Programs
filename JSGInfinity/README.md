@@ -23,7 +23,7 @@ A resource pack for **Just Stargate Mod (JSG) 1.20.1** that gives its Milky Way 
 
 It's a client-side pack. A server doesn't need it, and players without it see JSG's normal gate.
 
-It changes **every** JSG Milky Way gate in your game; JSG has no way to give one gate a different look. Pegasus, Universe, Tollan, Orlin and Movie gates keep their normal look.
+It changes **every** JSG Milky Way gate in your game; JSG has no way to give one gate a different look. Pegasus, Universe, Tollan, Orlin and Movie gates keep their normal look. For a separate Infinity gate next to ordinary Milky Way gates, use the [Infinity Stargate add-on for JSG](../JSGInfinityGate/) instead.
 
 JSG gives a gate a frosty, mossy, sooty or aged look in some biomes. With the pack those gates stay cartoon gates with a light tint: paler for frost, greener for moss, darker for soot, warmer for age.
 

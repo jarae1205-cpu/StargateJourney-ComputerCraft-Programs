@@ -96,7 +96,7 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
 ![A gate in the Infinity look and the Stargate Network gate, in the game](./imgs/ChevronSevenInGame.jpg)
 
 ### [Stargate Infinity look for Just Stargate Mod](./JSGInfinity/)
-A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0.
+A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0. It restyles every JSG Milky Way gate; for a separate Infinity gate next to ordinary ones, use the [Infinity Stargate add-on](./JSGInfinityGate/) below.
 
 ![JSG with the Infinity pack](./imgs/JSGInfinityInGame.jpg)
 
@@ -117,6 +117,16 @@ A Forge 1.20.1 add-on for Stargate Journey:
 ### [Stargate Journey Variants](./StargateJourneyVariants/)
 A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth and Infinity looks, made in the crystallizer.
 
+### [Infinity Stargate for JSG](./JSGInfinityGate/)
+An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity*, built from its own base, ring and chevron blocks in JSG's pattern:
+ - JSG's own Milky Way gate underneath, so it has Milky Way addresses and is meant to take the DHD, upgrades, the iris and computers like one (see [what was tested](./JSGInfinityGate/README.md#tested))
+ - Drawn with JSG's models, in the cartoon's colours: pale stone with ink outlines, lime-yellow chevrons, a pale wormhole with the cartoon's turning whirlpool, and a spiral iris
+ - An Infinity DHD to go with it: JSG's Milky Way DHD in the same colours, which links to Infinity gates and JSG's Milky Way gates alike
+ - An orange DHD in the style of Carter's Addon Pack, also JSG's Milky Way DHD underneath
+ - Commands for operators: `/jsginfinity build` lays out a whole gate, `/jsginfinity platform` builds it on Carter's stone pyramid with the orange DHD, and `/jsginfinity room` builds the *Stargate Infinity* gate room around it
+
+![Infinity gate](./imgs/JSGInfinityGate.png)
+
 ## Stargate mods on Minecraft 1.20.1
 
 Which of the stargate mods run on Minecraft 1.20.1, and what this repository has for each (as of November 2026):
@@ -124,10 +134,10 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | Mod | Minecraft | Here |
 |---|---|---|
 | **Stargate Journey** | 1.20.1 (Forge) | every program, the [Stargate Command Addon](./StargateCommandAddon/) and the [variant pack](./StargateJourneyVariants/) with an Infinity look |
-| **Just Stargate Mod** (JSG) | 1.20.1 (Forge and NeoForge, 5.1.x), and 1.12.2 | the ComputerCraft programs on 1.20.1, `gatedial` on 1.12.2, and the [Infinity pack](./JSGInfinity/) |
+| **Just Stargate Mod** (JSG) | 1.20.1 (Forge and NeoForge, 5.1.x), and 1.12.2 | the ComputerCraft programs on 1.20.1, `gatedial` on 1.12.2, the [Infinity pack](./JSGInfinity/) and the [Infinity Stargate add-on](./JSGInfinityGate/) |
 | **Stargate Network** (SGCraft 2.x, the continuation of Greg's SGCraft) | 1.12.2 only; no 1.20.1 version found | the programs on 1.12.2; on 1.20.1, [Chevron Seven](./ChevronSeven/)'s Stargate Network gate and SG Computer Interface stand in for it |
 | **SGCraft** (Greg's original) | 1.7.10 to 1.12.2 | the programs, and `gatedial` |
-| **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
+| **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/) and [JSG add-on](./JSGInfinityGate/), the [SGCraft add-on](./SGCraftInfinityGate/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
 | **Lantea: Stargates** | 1.20.1 (Forge) and 1.21.1 (NeoForge) | the ComputerCraft programs |
 | **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
@@ -160,3 +170,5 @@ Not covered:
  - The textures of the [Stargate Journey Variants](./StargateJourneyVariants/) pack, and of the variants inside the Stargate Command Addon, are recoloured from Stargate Journey's textures and are CC BY-NC-SA 4.0, like the originals.
 
 The textures of the [Infinity pack for JSG](./JSGInfinity/) are drawn by its script and are MIT; JSG itself is not included.
+
+The [Infinity Stargate for JSG](./JSGInfinityGate/) is MIT as well: its code and the textures its script draws.
