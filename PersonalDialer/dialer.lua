@@ -1396,6 +1396,14 @@ local function closeGate()
         if not ok then
             -- e.g. LanteaCraft: only the gate that dialed can close the wormhole
             setMessage(cleanError(err), colors.orange)
+        elseif err == false then
+            -- refused without an error: Stargate Journey says why in its recent feedback
+            local code, desc = call("getRecentFeedback")
+            if code == -28 or desc == "connection_forming" then
+                setMessage("The wormhole is still forming, close it in a moment", colors.orange)
+            else
+                setMessage("The gate refused to close" .. (type(desc) == "string" and desc ~= "" and (": " .. desc:gsub("_", " ")) or ""), colors.orange)
+            end
         else
             setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
         end
