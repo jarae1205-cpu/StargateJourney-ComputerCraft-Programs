@@ -1,0 +1,59 @@
+// Infinity Stargate for SGCraft: an add-on for SGCraft 2.3 (the "Stargate Network" mod) on
+// Minecraft 1.12.2 / Forge 14.23.5. Builds with ForgeGradle 2.3 on Gradle 4.10.3 and Java 8:
+//     JAVA_HOME=<a Java 8 JDK> ./gradlew build
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = '1.0.0'
+group = 'io.github.stargatecommand.sginfinity'
+archivesBaseName = 'sginfinity'
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+    options.encoding = 'UTF-8'
+}
+
+minecraft {
+    version = '1.12.2-14.23.5.2847'
+    runDir = 'run'
+    mappings = 'stable_39'
+}
+
+repositories {
+    // SGCraft 2.3.1 ("Stargate Network" on CurseForge, project 289115). It isn't packed into the
+    // jar: players install it themselves.
+    maven { url = 'https://cursemaven.com' }
+}
+
+dependencies {
+    deobfCompile 'curse.maven:stargate-network-289115:9676335'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'mcversion', project.minecraft.version
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+// ./gradlew runClient -PjoinServer=localhost:25565 starts the client and joins a test server
+runClient {
+    if (project.hasProperty('joinServer')) {
+        def parts = (project.joinServer + ':25565').split(':')
+        args '--server', parts[0], '--port', parts[1], '--username', 'Tester'
+    }
+}

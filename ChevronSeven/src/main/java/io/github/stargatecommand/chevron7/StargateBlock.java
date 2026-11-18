@@ -1,5 +1,7 @@
 package io.github.stargatecommand.chevron7;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -24,6 +26,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
@@ -110,15 +114,20 @@ public class StargateBlock extends BaseEntityBlock
 	{
 		if(!state.is(newState.getBlock()))
 		{
+			// a gate built from blocks leaves its Ring and Chevron Blocks standing
+			boolean built = false;
 			if(level.getBlockEntity(pos) instanceof StargateBlockEntity gate)
+			{
+				built = gate.isBuiltFromParts();
 				gate.onBroken();
+			}
 			Direction facing = state.getValue(FACING);
 			for(int part = 0; part < GateShape.FRAME.length; part++)
 			{
 				BlockPos cell = GateShape.frameCell(pos, facing, part);
 				BlockState frame = level.getBlockState(cell);
 				if(frame.is(Chevron7.GATE_FRAME.get()) && frame.getValue(GateFrameBlock.PART) == part && frame.getValue(GateFrameBlock.FACING) == facing)
-					level.setBlock(cell, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+					level.setBlock(cell, built ? GateAssembly.partState(part) : net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 			}
 		}
 		super.onRemove(state, level, pos, newState, moving);
@@ -155,7 +164,19 @@ public class StargateBlock extends BaseEntityBlock
 	@Override
 	public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state)
 	{
+		if(level.getBlockEntity(pos) instanceof StargateBlockEntity gate && gate.isBuiltFromParts())
+			return new ItemStack(Chevron7.STARGATE_BASE_ITEM.get());
 		return new ItemStack(Chevron7.STARGATE_ITEM.get());
+	}
+
+	/** A gate built from blocks drops its base, carrying the address; the blocks stay in the ring. */
+	@SuppressWarnings("deprecation")
+	@Override
+	public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder)
+	{
+		if(builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof StargateBlockEntity gate && gate.isBuiltFromParts())
+			return List.of(GateAssembly.baseItem(gate.getAddress(), gate.getLook().id));
+		return super.getDrops(state, builder);
 	}
 
 	@Nullable

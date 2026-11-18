@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "facing=west,merged=false": {
+      "model": "sginfinity:infinity_base",
+      "y": 90
+    },
+    "facing=west,merged=true": {
+      "model": "sginfinity:infinity_base_merged"
+    },
+    "facing=east,merged=false": {
+      "model": "sginfinity:infinity_base",
+      "y": 270
+    },
+    "facing=east,merged=true": {
+      "model": "sginfinity:infinity_base_merged"
+    },
+    "facing=south,merged=false": {
+      "model": "sginfinity:infinity_base"
+    },
+    "facing=south,merged=true": {
+      "model": "sginfinity:infinity_base_merged"
+    },
+    "facing=north,merged=false": {
+      "model": "sginfinity:infinity_base",
+      "y": 180
+    },
+    "facing=north,merged=true": {
+      "model": "sginfinity:infinity_base_merged"
+    }
+  }
+}

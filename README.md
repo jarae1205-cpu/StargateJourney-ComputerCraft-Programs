@@ -87,9 +87,18 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - 13 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity and more), gate platforms and an Infinity-style gate room
  - A Carter Addon Pack pedestal with a red carpet, a round DHD whose keys light up as the gate dials, and `/chevron7 pedestal` to build the pedestal for a Stargate Journey, Lantea or JSG gate
  - An Ori supergate four times the size of a gate, a row of gates in every look, and a dark DHD with a red dome like JSG's
+ - Gates built SGCraft style from a base, Ring Blocks and Chevron Blocks, which come apart into those blocks again, and a Gate Computer Interface for the computer
  - With CC: Tweaked the gate is a computer peripheral that the Gate Room, Network Hub and Personal Dialer drive like a Stargate Journey gate
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
+
+### [Infinity Stargate for SGCraft](./SGCraftInfinityGate/)
+An add-on for SGCraft 2.3 on Minecraft 1.12.2 (Forge): the gate from *Stargate Infinity*.
+ - An Infinity Stargate Base, built into a ring of SGCraft's own Ring and Chevron Blocks; the gate is SGCraft's in every way, with its DHD, power, iris and computer interfaces
+ - Drawn by SGCraft's renderer in the cartoon's colours (pale stone, lime-yellow chevrons, a pale wormhole), recoloured from SGCraft's own textures as the game loads them
+ - Its code and the textures its script draws are MIT, like this repository's other work
+
+![Infinity gate for SGCraft](./imgs/SGCraftInfinityGate.jpg)
 
 ### [Stargate Command Addon](./StargateCommandAddon/)
 A Forge 1.20.1 add-on for Stargate Journey:
