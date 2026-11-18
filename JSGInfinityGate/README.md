@@ -25,9 +25,8 @@ The gate is JSG's Milky Way gate underneath. It has Milky Way addresses, and bec
 - Pale stone with ink outlines.
 - A slate symbol track with pale symbols.
 - Lime-yellow chevrons that glow when locked.
-- A pale blue-white event horizon.
-
-The iris stays JSG's own metal one.
+- A pale blue-white event horizon. Once the wormhole settles, the cartoon's whirlpool of ink lines turns slowly over it.
+- A pale iris that closes into a spiral. It is JSG's iris, with its blades and animation; only its texture changes.
 
 Breaking the base gives back an Infinity base, with the gate's upgrades, settings and energy kept, as JSG's own base does.
 
@@ -57,20 +56,37 @@ The DHD in the style of Carter's Addon Pack:
 
 It is JSG's Milky Way DHD underneath too, and works just like the Infinity DHD.
 
-### Command
+### Commands
 
-For operators, as JSG's `/jsg buildgate` does for its own gates:
+![Carter's platform and the Infinity gate room](../imgs/JSGInfinityBuildings.png)
+
+*In a Minecraft 1.20.1 client: Carter's platform with the orange DHD, the Infinity gate room, the whirlpool wormhole and the spiral iris.*
+
+For operators. Each builds facing the way you give, or towards you:
 
 ```
 /jsginfinity build <pos> [north|south|east|west]
+/jsginfinity platform <pos> [north|south|east|west]
+/jsginfinity room <pos> [north|south|east|west]
 ```
 
-This lays out a whole Infinity gate (base, rings and chevrons) at `<pos>` and forms it. The gate faces the way you give, or towards you.
+- **`build`** lays out a whole Infinity gate (base, rings and chevrons) with its base at `<pos>` and forms it, as JSG's `/jsg buildgate` does for its own gates.
+- **`platform`** builds the gate on the stone pyramid from the dial sequence of Carter's Addon Pack:
+  - a four-step pyramid of dark deepslate on red ground;
+  - a red carpet up its front steps to the gate;
+  - the orange DHD at the foot of the steps, linked to the gate.
+- **`room`** builds the gate room of *Stargate Infinity*:
+  - the gate on a base at the top of a brown ramp with hot-pink rails;
+  - orange-brown walls, with a pale halo round the gate and yellow and lime light bars fanned out round that;
+  - a lit ceiling, open at the front;
+  - the Infinity DHD beside the ramp, linked to the gate.
+
+For `platform` and `room`, `<pos>` is the ground under the middle of the gate, where you'd stand. They clear the space they need first (`platform` about 23 × 21 blocks, `room` 27 × 19), so build them somewhere open.
 
 ## Install
 
 1. Install [Just Stargate Mod](https://modrinth.com/mod/jsg) 5.1.2.0 or newer for Minecraft 1.20.1 (Forge 47).
-2. Put [`dist/jsginfinity-1.2.0.jar`](dist/jsginfinity-1.2.0.jar) in the same `mods` folder, on the client and on the server. Take out any older `jsginfinity` jar.
+2. Put [`dist/jsginfinity-1.3.0.jar`](dist/jsginfinity-1.3.0.jar) in the same `mods` folder, on the client and on the server. Take out any older `jsginfinity` jar.
 
 ## How it works
 
@@ -79,6 +95,8 @@ The add-on uses the same pattern as JSG's own Movie gate:
 - **Blocks:** its base, ring and chevron blocks extend JSG's Milky Way ones.
 - **Block entity:** the gate's block entity extends JSG's Milky Way gate, and its merge helper names the Infinity ring and chevron blocks.
 - **Renderer:** it follows JSG's Milky Way renderer step for step, binding the Infinity textures where JSG binds its own.
+  - The whirlpool is one more see-through layer, drawn just in front of JSG's horizon once the kawoosh is over, turning with the game's clock.
+  - For the iris, the Infinity texture stands in for JSG's under JSG's own key while an Infinity gate draws its iris, and JSG's is put back straight after.
 - **Tags:** JSG finds gates, their parts and DHDs by block tags, and links a gate and a DHD only when each is in the other's tag. The add-on adds its blocks to the tags their Milky Way twins are in, without replacing JSG's entries.
 
 The Infinity and orange DHDs are JSG's Milky Way DHD block entity on blocks of their own:
@@ -95,7 +113,7 @@ python3 tools/make_resources.py jsg-1.20.1-5.1.2.0.jar   # only after changing t
 ./gradlew build
 ```
 
-The jar is `build/libs/jsginfinity-1.2.0.jar`. Gradle fetches JSG from Modrinth's maven to compile against. `./gradlew runServer` and `./gradlew runClient` start Minecraft with JSG and the add-on installed.
+The jar is `build/libs/jsginfinity-1.3.0.jar`. Gradle fetches JSG from Modrinth's maven to compile against. `./gradlew runServer` and `./gradlew runClient` start Minecraft with JSG and the add-on installed.
 
 ## Tested
 
@@ -123,6 +141,11 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - In the client the three DHDs drew side by side, each in its own look (picture above).
 - In a player's own game, 1.2.0 with the orange DHD worked.
 
+**The whirlpool, the iris and the buildings (1.3.0)**, on the dev server and client:
+- With a wormhole open (from `/jsg rig`), the whirlpool turned over the settled horizon, and not over the kawoosh.
+- With a titanium iris closed (set in the gate's data), the iris drew in the Infinity texture, and other gates kept JSG's iris.
+- `/jsginfinity platform` and `/jsginfinity room` built facing south, the gates formed, and each DHD linked to its gate. JSG's `/jsg rig` then opened a wormhole on each gate, and JSG's travellers came through onto the pyramid and down the ramp.
+
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
 - Two Infinity gates, each powered by a JSG creative capacitor, with an advanced computer under each base. The computers ran this repository's `sgc` library.
@@ -134,7 +157,7 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - A dial from a DHD all the way to an open wormhole. The player saw the keys light as they dialled; whether the gate then opened wasn't reported.
 - Crafting the blocks in survival.
 - Placing the blocks by hand.
-- The iris.
+- Closing the iris from a DHD, a remote or a computer. The test closed it by setting the gate's data.
 - A player breaking the base. The test broke it with `/setblock … destroy`, which never calls the code that turns the ring back into separate blocks, in JSG's own gates as well. The Infinity base inherits that code from JSG's Milky Way base unchanged.
 
 ## License

@@ -6,6 +6,8 @@
 Writes into src/main/resources/:
   assets/jsginfinity/textures/gate/infinity_gate.png   the ring, symbol track and chevron housings
   assets/jsginfinity/textures/gate/chevron*.png        the chevrons: unlit, lit, off
+  assets/jsginfinity/textures/gate/iris_blade.png      the iris blades, which close into a spiral
+  assets/jsginfinity/textures/gate/wormhole_spiral.png the whirlpool drawn over an open wormhole
   assets/jsginfinity/textures/block/*.png              the blocks you build the gate from
   assets/jsginfinity/textures/dhd/<look>/*.png         the Infinity and orange DHDs: body, keys and dome
   block states, models, names, recipes, loot tables, and JSG's block tags
@@ -284,6 +286,44 @@ def paint_chevron_texture(models, size, lens, tint, glow=False):
     return Image.fromarray(img).convert("RGBA")
 
 
+
+
+def paint_iris_texture(model, size):
+    """The iris blades: pale, ink-edged, so a closed iris shows the cartoon's spiral."""
+    canvas = np.zeros((size, size, 3), float)
+    done = np.zeros((size, size), bool)
+
+    def paint(pos, n, edge, fi):
+        r = np.hypot(pos[:, 0], pos[:, 1])
+        c = mix(LIGHT, PALE, np.clip(r / 4.7, 0, 1))
+        # faint curved strokes along each blade, the spiral's lines
+        stroke = np.abs(np.sin((np.arctan2(pos[:, 1], pos[:, 0]) * 3.0 + r * 1.1) * math.pi)) < 0.06
+        c = mix(c, MID, stroke.astype(float) * 0.6)
+        return mix(c, INK, (edge < 0.045).astype(float))
+
+    rasterise(canvas, done, model, paint)
+    return Image.fromarray(np.clip(bleed(canvas, done), 0, 255).astype(np.uint8))
+
+
+def spiral_texture(size=512, arms=14):
+    """The whirlpool drawn over an open wormhole: ink arms curling out from the centre, the rest clear."""
+    k = 4  # drawn large, then shrunk, for smooth lines
+    big = size * k
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = big / 2
+    rim = big * 0.49
+    ink = INK + (225,)
+    for arm in range(arms):
+        a0 = arm * 2 * math.pi / arms
+        pts = []
+        for i in range(0, 101):
+            t = i / 100
+            a = a0 + 2.1 * t ** 0.8  # each arm turns about 120 degrees on its way out
+            pts.append((c + rim * t * math.cos(a), c + rim * t * math.sin(a)))
+        d.line(pts, fill=ink, width=int(2.2 * k), joint="curve")
+    d.ellipse([c - 3 * k, c - 3 * k, c + 3 * k, c + 3 * k], fill=ink)
+    return img.resize((size, size), Image.LANCZOS)
 
 
 # ---------------------------------------------------------------- Infinity DHD
@@ -620,6 +660,9 @@ def main():
     save(paint_chevron_texture(mw, 256, (70, 80, 46), plain), "gate", "chevron.png")
     save(paint_chevron_texture(mw, 256, LIME, plain, glow=True), "gate", "chevron_light.png")
     save(paint_chevron_texture(mw, 256, (58, 64, 44), plain), "gate", "chevron_light_off.png")
+    save(paint_iris_texture(Model(z.read(MODELS + "iris/iris_blade.obj").decode("utf-8", "replace")), 1024),
+         "gate", "iris_blade.png")
+    save(spiral_texture(), "gate", "wormhole_spiral.png")
     for name, img in block_textures().items():
         save(img, "block", name + ".png")
     dhd = dhd_models(z)
