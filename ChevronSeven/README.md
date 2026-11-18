@@ -1,6 +1,8 @@
 # Chevron Seven
 
-A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own gate, Dial Home Device and iris, with all textures and symbols drawn by its own script. It needs no other stargate mod. With [CC: Tweaked](https://modrinth.com/mod/cc-tweaked) installed, the gate is a computer peripheral that the [Gate Room, Network Hub](../StargateCommand/) and [Personal Dialer](../PersonalDialer/) drive just as they drive Stargate Journey.
+A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own gates, Dial Home Device and iris, with all textures and symbols drawn by its own script. It needs no other stargate mod. With [CC: Tweaked](https://modrinth.com/mod/cc-tweaked) installed, the gate is a computer peripheral that the [Gate Room, Network Hub](../StargateCommand/) and [Personal Dialer](../PersonalDialer/) drive just as they drive Stargate Journey, and the SG Computer Interface lets programs written for SGCraft drive it too.
+
+Besides the classic gate there is a **Stargate Network** gate in the style of SGCraft, with a ring of letters and nine chevrons. Both kinds share one network and can dial each other, and both can wear any of the [gate looks](#gate-looks), the *Stargate Infinity* cartoon look among them.
 
 ![Chevron Seven](../imgs/ChevronSeven.jpg)
 
@@ -15,15 +17,40 @@ A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own g
 - The ring lights up its surroundings while a wormhole is open.
 - A comparator next to the stargate block reads how many chevrons are locked.
 
-Right-click any part of the ring to see the gate's address. Every gate gets its own random address of six different symbols from 1 to 38; the point of origin, symbol 0, is the same for every gate and is dialed last.
+Right-click any part of the ring to see the gate's address. Every gate gets its own random address of six different symbols from 1 to 38; the point of origin, symbol 0, is the same for every gate and is dialed last. Every gate also has a [letter address](#letter-addresses).
+
+## The Stargate Network gate
+
+![A gate in the Infinity look and the Stargate Network gate, in the game](../imgs/ChevronSevenInGame.jpg)
+
+*In a Minecraft 1.20.1 client. Left: a gate in the `infinity` look with a wormhole open from the Stargate Network gate. Right: the Stargate Network gate, its nine chevrons lit. The SG Computer Interface shows through its wormhole.*
+
+In the style of SGCraft's Stargate Network gate. Its ring carries the 26 letters and 10 digits instead of symbols, and it dials nine of them, such as `1KA0-9KT-HY`: all nine chevrons lock, one letter each, and the ninth opens the wormhole. Its DHD has 36 letter keys.
+
+It starts with its own look, `network`: dark steel-blue stone, blue chevrons and pale letters. A Gate Look Crystal changes it like any other gate's; the ring keeps its letters.
+
+Craft it from a stargate and a block of lapis lazuli. On its own in the crafting grid it turns back into a plain stargate.
+
+## Letter addresses
+
+Every gate has a letter address as well as its symbol address, written the way SGCraft writes them: nine letters and digits, such as `1KA0-9KT-HY`. Right-clicking a gate shows both. Both name the same gate, so:
+
+- a Stargate Network gate dials any gate by its letters, and
+- any other gate, or a DHD, dials a Stargate Network gate by its symbols.
+
+The first six characters carry the six symbols; the last three are a check. A mistyped letter address fails as "no stargate has that address" instead of reaching some other gate: in a test of 200,000 addresses, 99.997% of one-character typos were caught.
+
+Dashes, spaces and case don't matter: `1ka09kthy` is the same address.
 
 ## Blocks and items
 
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
+| **Stargate (Stargate Network)** (1.6.0) | The [Stargate Network gate](#the-stargate-network-gate), placed the same way. | a stargate with a block of lapis lazuli |
 | **Stargate Base Block**, **Stargate Ring Block**, **Stargate Chevron Block** (1.5.0) | Build a gate block by block, as in SGCraft: see [building a gate from blocks](#building-a-gate-from-blocks). | base: an iron ingot in each corner, eyes of ender on three sides, a lodestone in the middle, a Ring Block at the bottom. Ring Blocks (4): stone bricks in the corners, iron ingots on the sides, the middle empty. Chevron Block: a Ring Block, a gold ingot and glowstone dust |
 | **Gate Computer Interface** (1.5.0) | Like SGCraft's computer interface: put it against any block of a gate, and a computer against it (see [computers](#computers-cc-tweaked)). | iron ingots in the corners, redstone on the sides, a comparator in the middle |
+| **SG Computer Interface** (1.6.0) | Speaks SGCraft's computer language: place it within 6 blocks of a gate and put a computer next to it, and the computer gets an SGCraft-style `stargate` peripheral for the nearest gate, with letter addresses (see [the SG Computer Interface](#the-sg-computer-interface)). Right-click it to see which gate it controls. | a Gate Computer Interface and lapis lazuli |
 | **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it has a round top about two blocks across, with two rings of glyph keys and a dome in the middle. Since 1.4.0 it is dark with a red dome, like the DHD of JSG and the show; the one on a CAP pedestal is the Carter Addon Pack's orange one with a blue dome, and a Gate Look Crystal used on a DHD swaps the two. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
 | **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
 | **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
@@ -60,7 +87,7 @@ The creative tab is laid out like SGCraft's: the gate, its base, Ring and Chevro
 
 *Every look, each on a gate platform with its wormhole open, in a Minecraft 1.20.1 client.*
 
-Every gate can have its own look: its ring and symbol track, the colour of its chevrons and symbols, its event horizon and its iris all change with it. A new gate starts with the SG-1 look. Change it with the **Gate Look Crystal** or `/chevron7 look <pos> <look>`.
+Every gate can have its own look: its ring and symbol track, the colour of its chevrons and symbols, its event horizon and its iris all change with it. A new gate starts with the SG-1 look, and a Stargate Network gate with the `network` look. Change it with the **Gate Look Crystal** or `/chevron7 look <pos> <look>`.
 
 | Look | |
 |---|---|
@@ -77,6 +104,7 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 | `goauld` | bronze, amber chevrons, an orange wormhole |
 | `wraith` | purple-grey, violet chevrons, a violet wormhole |
 | `crimson` | dark red, red chevrons, a red wormhole |
+| `network` | the Stargate Network gate's look: dark steel-blue, blue chevrons, pale symbols or letters |
 
 `/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves. Looks are only colours and textures: the gate works the same in every one.
 
@@ -164,11 +192,32 @@ Or do it the SGCraft way (1.5.0): put a **Gate Computer Interface** against any 
 | `getIris()`, `openIris()`, `closeIris()`, `getIrisProgressPercentage()` | the iris |
 | `getRecentFeedback()` | the last result as a code and a name, e.g. `-5, "invalid_address"` |
 | `sendStargateMessage(text)` | the other gate gets a `stargate_message_received` event |
-| `getStargateType()` | `"chevron7:stargate"` |
+| `getStargateType()` | `"chevron7:stargate"`, or `"chevron7:network_stargate"` for a Stargate Network gate |
+| `getStargateVariant()` | the gate's look: `""` for SG-1, otherwise e.g. `"chevron7:infinity"` or `"chevron7:network"`; the Gate Room and Personal Dialer pick their look from it |
+| `getLocalLetters()`, `dialLetters(address)` | the gate's letter address, and dialing one, e.g. `dialLetters("1KA0-9KT-HY")` |
+
+On a Stargate Network gate, `engageSymbol` takes the positions of the letters on its ring, 0 for A to 35 for 9, nine of them with no point of origin; `dialAddress` still takes a symbol address and dials its letters.
 
 Events (the first argument is the peripheral's name): `stargate_chevron_engaged` (chevrons, chevron, incoming, symbol), `stargate_rotation_started`, `stargate_rotation_stopped`, `stargate_outgoing_wormhole` (address), `stargate_incoming_wormhole` (address), `stargate_disconnected` (code, reason), `stargate_reset` (code, reason), `stargate_deconstructing_entity` and `stargate_reconstructing_entity` (type, name, uuid), `iris_thud` (type, name, uuid) and `stargate_message_received` (text).
 
 The names, the feedback codes and the events follow Stargate Journey's crystal interface, so programs written for that mostly work here as they are.
+
+### The SG Computer Interface
+
+A computer next to the SG Computer Interface (or on a wired modem) gets a peripheral of type `stargate` that speaks like SGCraft's computer interface, with letter addresses. (The Gate Computer Interface gives the gate's own `chevron7_stargate` peripheral instead.) It controls the nearest gate within 6 blocks, of any kind. The Gate Room, Network Hub and Personal Dialer treat it as an SGCraft gate; on a Stargate Network gate they use the Stargate Network look, with blue chevrons.
+
+| Method | |
+|---|---|
+| `stargateState()` | `"Idle"`, `"Dialling"`, `"Opening"`, `"Connected"` or `"Closing"`; the chevrons locked; `"Outgoing"`, `"Incoming"` or `""` |
+| `localAddress()`, `remoteAddress()`, `dialledAddress()` | letter addresses, e.g. `"1KA09KTHY"` |
+| `dial(address)` | dials a letter address. Errors are SGCraft's: `selfBusy`, `malformedAddress`, `unknownAddress`, `diallingItself` |
+| `disconnect()`, `isInitiator()` | |
+| `irisState()`, `openIris()`, `closeIris()` | `"Offline"` without an iris, otherwise `"Open"`, `"Opening"`, `"Closing"` or `"Closed"` |
+| `sendMessage(...)` | the other side gets `sgMessageReceived` |
+| `energyAvailable()`, `energyToDial(address)` | always 0: Chevron Seven gates need no power |
+| `getStargateVariant()` | as on the gate itself (not in SGCraft) |
+
+Events: `sgDialOut` and `sgDialIn` (address), `sgChevronEngaged` (number, symbol), `sgStargateStateChange` (new, old), `sgIrisStateChange` (new, old) and `sgMessageReceived`.
 
 ## Commands
 
@@ -176,8 +225,8 @@ For operators:
 
 ```
 /chevron7 list                          every gate and its address
-/chevron7 address <pos>                 the address and state of a gate
-/chevron7 dial <pos> <address>          dial, e.g. /chevron7 dial ~ ~ ~5 12-5-30-21-7-1
+/chevron7 address <pos>                 the addresses and state of a gate
+/chevron7 dial <pos> <address>          dial, e.g. /chevron7 dial ~ ~ ~5 12-5-30-21-7-1 or 1KA0-9KT-HY
 /chevron7 close <pos>
 /chevron7 iris <pos> open|close
 /chevron7 field <pos> [direction] [gates]   build a gate field (see above)
@@ -207,9 +256,24 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.5.0.jar`](dist/chevron7-1.5.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.6.0.jar`](dist/chevron7-1.6.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
+
+- **1.6.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
+  - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
+  - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, look (`chevron7:network`) and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris, and `selfBusy` while dialing.
+  - **The Stargate Network gate dialed the other gates by their letters**: nine chevrons locked, one letter each, then `sgDialOut`, Opening and Connected. A message reached the other gate's computer, and the wormhole closed from the dialing side.
+  - **The classic gate dialed the Stargate Network gate by its letters, and the gate in the Infinity look dialed it by its symbols.** Each time, the Network gate's interface reported `sgDialIn` with the caller's letters.
+  - **The programs' `sgc.gate` library:**
+    - It found the Network gate through the interface as a Chevron Seven gate with the Stargate Network look, and dialed by letters.
+    - It found the Infinity-look gate on the ring with the Infinity look, and dialed by symbols.
+    - It found the classic gate through an interface as an SGCraft gate.
+    - All three dials opened a wormhole, and all three closed again.
+  - In a Minecraft 1.20.1 client with software rendering, the gates looked as in the picture above, dialing and open.
+  - In an earlier build of this work, before it was merged with the gate looks, the same tests passed, a pig travelled through a Network gate's wormhole, and the iris closed and opened through the interface with `sgIrisStateChange` events.
+  - Not tested yet: the DHD's letter keys (they need clicks in the game).
+  - The letter addresses were also tested on their own: 200,000 random gate addresses turned into letters and back, and 99.997% of one-character typos were caught.
 
 - **Dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2**: three gates, one of them in the Nether.
   - The `sgc.gate` adapter of the Stargate Command programs found the gate, dialed it and closed it, and read its errors. Its events arrived in order.
@@ -294,7 +358,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.5.0.jar`.
+The jar is `build/libs/chevron7-1.6.0.jar`.
 
 ## License
 

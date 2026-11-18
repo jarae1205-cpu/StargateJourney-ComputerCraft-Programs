@@ -262,6 +262,7 @@ local THEMES = {
     atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
     sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
+    network   = { name = "Stargate Network", header = colors.gray, title = colors.lightBlue, address = colors.lightBlue, lit = colors.lightBlue, master = colors.blue,      button = colors.lightBlue },
     -- the Carter Addon Pack (Garry's Mod): red carpet, the orange DHD and its blue dome
     cap       = { name = "Carter Addon Pack", header = colors.red, title = colors.orange,   address = colors.orange,    lit = colors.orange,    master = colors.cyan,      button = colors.orange },
     continuum = { name = "Continuum",     header = colors.gray,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.red,       button = colors.lightBlue },
@@ -273,7 +274,7 @@ local THEMES = {
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap", "network" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -293,6 +294,7 @@ local VARIANT_THEMES = {
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
+    { "%f[%a]network%f[%A]", "network" },
 }
 
 local STATE_STYLE = {
@@ -487,6 +489,10 @@ local function sgcraftInterface(p)
     end
     local w = { sgcraft = true, kindName = "SGCraft", energyUnit = " SU" }
     function w.getStargateType() return "sgcraft:stargate" end
+    -- Chevron Seven's SG interface names the kind of gate; SGCraft's own interface doesn't
+    function w.getStargateVariant()
+        if type(p.getStargateVariant) == "function" then return p.getStargateVariant() end
+    end
     function w.getChevronsEngaged() local _, c = state() return c end
     function w.isStargateConnected() return (state()) == "Connected" end
     function w.isStargateDialingOut()
@@ -1809,6 +1815,7 @@ local RING_COLORS = {
     continuum = { colors.lightGray, colors.gray, colors.gray, colors.white },
     ark      = { colors.brown, colors.gray, colors.gray, colors.orange },
     infinity = { colors.lightGray, colors.black, colors.lightGray, colors.gray },
+    network  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
 }

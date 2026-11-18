@@ -44,9 +44,10 @@ public class AddressBookItem extends Item
 		out.accept(Component.translatable("message.chevron7.planets").withStyle(ChatFormatting.GOLD));
 		for(ServerLevel planet : planets)
 		{
-			String address = GateAddress.format(PlanetGates.addressFor(seed, planet.dimension()));
+			int[] symbols = PlanetGates.addressFor(seed, planet.dimension());
 			out.accept(Component.literal(PlanetGates.displayName(planet.dimension()) + "  ").withStyle(ChatFormatting.WHITE)
-					.append(Component.literal(address).withStyle(ChatFormatting.AQUA)));
+					.append(Component.literal(GateAddress.format(symbols)).withStyle(ChatFormatting.AQUA))
+					.append(Component.literal("  " + SGAddress.formatOf(symbols)).withStyle(ChatFormatting.DARK_AQUA)));
 		}
 		out.accept(Component.translatable("message.chevron7.planets_hint").withStyle(ChatFormatting.GRAY));
 	}

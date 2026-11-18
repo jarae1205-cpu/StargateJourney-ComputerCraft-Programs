@@ -183,6 +183,16 @@ S.LIST = {
                             [colors.yellow] = 0xFFE6A0, [colors.magenta] = 0x3E2A3A }),
     },
     {
+        -- Chevron Seven's Stargate Network gate: dark steel-blue, a ring of letters, blue chevrons
+        id = "network", room = "GATE ROOM", name = "Stargate Network", series = "Chevron Seven",
+        shape = "v", track = true,
+        palette = palette({
+            [colors.lightGray] = 0x4A5466, [colors.gray] = 0x242A36, [colors.brown] = 0x2E3440, [colors.pink] = 0xCCE0FF,
+            [colors.magenta] = 0x24344C, [colors.orange] = 0x52B4FF, [colors.yellow] = 0xD2ECFF,
+            [colors.green] = 0x8E9AAE, [colors.purple] = 0x46526A,
+        }),
+    },
+    {
         -- the Carter Addon Pack for Garry's Mod: the gate on a stepped stone pedestal with a
         -- red carpet up to it, the big round orange DHD in front, under an open sky
         id = "cap", room = "GATE ROOM", name = "Carter Addon Pack", series = "Garry's Mod",
@@ -219,6 +229,7 @@ local VARIANT_MATCH = {
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
+    { "%f[%a]network%f[%A]", "network" },
 }
 
 function S.forGate(gate)
