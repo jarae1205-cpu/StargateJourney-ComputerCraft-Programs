@@ -11,6 +11,7 @@ import dan200.computercraft.api.peripheral.AttachedComputerSet;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.github.stargatecommand.chevron7.GateAddress;
+import io.github.stargatecommand.chevron7.GateLook;
 import io.github.stargatecommand.chevron7.GateStyle;
 import io.github.stargatecommand.chevron7.SGAddress;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
@@ -92,11 +93,20 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 		return gate.style() == GateStyle.NETWORK ? "chevron7:network_stargate" : "chevron7:stargate";
 	}
 
-	/** "chevron7:infinity" for the Stargate Infinity gate, "chevron7:stargate_network" for the Network gate, "" for the classic gate. */
+	/** The gate's look: "" for SG-1, otherwise e.g. "chevron7:infinity" or "chevron7:network". */
 	@LuaFunction(mainThread = true)
 	public final String getStargateVariant()
 	{
-		return gate.style().variant;
+		return variantOf(gate);
+	}
+
+	/** "" for the SG-1 look, otherwise "chevron7:" and the look, e.g. "chevron7:infinity"; the Gate Room and the Personal Dialer pick their style from it. */
+	public static String variantOf(StargateBlockEntity gate)
+	{
+		if(gate.isSupergate())
+			return "chevron7:supergate";
+		GateLook look = gate.getLook();
+		return look == GateLook.SG1 ? "" : "chevron7:" + look.id;
 	}
 
 	/** The gate's letter address, e.g. "1KA09KTHY": any gate can dial it with {@link #dialLetters}. */

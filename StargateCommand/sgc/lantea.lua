@@ -160,8 +160,16 @@ function M.dial(g, address, opts)
         end, stepTimeout) then
             G.fail("The gate is not ready for chevron " .. i)
         end
-        -- turns the ring to the symbol and locks it; the point of origin reaches out
-        local ok, err = g:try("encodeSymbol", s)
+        -- turns the ring to the symbol and locks it; the point of origin reaches out.
+        -- Lantea counts a chevron as locked about a second before it has finished
+        -- locking, and refuses the next symbol until then: wait and try again.
+        local ok, err
+        local deadline = os.clock() + stepTimeout
+        while true do
+            ok, err = g:try("encodeSymbol", s)
+            if ok or not tostring(err):find("still locking", 1, true) or os.clock() > deadline then break end
+            G.pause(opts, 0.25)
+        end
         if not ok then G.fail(errorText(err)) end
         if i < #list then
             if not G.waitUntil(opts, function()

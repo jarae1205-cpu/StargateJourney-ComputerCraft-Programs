@@ -1,31 +1,26 @@
 package io.github.stargatecommand.chevron7;
 
 /**
- * The kinds of gate. They share the ring, the network and travel; they differ in looks,
- * and the Stargate Network gate dials letters on nine chevrons.
+ * How a gate dials. Both kinds share the ring, the network and travel; how a gate looks is its
+ * GateLook. The Stargate Network gate dials letters on nine chevrons.
  */
 public enum GateStyle
 {
 	/** The gate of the films and SG-1: 39 symbols, seven chevrons lock. */
-	CLASSIC("", 39, 7),
-	/** The cartoon gate of the animated series Stargate Infinity: same dialing, its own look. */
-	INFINITY("chevron7:infinity", 39, 7),
+	CLASSIC(39, 7),
 	/** In the style of SGCraft's Stargate Network: a ring of 36 letters and digits, nine chevrons lock. */
-	NETWORK("chevron7:stargate_network", 36, 9);
+	NETWORK(36, 9);
 
 	private static final int[] SEVEN = {1, 2, 3, 6, 7, 8, 0};
 	private static final int[] NINE = {1, 2, 3, 6, 7, 8, 4, 5, 0};
 
-	/** What a computer reads as the gate's variant; the Gate Room picks its look from it. */
-	public final String variant;
 	/** Symbols on the ring. */
 	public final int symbols;
 	/** Chevrons locked by a full dial. */
 	public final int chevrons;
 
-	GateStyle(String variant, int symbols, int chevrons)
+	GateStyle(int symbols, int chevrons)
 	{
-		this.variant = variant;
 		this.symbols = symbols;
 		this.chevrons = chevrons;
 	}

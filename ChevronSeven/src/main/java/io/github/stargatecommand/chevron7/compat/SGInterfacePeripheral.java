@@ -238,7 +238,7 @@ public class SGInterfacePeripheral implements IPeripheral, StargateBlockEntity.L
 	@LuaFunction(mainThread = true)
 	public final String getStargateVariant() throws LuaException
 	{
-		return gate().style().variant;
+		return StargatePeripheral.variantOf(gate());
 	}
 
 	//============================================================================================

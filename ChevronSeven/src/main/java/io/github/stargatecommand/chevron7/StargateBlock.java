@@ -36,6 +36,11 @@ public class StargateBlock extends BaseEntityBlock
 
 	private final GateStyle style;
 
+	public StargateBlock(Properties properties)
+	{
+		this(properties, GateStyle.CLASSIC);
+	}
+
 	public StargateBlock(Properties properties, GateStyle style)
 	{
 		super(properties);
@@ -141,7 +146,7 @@ public class StargateBlock extends BaseEntityBlock
 
 	static InteractionResult showAddress(Level level, BlockPos core, Player player, ItemStack held)
 	{
-		if(held.getItem() instanceof IrisItem)
+		if(held.getItem() instanceof IrisItem || held.getItem() instanceof LookCrystalItem)
 			return InteractionResult.PASS;
 		if(!level.isClientSide() && level.getBlockEntity(core) instanceof StargateBlockEntity gate)
 		{

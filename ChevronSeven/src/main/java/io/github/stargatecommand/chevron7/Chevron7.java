@@ -62,10 +62,13 @@ public class Chevron7
 				.noOcclusion().requiresCorrectToolForDrops().pushReaction(PushReaction.BLOCK);
 	}
 
-	/** The bottom middle block of the ring: owns the gate and draws all of it. One block for each kind of gate. */
+	/** The bottom middle block of the ring: owns the gate and draws all of it. */
 	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate", () -> gate(GateStyle.CLASSIC));
-	public static final RegistryObject<StargateBlock> INFINITY_STARGATE = BLOCKS.register("infinity_stargate", () -> gate(GateStyle.INFINITY));
+	/** A gate in the style of SGCraft's Stargate Network: a ring of letters, nine chevrons, letter addresses. */
 	public static final RegistryObject<StargateBlock> NETWORK_STARGATE = BLOCKS.register("network_stargate", () -> gate(GateStyle.NETWORK));
+	/** An Ori supergate's base: the giant ring is drawn around it. Built with /chevron7 supergate. */
+	public static final RegistryObject<SupergateBlock> SUPERGATE = BLOCKS.register("supergate",
+			() -> new SupergateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
 	/** The other 23 blocks of the ring, invisible: they give the ring its collision. */
 	public static final RegistryObject<GateFrameBlock> GATE_FRAME = BLOCKS.register("gate_frame",
 			() -> new GateFrameBlock(gateProperties().noLootTable().lightLevel(state -> state.getValue(GateFrameBlock.LIT) ? 12 : 0)));
@@ -80,8 +83,6 @@ public class Chevron7
 
 	public static final RegistryObject<Item> STARGATE_ITEM = ITEMS.register("stargate",
 			() -> new BlockItem(STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
-	public static final RegistryObject<Item> INFINITY_STARGATE_ITEM = ITEMS.register("infinity_stargate",
-			() -> new BlockItem(INFINITY_STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
 	public static final RegistryObject<Item> NETWORK_STARGATE_ITEM = ITEMS.register("network_stargate",
 			() -> new BlockItem(NETWORK_STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
 	public static final RegistryObject<Item> SG_INTERFACE_ITEM = ITEMS.register("sg_interface",
@@ -92,9 +93,13 @@ public class Chevron7
 			() -> new IrisItem(new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> ADDRESS_BOOK = ITEMS.register("address_book",
 			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
+	public static final RegistryObject<Item> LOOK_CRYSTAL = ITEMS.register("look_crystal",
+			() -> new LookCrystalItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
-			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), INFINITY_STARGATE.get(), NETWORK_STARGATE.get()).build(null));
+			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), NETWORK_STARGATE.get(), SUPERGATE.get()).build(null));
+	public static final RegistryObject<BlockEntityType<DHDBlockEntity>> DHD_ENTITY = BLOCK_ENTITIES.register("dhd",
+			() -> BlockEntityType.Builder.of(DHDBlockEntity::new, DHD.get()).build(null));
 	public static final RegistryObject<BlockEntityType<SGInterfaceBlockEntity>> SG_INTERFACE_ENTITY = BLOCK_ENTITIES.register("sg_interface",
 			() -> BlockEntityType.Builder.of(SGInterfaceBlockEntity::new, SG_INTERFACE.get()).build(null));
 
@@ -115,6 +120,8 @@ public class Chevron7
 		context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 		Net.register();
 		MinecraftForge.EVENT_BUS.addListener(GateCommands::register);
+		// open wormholes force-load their gates' chunks; the gates let go themselves once closed
+		net.minecraftforge.common.world.ForgeChunkManager.setForcedChunkLoadingCallback(MOD_ID, (level, tickets) -> {});
 		if(ModList.get().isLoaded("computercraft"))
 			runSafely(() -> io.github.stargatecommand.chevron7.compat.CCIntegration::init);
 	}
