@@ -103,13 +103,19 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - In the client it drew in the Infinity colours, and a JSG DHD beside it still drew as JSG's own.
 - In a player's own game, 1.1.0 showed the gate and the Infinity DHD, and the DHD's keys lit as they dialled.
 
-**Not tested yet:**
-- Dialling one Infinity gate from another with a DHD or a computer.
+**On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
+- Everything loaded together without errors from these mods.
+- Two Infinity gates, each powered by a JSG creative capacitor, with an advanced computer under each base. The computers ran this repository's `sgc` library.
+  - The library found the gate and read it as a JSG Milky Way gate with its 8-symbol address.
+  - One gate dialled the other: the ring turned to each of the six symbols, seven chevrons locked, and the wormhole opened. The computer at the other gate saw it come in, and then saw it close when the first computer closed it.
+- Breaking a base dropped an Infinity base that kept the gate's 17.8 million FE and its upgrade slots.
 
+**Not tested yet:**
+- A dial from a DHD all the way to an open wormhole. The player saw the keys light as they dialled; whether the gate then opened wasn't reported.
 - Crafting the blocks in survival.
 - Placing the blocks by hand.
 - The iris.
-- Breaking the base.
+- A player breaking the base. The test broke it with `/setblock … destroy`, which never calls the code that turns the ring back into separate blocks, in JSG's own gates as well. The Infinity base inherits that code from JSG's Milky Way base unchanged.
 
 ## License
 
