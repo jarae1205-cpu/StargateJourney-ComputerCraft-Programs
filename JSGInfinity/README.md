@@ -8,9 +8,13 @@ A resource pack for **Just Stargate Mod (JSG) 1.20.1** that gives its Milky Way 
 - a pale whirlpool with ink spiral lines for the wormhole, and a cartoon kawoosh: the swirl spins up, flashes white with rings bursting outward, darkens, then settles
 - pale iris blades with ink edges
 
-![The JSG gate with the pack](../imgs/JSGInfinity.png)
+![The JSG gate with the pack, in the game](../imgs/JSGInfinityInGame.jpg)
 
-*Rendered from JSG's own gate models with the pack's textures, by `tools/preview.py`, not captured in the game. Left: an idle gate. Right: seven chevrons locked and the wormhole open. In the game JSG colours the wormhole itself; the blue here is a stand-in.*
+*In a Minecraft 1.20.1 client with JSG 5.1.2.0 and the pack. Left: an idle gate. Right: the same gate with seven chevrons locked and its wormhole open.*
+
+![The JSG gate with the pack, rendered](../imgs/JSGInfinity.png)
+
+*Rendered from JSG's gate models with the pack's textures by `tools/preview.py`, with a stand-in blue for the wormhole.*
 
 ## Install
 
@@ -35,14 +39,16 @@ JSG gives a gate a frosty, mossy, sooty or aged look in some biomes. With the pa
 
 The DHD, the glyphs on the DHD and in the GUI, and the other gate types are unchanged.
 
-## Not tested in the game yet
+## Tested
 
-These textures have only been checked with `tools/preview.py`, on JSG 5.1.2.0's own gate models. Two things only the game can show:
+In a Minecraft 1.20.1 client (Forge 47.4.29, software rendering) on a server with JSG 5.1.2.0, with the pack loaded:
 
-- **The wormhole.** JSG colours the wormhole sheets itself, so the exact colour of the whirlpool, and whether the ink lines stay dark, depend on how it draws them.
-- **The size of the wormhole sheets.** They are 7000 and 5600 pixels square, smaller than JSG's 15000 and 10800, to keep the pack small. The frames sit on the same 14-wide grid at the same fractions of the sheet. If the wormhole looks cut up or jumps between frames, build the pack with `--full` (below) to get sheets the same size as JSG's.
+- The ring, the black glyphs and the dark chevrons drew as in the picture above. JSG's own lighting makes the ring a medium grey rather than pale.
+- The chevrons lit lime-yellow one by one as the gate dialed, and the open wormhole was the white whirlpool with its ink spirals. JSG tints the ink lines a dark navy.
+- The wormhole sheets are 7000 and 5600 pixels square, smaller than JSG's 15000 and 10800, to keep the pack small. JSG drew them correctly: one whole frame at a time. `--full` (below) still builds sheets at JSG's size.
+- Not seen yet: the kawoosh (the screenshots were taken every 3 seconds and missed it), the iris blades, and the frost, moss, soot and age looks.
 
-If something looks wrong, a screenshot helps.
+If something looks wrong in your game, a screenshot helps.
 
 ## Build
 

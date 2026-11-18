@@ -66,12 +66,12 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
 
-![The three kinds of Chevron Seven gate](./imgs/ChevronSevenStyles.png)
+![The Infinity and Stargate Network gates in the game](./imgs/ChevronSevenInGame.jpg)
 
 ### [Stargate Infinity look for Just Stargate Mod](./JSGInfinity/)
-A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Not tested in the game yet.
+A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0.
 
-![JSG with the Infinity pack](./imgs/JSGInfinity.png)
+![JSG with the Infinity pack](./imgs/JSGInfinityInGame.jpg)
 
 ### [Stargate Command Addon](./StargateCommandAddon/)
 A Forge 1.20.1 add-on for Stargate Journey:

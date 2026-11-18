@@ -249,7 +249,11 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - Dialing reads the gate state from events and also polls it, so a missed event does not leave the screen stuck.
 - On an SGCraft gate the inner ring animation is drawn by the program; SGCraft does not report the ring position.
 - The Gate Room changes the colour palette of its monitor and restores it when it quits.
-- Tested in a live game with LanteaCraft 0.2.5 and CC: Tweaked 1.121.0 (NeoForge 1.21.1). The other mods were tested against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
+- Tested in a live game with LanteaCraft 0.2.5 and CC: Tweaked 1.121.0 (NeoForge 1.21.1).
+- The `sgc.gate` library was also run on a Forge 1.20.1 server with CC: Tweaked 1.120.2:
+  - **JSG 5.1.2.0:** it found the gate, read its address and energy, dialed another JSG gate (seven chevrons, then the wormhole) and closed it.
+  - **Chevron Seven 1.2.0:** it dialed the classic, Infinity and Stargate Network gates, both on the ring and through the SG Computer Interface, and picked each one's look.
+- The other mods were tested against simulated Stargate Journey, SGCraft (original and 2.3), Lantea: Stargates 0.7.7.0 and JSG 1.20.1 interfaces. Those were built from each mod's source code, or for Lantea and JSG from the method and event names in the released jars.
 - LanteaCraft in a live game: the Gate Room and the Personal Dialer dialed each other's gates, including an address with a `-` glyph. Closing worked from the dialing side, and the receiving side was refused with LanteaCraft's reason. The iris closed from the Gate Room. A GDO code the gate accepted opened the iris by itself; a code the gate refused but `idc` trusted opened it through the Gate Room. A player who walked through was logged.
 
 ![LanteaCraft in a Minecraft 1.21.1 world](../imgs/LanteaCraft.jpg)

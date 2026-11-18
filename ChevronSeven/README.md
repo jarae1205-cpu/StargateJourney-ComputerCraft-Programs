@@ -23,7 +23,11 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 
 ![The three kinds of gate](../imgs/ChevronSevenStyles.png)
 
-*Drawn front-on from the mod's textures by `tools/preview_styles.py`, not captured in the game. Left to right: the classic gate, the Infinity gate and the Stargate Network gate, each with a wormhole open.*
+*Drawn front-on from the mod's textures by `tools/preview_styles.py`. Left to right: the classic gate, the Infinity gate and the Stargate Network gate, each with a wormhole open.*
+
+![The Infinity and Stargate Network gates in the game](../imgs/ChevronSevenInGame.jpg)
+
+*In a Minecraft 1.20.1 client: the Infinity gate with a wormhole open from the Stargate Network gate (left), and the Stargate Network gate with its nine chevrons lit (right). The SG Computer Interface shows through the wormhole.*
 
 | Gate | Looks | Dials |
 |---|---|---|
@@ -160,11 +164,21 @@ Put [`dist/chevron7-1.2.0.jar`](dist/chevron7-1.2.0.jar) in the `mods` folder (c
 
 ## Tested
 
-- **1.2.0 (the Infinity and Stargate Network gates, letter addresses, the SG Computer Interface): not tested in the game yet.**
-  - The mod builds, and the textures were checked with `tools/preview_styles.py` (the picture above).
-  - The letter addresses were tested on their own: 200,000 random gate addresses turned into letters and back, and one-character typos were caught.
-  - The Gate Room and Personal Dialer pick the Infinity and Stargate Network looks from the gates' variant names; that was checked against the programs' own code, but not on a real gate.
-  - Everything below was tested with 1.1.x, before these gates existed.
+- **1.2.0**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2: one gate of each kind, with computers on the gates and on two SG Computer Interfaces.
+  - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
+  - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, variant and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris.
+  - **The Stargate Network gate dialed the classic gate by its letters**: nine chevrons locked, one letter each, then `sgDialOut`, Opening and Connected. A message reached the classic gate's computer, and the wormhole closed from the dialing side.
+  - **The classic gate dialed the Stargate Network gate by its letters, and the Infinity gate dialed it by its symbols.** Each time, the Network gate's interface reported `sgDialIn` with the caller's letters and nine chevrons.
+  - A pig at the Network gate's open wormhole came out of the Infinity gate.
+  - The iris closed and opened through the interface, with `sgIrisStateChange` events.
+  - **The programs' `sgc.gate` library:**
+    - It found the Network gate through the interface as a Chevron Seven gate with the Stargate Network look, and dialed it by letters.
+    - It found the Infinity gate on the ring as a Chevron Seven gate with the Infinity look, and dialed by symbols.
+    - It found the classic gate through an interface as an SGCraft gate.
+    - All three dials opened a wormhole, and all three closed again.
+  - In a Minecraft 1.20.1 client with software rendering, the Infinity and Stargate Network gates looked as in the picture above, dialing and open.
+  - Not tested yet: the DHD's letter keys (they need clicks in the game), and the look of the Infinity iris.
+  - The letter addresses were also tested on their own: 200,000 random gate addresses turned into letters and back, and 99.997% of one-character typos were caught.
 
 - **Dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2**: three gates, one of them in the Nether.
   - The `sgc.gate` adapter of the Stargate Command programs found the gate, dialed it and closed it, and read its errors. Its events arrived in order.
