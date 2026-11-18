@@ -103,8 +103,10 @@ An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, the tools that build the variant pack, and the Infinity Stargate for JSG (its code and the textures its script draws).
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub and the `sgc` library), Chevron Seven, the Stargate Command Addon, and the tools that build the variant pack.
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.
  - The textures of the [Stargate Journey Variants](./StargateJourneyVariants/) pack, and of the variants inside the Stargate Command Addon, are recoloured from Stargate Journey's textures and are CC BY-NC-SA 4.0, like the originals.
+
+The [Infinity Stargate for JSG](./JSGInfinityGate/) is MIT as well: its code and the textures its script draws.
