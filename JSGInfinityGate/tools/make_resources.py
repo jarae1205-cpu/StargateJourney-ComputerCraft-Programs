@@ -7,9 +7,10 @@ Writes into src/main/resources/:
   assets/jsginfinity/textures/gate/infinity_gate.png   the ring, symbol track and chevron housings
   assets/jsginfinity/textures/gate/chevron*.png        the chevrons: unlit, lit, off
   assets/jsginfinity/textures/gate/iris_blade.png      the iris blades, which close into a spiral
-  assets/jsginfinity/textures/gate/wormhole_spiral.png the whirlpool drawn over an open wormhole
+  assets/jsginfinity/textures/gate/wormhole_spiral.png the blue swirl drawn over an open wormhole
   assets/jsginfinity/textures/block/*.png              the blocks you build the gate from
-  assets/jsginfinity/textures/dhd/<look>/*.png         the Infinity and orange DHDs: body, keys and dome
+  assets/jsginfinity/textures/dhd/infinity/*.png       the Infinity DHD's console: metal, screen, keys
+  assets/jsginfinity/textures/dhd/orange/*.png         the orange DHD: body, keys and dome
   block states, models, names, recipes, loot tables, and JSG's block tags
 
 The gate is drawn with Just Stargate Mod's own Milky Way models, so its
@@ -18,7 +19,9 @@ shapes and UV layouts of those models from the jar you give it; it never
 reads JSG's textures. Each texel is traced back to the point of the model
 it lands on, and that point's position, the direction its face looks and
 the sharp edges near it decide the colour: flat cartoon colours with ink
-outlines, as the gate is drawn in Stargate Infinity.
+outlines, as the gate is drawn in Stargate Infinity. The DHDs' textures
+are drawn the same way from JSG's DHD model, except the Infinity DHD's
+console, which the add-on builds from boxes of its own.
 """
 
 import json
@@ -186,16 +189,21 @@ def mix(a, b, t):
 
 # ---------------------------------------------------------------- Infinity gate
 
-INK = (30, 32, 44)
-PALE = (198, 207, 220)
-LIGHT = (222, 229, 238)
-MID = (158, 170, 188)
-SHADE = (120, 132, 152)
-SLATE = (96, 108, 132)
-SLATE_DARK = (78, 88, 110)
-GLYPH = (186, 197, 214)
-LIME = (214, 240, 72)
-LIME_HOT = (246, 255, 170)
+# The cartoon's gate: blue-grey metal with ink outlines, a grey symbol track with dark symbols,
+# dark chevrons. Locked chevrons glow pale cyan, like the wormhole.
+INK = (24, 26, 36)
+PALE = (150, 164, 188)  # the ring's face
+LIGHT = (190, 202, 222)
+MID = (122, 136, 160)
+SHADE = (92, 104, 130)
+SLATE = (112, 124, 148)  # the symbol track
+SLATE_DARK = (64, 72, 92)  # the chevron housings
+GLYPH = (40, 46, 62)
+GLOW = (140, 222, 255)
+GLOW_HOT = (236, 252, 255)
+IRIS_PALE = (196, 210, 230)
+IRIS_LIGHT = (226, 234, 246)
+IRIS_LINE = (120, 136, 162)
 
 INK_WIDTH = 0.03  # blocks
 def paint_gate_texture(models, size, tint):
@@ -276,7 +284,7 @@ def paint_chevron_texture(models, size, lens, tint, glow=False):
         if glow:
             cy = 4.92
             hot = np.clip(1.0 - np.hypot(x * 2.2, (y - cy) * 1.6) / 0.42, 0, 1)
-            c = mix(c, LIME_HOT, hot)
+            c = mix(c, GLOW_HOT, hot)
         c = mix(c, INK, (edge < INK_WIDTH * 0.6).astype(float))
         return c if glow else c * tint
 
@@ -289,46 +297,150 @@ def paint_chevron_texture(models, size, lens, tint, glow=False):
 
 
 def paint_iris_texture(model, size):
-    """The iris blades: pale, ink-edged, so a closed iris shows the cartoon's spiral."""
+    """The iris blades: pale blue, ink-edged, so a closed iris shows the cartoon's spiral."""
     canvas = np.zeros((size, size, 3), float)
     done = np.zeros((size, size), bool)
 
     def paint(pos, n, edge, fi):
         r = np.hypot(pos[:, 0], pos[:, 1])
-        c = mix(LIGHT, PALE, np.clip(r / 4.7, 0, 1))
+        c = mix(IRIS_LIGHT, IRIS_PALE, np.clip(r / 4.7, 0, 1))
         # faint curved strokes along each blade, the spiral's lines
         stroke = np.abs(np.sin((np.arctan2(pos[:, 1], pos[:, 0]) * 3.0 + r * 1.1) * math.pi)) < 0.06
-        c = mix(c, MID, stroke.astype(float) * 0.6)
+        c = mix(c, IRIS_LINE, stroke.astype(float) * 0.6)
         return mix(c, INK, (edge < 0.045).astype(float))
 
     rasterise(canvas, done, model, paint)
     return Image.fromarray(np.clip(bleed(canvas, done), 0, 255).astype(np.uint8))
 
 
-def spiral_texture(size=512, arms=14):
-    """The whirlpool drawn over an open wormhole: ink arms curling out from the centre, the rest clear."""
-    k = 4  # drawn large, then shrunk, for smooth lines
-    big = size * k
-    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    c = big / 2
-    rim = big * 0.49
-    ink = INK + (225,)
-    for arm in range(arms):
-        a0 = arm * 2 * math.pi / arms
-        pts = []
-        for i in range(0, 101):
-            t = i / 100
-            a = a0 + 2.1 * t ** 0.8  # each arm turns about 120 degrees on its way out
-            pts.append((c + rim * t * math.cos(a), c + rim * t * math.sin(a)))
-        d.line(pts, fill=ink, width=int(2.2 * k), joint="curve")
-    d.ellipse([c - 3 * k, c - 3 * k, c + 3 * k, c + 3 * k], fill=ink)
-    return img.resize((size, size), Image.LANCZOS)
+SWIRL_LIGHT = (96, 206, 244)
+SWIRL_DEEP = (22, 132, 212)
+
+
+def swirl_texture(size=512, arms=3):
+    """Drawn over an open wormhole, as in Carter's Addon Pack: broad blue arms curling in to the
+    middle, soft-edged and a little ragged, clear between them so the white horizon shows."""
+    yy, xx = (np.mgrid[0:size, 0:size] + 0.5) / size * 2 - 1
+    r = np.hypot(xx, yy)
+    a = np.arctan2(yy, xx)
+    rng = np.random.RandomState(7)  # the same swirl every run
+    ragged = np.zeros_like(r)
+    for _ in range(8):
+        fx, fy = rng.uniform(-9, 9, 2)
+        ragged += np.sin(xx * fx + yy * fy + rng.uniform(0, 2 * math.pi)) / 8
+    phase = arms * a + 15.0 * np.sqrt(r) + 1.3 * ragged  # each arm winds about two and a half turns in
+    band = 0.5 + 0.5 * np.sin(phase)
+    blue = np.clip((band - 0.36) / 0.34, 0, 1) ** 1.2
+    rim = np.clip((0.985 - r) / 0.10, 0, 1)
+    eye = 0.45 + 0.55 * np.clip(r / 0.09, 0, 1)  # the middle paler, where the arms meet
+    alpha = blue * rim * eye * 235
+    colour = mix(np.array(SWIRL_LIGHT, float), np.array(SWIRL_DEEP, float), blue * np.clip(1.2 - r, 0, 1))
+    rgba = np.dstack([colour, alpha]).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
 
 
 # ---------------------------------------------------------------- Infinity DHD
 
-DHD_INK_WIDTH = 0.012  # blocks; the DHD is small, so its lines are finer
+# A console of the add-on's own, which its renderer builds from boxes: a blue-grey pedestal
+# in the gate's metal, and a tilted screen of dark glass whose keys glow cyan, white when lit.
+# The symbols on the keys are JSG's own pictures, drawn by the renderer from JSG's files.
+SCREEN_DARK = (10, 18, 30)
+SCREEN_MID = (20, 40, 62)
+SCREEN_LINE = (34, 70, 100)
+
+
+def panel(size=64):
+    """The console's metal: blue-grey panels, ink-edged, lit along the top and shaded below."""
+    img = Image.new("RGB", (size, size), PALE)
+    d = ImageDraw.Draw(img)
+    for i in range(size):  # a soft fall of light down the panel
+        d.line([(0, i), (size - 1, i)], fill=tuple(int(v) for v in mix(np.array([PALE]), np.array([SHADE]), np.array([i / size]))[0]))
+    d.rectangle([2, 2, size - 3, size - 3], outline=SHADE)
+    d.line([(3, 3), (size - 4, 3)], fill=LIGHT)
+    d.rectangle([0, 0, size - 1, size - 1], outline=INK, width=2)
+    return img
+
+
+def column(size=64):
+    """The pedestal's column: the same metal, grooved across like the cartoon's machinery."""
+    img = panel(size)
+    d = ImageDraw.Draw(img)
+    for y in range(8, size - 6, 10):
+        d.line([(2, y), (size - 3, y)], fill=INK, width=2)
+        d.line([(2, y + 2), (size - 3, y + 2)], fill=LIGHT)
+    return img
+
+
+def screen(size=256):
+    """The glass: dark blue, lighter in the middle, with a faint grid."""
+    yy, xx = np.mgrid[0:size, 0:size] / (size - 1)
+    r = np.hypot(xx - 0.5, (yy - 0.5) * 1.2) * 2
+    img = mix(np.array(SCREEN_MID, float), np.array(SCREEN_DARK, float), np.clip(r, 0, 1))
+    grid = ((np.mgrid[0:size, 0:size][0] % 16 == 0) | (np.mgrid[0:size, 0:size][1] % 16 == 0))
+    img = mix(img, np.array(SCREEN_LINE, float), grid * 0.55)
+    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+
+
+def key_tile(size=64):
+    """A key on the glass, white so the renderer can colour it: a rounded frame, faintly filled."""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([2, 2, size - 3, size - 3], radius=size // 6, fill=(255, 255, 255, 90),
+                        outline=(255, 255, 255, 255), width=max(2, size // 20))
+    return img
+
+
+def gate_icon(size=256):
+    """The dial button: a little gate, white, with a glowing middle."""
+    k = 4
+    big = size * k
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = big / 2
+    for r, fill in ((0.30, (255, 255, 255, 120)), (0.22, (255, 255, 255, 170))):  # the horizon, brighter inwards
+        d.ellipse([c - r * big, c - r * big, c + r * big, c + r * big], fill=fill)
+    d.ellipse([c - 0.46 * big, c - 0.46 * big, c + 0.46 * big, c + 0.46 * big], outline=(255, 255, 255, 255), width=int(0.06 * big))
+    d.ellipse([c - 0.36 * big, c - 0.36 * big, c + 0.36 * big, c + 0.36 * big], outline=(255, 255, 255, 255), width=int(0.025 * big))
+    for i in range(36):  # the symbol track's divisions
+        a = 2 * math.pi * i / 36
+        d.line([(c + 0.37 * big * math.cos(a), c + 0.37 * big * math.sin(a)),
+                (c + 0.43 * big * math.cos(a), c + 0.43 * big * math.sin(a))], fill=(255, 255, 255, 200), width=k * 2)
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def chevron_mark(size=64):
+    """One of the screen gate's chevrons: a triangle pointing down, at the top of the gate."""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(img).polygon([(4, 6), (size - 5, 6), (size // 2, size - 6)], fill=(255, 255, 255, 255))
+    return img
+
+
+def lamp(size=64):
+    """The control-crystal lamp: a round glow."""
+    yy, xx = np.mgrid[0:size, 0:size] / (size - 1)
+    r = np.hypot(xx - 0.5, yy - 0.5) * 2
+    alpha = np.clip(1.15 - r, 0, 1) ** 0.6 * 255 * (r < 1)
+    rgba = np.dstack([np.full((size, size, 3), 255.0), alpha]).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
+
+
+def console_textures():
+    return {"metal": panel(), "column": column(), "screen": screen(), "key": key_tile(),
+            "gate_icon": gate_icon(), "chevron_mark": chevron_mark(), "lamp": lamp()}
+
+
+def dhd_icon():
+    """The DHD's item, 16x16: the console from the front, its glowing screen tipped towards you."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rectangle([3, 14, 12, 15], fill=MID, outline=INK)  # plinth
+    d.rectangle([6, 8, 9, 13], fill=PALE, outline=INK)  # column
+    d.line([(7, 10), (8, 10)], fill=INK)
+    d.polygon([(0, 7), (15, 7), (14, 2), (1, 2)], fill=PALE, outline=INK)  # the head, its top towards you
+    d.polygon([(2, 6), (13, 6), (12, 3), (3, 3)], fill=SCREEN_MID)  # the glass
+    d.point([(4, 4), (5, 5), (10, 4), (11, 5), (4, 5), (11, 4)], fill=GLOW)
+    d.point([(7, 4), (8, 4), (7, 5), (8, 5)], fill=GLOW_HOT)
+    return img
 
 
 def dhd_models(z):
@@ -344,83 +456,6 @@ def dhd_models(z):
     if poo in z.namelist():  # the point of origin's key
         models["key_origin"] = Model(z.read(poo).decode("utf-8", "replace"))
     return models
-
-
-def paint_dhd_texture(models, size):
-    """The pedestal pale with ink outlines, a pale tray round a slate console, slate key bases."""
-    base = models["dhd_base"]
-    top = max(base.v[:, 1])
-    canvas = np.zeros((size, size, 3), float)
-    done = np.zeros((size, size), bool)
-
-    def inked(c, edge, width=DHD_INK_WIDTH):
-        return mix(c, INK, (edge < width).astype(float))
-
-    def paint_body(pos, n, edge, fi):
-        x, y, z = pos[:, 0], pos[:, 1], pos[:, 2]
-        if abs(n[1]) > 0.55 and np.mean(y) > top - 0.75:
-            # the top: a slate ring the keys sit in, inside a pale tray
-            d = np.hypot(x, z - 0.04)
-            c = np.tile(np.array(SLATE, float), (len(pos), 1))
-            c = mix(c, PALE, (d > 0.66).astype(float))
-            c = mix(c, INK, (np.abs(d - 0.66) < DHD_INK_WIDTH).astype(float))
-            return inked(c, edge)
-        # the pedestal: pale, lighter where it faces up, with a slate band under the top
-        c = mix(MID, PALE, np.full(len(pos), 0.4 + 0.6 * abs(n[1])))
-        c = mix(c, SLATE, (np.abs(y - (top - 0.62)) < 0.04).astype(float))
-        return inked(c, edge)
-
-    def flat(colour, width=DHD_INK_WIDTH * 0.8):
-        def paint(pos, n, edge, fi):
-            return inked(np.tile(np.array(colour, float), (len(pos), 1)), edge, width)
-        return paint
-
-    # Later parts win where parts share texels, so the ones you see most go last.
-    rasterise(canvas, done, models["crystal_holder"], flat(MID))
-    rasterise(canvas, done, models["upgrade_cover"], flat(MID))
-    rasterise(canvas, done, base, paint_body)
-    rasterise(canvas, done, models["button_console"], flat(SLATE))
-    for name, model in models.items():
-        if name.startswith("key_"):
-            rasterise(canvas, done, model, flat(SLATE_DARK))
-    return Image.fromarray(np.clip(bleed(canvas, done, 16), 0, 255).astype(np.uint8))
-
-
-def paint_key_light(level, size=256):
-    """The glowing part of a symbol key; JSG has six brightness levels, 0 off to 5 fully lit."""
-    t = level / 5.0
-    body = mix(np.array([SLATE_DARK]), np.array([LIME]), np.array([t]))[0]
-    rim = mix(np.array([MID]), np.array([LIME_HOT]), np.array([t]))[0]
-    img = Image.new("RGB", (size, size), tuple(int(v) for v in body))
-    d = ImageDraw.Draw(img)
-    for i in range(3):
-        k = size * (0.05 + i * 0.06)
-        d.rectangle([k, k, size - k, size - k], outline=tuple(int(v) for v in rim), width=max(2, size // 64))
-    return img
-
-
-def paint_dome(level, size=256):
-    """The big button in the middle: a slate dome that lights lime, brightest at its centre."""
-    t = level / 5.0
-    yy, xx = np.mgrid[0:size, 0:size] / (size - 1)
-    r = np.hypot(xx - 0.5, yy - 0.5) * 2
-    base = mix(np.array(SLATE_DARK, float), np.array(LIME, float), np.full(r.shape, t))
-    hot = mix(base, np.array(LIME_HOT, float), np.clip(1 - r, 0, 1) * t)
-    shine = np.clip(1 - np.hypot(xx - 0.36, yy - 0.32) / 0.16, 0, 1) * (0.35 + 0.4 * t)
-    img = mix(hot, np.array(LIGHT, float), shine)
-    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
-
-
-def dhd_icon():
-    """The DHD's item, 16x16: the pedestal from the front, its top and the dome."""
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    d.polygon([(4, 7), (11, 7), (10, 15), (5, 15)], fill=PALE, outline=INK)
-    d.line([(5, 9), (10, 9)], fill=SLATE)
-    d.ellipse([0, 2, 15, 9], fill=PALE, outline=INK)
-    d.ellipse([3, 3, 12, 8], fill=SLATE, outline=INK)
-    d.ellipse([6, 4, 9, 6], fill=LIME, outline=INK)
-    return img
 
 
 # ---------------------------------------------------------------- orange DHD
@@ -535,13 +570,13 @@ def block_textures():
     chevron, d = canvas(PALE)
     frame(d)
     d.polygon([(3, 3), (12, 3), (7, 12)], fill=SLATE_DARK, outline=INK)
-    d.polygon([(5, 4), (10, 4), (7, 9)], fill=LIME)
+    d.polygon([(5, 4), (10, 4), (7, 9)], fill=GLOW)
 
     base, d = canvas(PALE)
     frame(d)
     d.ellipse([2, 2, 13, 13], fill=SLATE, outline=INK)
     d.ellipse([5, 5, 10, 10], fill=LIGHT, outline=INK)
-    d.point([(7, 2), (2, 7), (13, 7), (7, 13)], fill=LIME)
+    d.point([(7, 2), (2, 7), (13, 7), (7, 13)], fill=GLOW)
     return {"infinity_stargate_sides": sides, "infinity_stargate_ring_front": ring,
             "infinity_stargate_chevron_front": chevron, "infinity_stargate_base_front": base}
 
@@ -657,17 +692,19 @@ def main():
           ("gate", "ring", "chevron_frame", "chevron_back", "chevron_moving", "chevron_light")}
     plain = (1, 1, 1)
     save(paint_gate_texture(mw, 2048, plain), "gate", "infinity_gate.png")
-    save(paint_chevron_texture(mw, 256, (70, 80, 46), plain), "gate", "chevron.png")
-    save(paint_chevron_texture(mw, 256, LIME, plain, glow=True), "gate", "chevron_light.png")
-    save(paint_chevron_texture(mw, 256, (58, 64, 44), plain), "gate", "chevron_light_off.png")
+    save(paint_chevron_texture(mw, 256, (50, 58, 74), plain), "gate", "chevron.png")
+    save(paint_chevron_texture(mw, 256, GLOW, plain, glow=True), "gate", "chevron_light.png")
+    save(paint_chevron_texture(mw, 256, (42, 48, 62), plain), "gate", "chevron_light_off.png")
     save(paint_iris_texture(Model(z.read(MODELS + "iris/iris_blade.obj").decode("utf-8", "replace")), 1024),
          "gate", "iris_blade.png")
-    save(spiral_texture(), "gate", "wormhole_spiral.png")
+    save(swirl_texture(), "gate", "wormhole_spiral.png")
     for name, img in block_textures().items():
         save(img, "block", name + ".png")
     dhd = dhd_models(z)
-    looks = {  # folder: (body, key light, dome, item icon)
-        "infinity": (paint_dhd_texture, paint_key_light, paint_dome, dhd_icon),
+    for name, img in console_textures().items():
+        save(img, "dhd", "infinity", name + ".png")
+    save(dhd_icon(), "item", "infinity_dhd.png")
+    looks = {  # folder: (body, key light, dome, item icon), for the DHDs drawn with JSG's model
         "orange": (paint_orange_dhd_texture, paint_orange_key_light, paint_orange_dome, orange_dhd_icon),
     }
     for look, (body, key, dome, icon) in looks.items():
