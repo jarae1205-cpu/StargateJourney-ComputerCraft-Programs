@@ -121,6 +121,7 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - Placed in front of an Infinity gate, it linked both ways.
 - The DHDs placed before the update loaded and ticked as before.
 - In the client the three DHDs drew side by side, each in its own look (picture above).
+- In a player's own game, 1.2.0 with the orange DHD worked.
 
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
