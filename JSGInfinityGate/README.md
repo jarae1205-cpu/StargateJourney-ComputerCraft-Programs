@@ -77,12 +77,19 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - The chevrons lighting up as they lock, and the pale wormhole.
 - The blocks before the gate forms, with JSG's diagram.
 
+**On a dedicated server** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
+- Everything loaded together without errors from these mods.
+- Two Infinity gates, each powered by a JSG creative capacitor, with an advanced computer under each base. The computers ran this repository's `sgc` library.
+  - The library found the gate and read it as a JSG Milky Way gate with its 8-symbol address.
+  - One gate dialled the other: the ring turned to each of the six symbols, seven chevrons locked, and the wormhole opened. The computer at the other gate saw it come in, and then saw it close when the first computer closed it.
+- Breaking a base dropped an Infinity base that kept the gate's 17.8 million FE and its upgrade slots.
+
 **Not tested yet:**
-- Dialling one Infinity gate from another with a DHD or a computer.
+- Dialling with a DHD.
 - Crafting the blocks in survival.
 - Placing the blocks by hand.
 - The iris.
-- Breaking the base.
+- A player breaking the base. The test broke it with `/setblock … destroy`, which never calls the code that turns the ring back into separate blocks, in JSG's own gates as well. The Infinity base inherits that code from JSG's Milky Way base unchanged.
 
 ## License
 
