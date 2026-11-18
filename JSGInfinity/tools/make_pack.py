@@ -41,17 +41,19 @@ def rgb(h):
 
 INK = rgb(0x14161C)
 GLYPH_SIDE = rgb(0x2E3440)
-PALE = rgb(0xC9D3E2)       # lit front of the outer ring
-STONE = rgb(0xB4C0D2)      # front faces
-MID = rgb(0x8995AA)        # sides
-SHADOW = rgb(0x6E7A90)     # backs and undersides
-TRACK = rgb(0x9DA9BC)      # the symbol track
+# JSG lights its gate dimly (in a test it drew the ring at about 40% of the texture's brightness),
+# so the ring's tones sit close to white to come out as the show's pale grey
+PALE = rgb(0xF6F8FC)       # lit front of the outer ring
+STONE = rgb(0xE8EDF5)      # front faces
+MID = rgb(0xC7D0DE)        # sides
+SHADOW = rgb(0xAAB5C7)     # backs and undersides
+TRACK = rgb(0xD6DDE8)      # the symbol track
 CHEVRON = rgb(0x3A4252)    # chevron body
 CHEVRON_DARK = rgb(0x262B36)
 LIME = [rgb(0x6E8A10), rgb(0xB8D82C), rgb(0xD6F23C), rgb(0xF7FFB0)]
 LIME_OFF = [rgb(0x1C2028), rgb(0x2E3440), rgb(0x3C4454)]
-IRIS = rgb(0xD6E2EE)
-IRIS_SIDE = rgb(0x9AAABE)
+IRIS = rgb(0xEEF3F9)
+IRIS_SIDE = rgb(0xC2CDDC)
 
 # JSG swaps in these textures in some biomes; the cartoon gate gets a light tint instead of weathering
 BIOME_TINTS = {
@@ -59,7 +61,7 @@ BIOME_TINTS = {
     "_aged": (rgb(0xC8B48C), 0.22),
     "_frost": (rgb(0xF4FAFF), 0.38),
     "_mossy": (rgb(0x7FA45A), 0.22),
-    "_sooty": (rgb(0x20242C), 0.30),
+    "_sooty": (rgb(0x20242C), 0.18),
 }
 
 

@@ -43,7 +43,8 @@ The DHD, the glyphs on the DHD and in the GUI, and the other gate types are unch
 
 In a Minecraft 1.20.1 client (Forge 47.4.29, software rendering) on a server with JSG 5.1.2.0, with the pack loaded:
 
-- The ring, the black glyphs and the dark chevrons drew as in the picture above. JSG's own lighting makes the ring a medium grey rather than pale.
+- The ring, the black glyphs and the dark chevrons drew as in the picture above.
+- JSG lights its gate dimly: it drew the ring at about 40% of the texture's brightness. So the ring's tones are close to white, to come out light grey like the show's gate. Light around the gate helps: a lit gate room makes it paler still.
 - The chevrons lit lime-yellow one by one as the gate dialed, and the open wormhole was the white whirlpool with its ink spirals. JSG tints the ink lines a dark navy.
 - The wormhole sheets are 7000 and 5600 pixels square, smaller than JSG's 15000 and 10800, to keep the pack small. JSG drew them correctly: one whole frame at a time. `--full` (below) still builds sheets at JSG's size.
 - Not seen yet: the kawoosh (the screenshots were taken every 3 seconds and missed it), the iris blades, and the frost, moss, soot and age looks.
