@@ -101,10 +101,11 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - Placed in front of an Infinity gate, it linked both ways: the DHD to the gate and the gate to the DHD. JSG's own DHD linked to an Infinity gate the same way.
 - After a restart it loaded and ticked like a JSG DHD.
 - In the client it drew in the Infinity colours, and a JSG DHD beside it still drew as JSG's own.
+- In a player's own game, 1.1.0 showed the gate and the Infinity DHD, and the DHD's keys lit as they dialled.
 
 **Not tested yet:**
 - Dialling one Infinity gate from another with a DHD or a computer.
-- The DHD's keys lit: they light when you dial out from the DHD, which needs a player at it. They use the same texture swap as the unlit keys above.
+
 - Crafting the blocks in survival.
 - Placing the blocks by hand.
 - The iris.
