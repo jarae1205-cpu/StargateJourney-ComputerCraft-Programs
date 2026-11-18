@@ -92,6 +92,14 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
 
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
 
+### [Infinity Stargate for SGCraft](./SGCraftInfinityGate/)
+An add-on for SGCraft 2.3 on Minecraft 1.12.2 (Forge): the gate from *Stargate Infinity*.
+ - An Infinity Stargate Base, built into a ring of SGCraft's own Ring and Chevron Blocks; the gate is SGCraft's in every way, with its DHD, power, iris and computer interfaces
+ - Drawn by SGCraft's renderer in the cartoon's colours (pale stone, lime-yellow chevrons, a pale wormhole), recoloured from SGCraft's own textures as the game loads them
+ - Its code and the textures its script draws are MIT, like this repository's other work
+
+![Infinity gate for SGCraft](./imgs/SGCraftInfinityGate.jpg)
+
 ### [Stargate Command Addon](./StargateCommandAddon/)
 A Forge 1.20.1 add-on for Stargate Journey:
  - Gate room alarm light that flashes for incoming wormholes, gate monitor with redstone and comparator output

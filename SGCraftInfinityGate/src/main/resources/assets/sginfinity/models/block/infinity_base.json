@@ -1,0 +1,8 @@
+{
+  "parent": "block/orientable",
+  "textures": {
+    "front": "sginfinity:blocks/infinity_base_front",
+    "side": "sginfinity:blocks/infinity_base_side",
+    "top": "sginfinity:blocks/infinity_base_side"
+  }
+}
