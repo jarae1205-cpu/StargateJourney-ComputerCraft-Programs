@@ -11,7 +11,7 @@ A stargate mod for **Minecraft 1.20.1 (Forge)**, written from scratch: its own g
 - The wormhole opens with a kawoosh. The vortex vaporises anything standing in front of the gate (you can turn this off).
 - Step into the event horizon of the gate you dialed from and you come out of the other gate, facing out, at the same height and side, even in another dimension. Travel is one way, from the dialing gate. The receiving gate's horizon doesn't send you back. The bottom of the ring is a solid block. Gates in gate fields and at the planet sites have a step in front, so you can walk in; for a gate you place yourself, put stairs in front of it, or jump in.
 - The wormhole closes by itself after five minutes (configurable, up to 38 minutes). Only the dialing gate can close it, unless you allow it in the config.
-- Both gates keep their chunks loaded while they are connected.
+- Both gates keep their chunks loaded while they are connected, so a wormhole to a planet nobody is on still opens and closes, and an open wormhole survives a server restart.
 - The ring lights up its surroundings while a wormhole is open.
 - A comparator next to the stargate block reads how many chevrons are locked.
 
@@ -22,9 +22,74 @@ Right-click any part of the ring to see the gate's address. Every gate gets its 
 | | What it does | Recipe |
 |---|---|---|
 | **Stargate** | Place it on the ground, facing you: it needs a clear 7 × 7 space. You place the bottom middle block; the rest of the ring builds itself. Break any part to pick the whole gate up again. | iron blocks in the corners, eyes of ender on the sides, a lodestone in the middle |
-| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
-| **Gate Iris** | Use it on a gate to fit an iris. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
+| **Dial Home Device** | Right-click it to dial the nearest gate within 16 blocks. Press six symbols, then the big red button (or the point of origin). Press the red button again to close the wormhole; while dialing, it cancels the dial. With several gates in range, the arrows by the title pick which one it dials from. Since 1.3.0 it has a round top about two blocks across, with two rings of glyph keys and a dome in the middle. Since 1.4.0 it is dark with a red dome, like the DHD of JSG and the show; the one on a CAP pedestal is the Carter Addon Pack's orange one with a blue dome, and a Gate Look Crystal used on a DHD swaps the two. As its gate dials, the keys of the locked symbols light up one by one in the gate look's chevron colour, and the dome glows while the wormhole is open. | redstone block on top, gold ingot, compass, gold ingot in the middle, smooth sandstone along the bottom |
+| **Gate Iris** | Use it on a gate to fit an iris: curved blades that spiral shut. Close it from the DHD, a computer or a command. Travelers from the other side hit a closed iris and bounce back, and it stops the kawoosh. | iron ingots around an iron trapdoor |
+| **Gate Look Crystal** | Use it on a gate to change how it looks (see [gate looks](#gate-looks)): each use gives the next look, sneak to go back. It isn't used up. | an amethyst shard, nether quartz and glowstone dust |
 | **Gate Address Book** | Use it to read the address of every planet's gate (see [planet gates](#planet-gates)). | a book and an eye of ender |
+
+## Gate looks
+
+![The gate looks](../imgs/GateLooks.jpg)
+
+*Every look, each on a gate platform with its wormhole open, in a Minecraft 1.20.1 client.*
+
+Every gate can have its own look: its ring and symbol track, the colour of its chevrons and symbols, its event horizon and its iris all change with it. A new gate starts with the SG-1 look. Change it with the **Gate Look Crystal** or `/chevron7 look <pos> <look>`.
+
+| Look | |
+|---|---|
+| `sg1` | grey stone, orange chevrons, blue water |
+| `movie` | darker, browner stone, deep orange chevrons |
+| `origins` | the weathered 1939 gate: chipped sandstone-coloured stone |
+| `continuum` | the frozen gate: pale stone with frost |
+| `ark` | gold, with a golden wormhole (Ark of Truth) |
+| `atlantis` | blue-grey stone, blue chevrons (Pegasus) |
+| `universe` | dark grey, white chevrons, a starry-white horizon (Destiny) |
+| `infinity` | the animated series: a pale ring with black ink outlines, orange chevrons, a flat bright cyan wormhole with white streaks |
+| `ori` | nearly black, pale blue chevrons |
+| `tollan` | grey-green, green chevrons, a green wormhole |
+| `goauld` | bronze, amber chevrons, an orange wormhole |
+| `wraith` | purple-grey, violet chevrons, a violet wormhole |
+| `crimson` | dark red, red chevrons, a red wormhole |
+
+`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves. Looks are only colours and textures: the gate works the same in every one.
+
+## Gate platforms and the gate room
+
+![Gate platforms](../imgs/GatePlatforms.jpg)
+
+*Left: `/chevron7 platform` on flat ground. Right: the gate on Mars, which now stands on a platform too. Both from a Minecraft 1.20.1 client.*
+
+`/chevron7 platform <pos> [direction] [look] [style]` builds a gate on a raised stone dais: two steps up the front, the gate's own step on top, a lantern on a post at each corner and a DHD in front, on a paved plaza. The style is the stone it's made of: `stone`, `deepslate`, `sandstone` or `blackstone`. Without a direction the gate faces whoever runs the command. Planet sites are built this way now.
+
+![The Infinity gate room](../imgs/GateRoomInfinity.jpg)
+
+*`/chevron7 gateroom` (1.4.0), in a Minecraft 1.20.1 client.*
+
+### The Carter Addon Pack pedestal
+
+![The CAP pedestal](../imgs/CapPedestal.jpg)
+
+*Left: an SG-1 gate on a CAP pedestal with its wormhole open. Middle: its DHD, with the keys of the dialed symbols lit and the dome glowing. Right: the Infinity gate it reached, on a pedestal of its own. In a Minecraft 1.20.1 client.*
+
+After the dial sequence of the Carter Addon Pack for Garry's Mod: `/chevron7 platform <pos> [direction] [look] cap` builds the gate on a sloped stone pedestal (three layers that step in towards the top, stairs down every side) with a red carpet up the middle to the gate's step, the round DHD at the foot of the carpet, and a red floor around it all.
+
+`/chevron7 pedestal <pos> [direction] [small|large]` builds the same pedestal and carpet with no gate, so a gate of another mod can stand on it. `small` fits the 7-wide gates of Chevron Seven, Stargate Journey and Lantea: Stargates; `large` fits JSG's bigger ones. It answers with where the gate's base (the bottom middle of the ring) goes; place your gate there, facing the way the carpet comes up.
+
+`/chevron7 gateroom <pos> [direction]` builds a gate room after the animated series: an Infinity-look gate on a base at the top of a brown ramp with hot pink rails, warm golden-brown walls with a pale halo behind the gate, and yellow and lime light bars fanned out around it. The room is lit and open at the front, and has a DHD by the ramp.
+
+## The Ori supergate and the gate row
+
+![The gate row](../imgs/GateRow.jpg)
+
+*`/chevron7 gaterow`: a gate in every look, an Ori supergate behind them and a DHD in front. In a Minecraft 1.20.1 client.*
+
+![The supergate](../imgs/Supergate.jpg)
+
+*Left: the supergate with a wormhole open. Middle: the stairs up to its horizon. Right: the dark DHD (1.4.0).*
+
+`/chevron7 supergate <pos> [direction]` builds an Ori supergate, four times the size of a gate: a ring of 40 separate dark segments about 27 blocks across, with no symbols or chevrons. Its segments light one after another as it dials out, and they all glow while the wormhole is open. It dials and is dialed like any other gate (the DHD, the commands and computers all work), and you can travel through it both ways. Only its base, at the bottom middle of the ring, is solid. The bottom of its horizon is four blocks up, so it comes with a landing and stairs up the front. A supergate can't have an iris. Computers see it as the variant `chevron7:supergate`, so the Gate Room draws it as the Ori Supergate.
+
+`/chevron7 gaterow <pos> [direction]` builds one gate in every look side by side, each on its step, with a DHD in front of the middle gate and a supergate behind the row.
 
 ## Gate fields
 
@@ -42,9 +107,9 @@ A gate field is five gates on an arc around a clearing, each at the end of a dir
 
 ![The gate on Mars](../imgs/PlanetGateMars.jpg)
 
-*Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad, with a wormhole open from a gate on Earth.*
+*Mars in a Minecraft 1.20.1 client with Ad Astra 1.15.21: the planet's gate on its paved pad (1.1), with a wormhole open from a gate on Earth. Since 1.2.0 the gate stands on a [platform](#gate-platforms-and-the-gate-room).*
 
-With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a paved pad near 8, 6 with the gate, a step up to it and a DHD.
+With [Ad Astra](https://modrinth.com/mod/ad-astra) installed, the Moon, Mars, Venus, Mercury and Glacio each have a gate: a stone platform near 8, 6 with the gate on top, stairs up to it and a DHD. Planets visited before 1.2.0 keep their paved pad.
 
 - Every planet's gate has its own address, fixed for the world. The **Gate Address Book** (or `/chevron7 planets`) lists them.
 - You can dial a planet before anyone has been there: the first wormhole to it generates the planet's gate. A gate on Earth can dial Mars directly.
@@ -88,6 +153,13 @@ For operators:
 /chevron7 iris <pos> open|close
 /chevron7 field <pos> [direction] [gates]   build a gate field (see above)
 /chevron7 planets                       the planets' gate addresses
+/chevron7 look <pos> <look>             change a gate's look
+/chevron7 looks                         list the looks
+/chevron7 platform <pos> [direction] [look] [style]   build a gate on a platform
+/chevron7 gateroom <pos> [direction]    build an Infinity gate room
+/chevron7 pedestal <pos> [direction] [small|large]   build a CAP pedestal for any mod's gate
+/chevron7 supergate <pos> [direction]   build an Ori supergate
+/chevron7 gaterow <pos> [direction]     build a gate in every look, and a supergate
 ```
 
 `<pos>` can be any block of the ring.
@@ -106,7 +178,7 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.1.2.jar`](dist/chevron7-1.1.2.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.4.0.jar`](dist/chevron7-1.4.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
@@ -146,6 +218,38 @@ Put [`dist/chevron7-1.1.2.jar`](dist/chevron7-1.1.2.jar) in the `mods` folder (c
   - Dialing plays a sound as the ring turns and each chevron locks, the kawoosh is the loudest, and closing plays a sound that fades out.
   - The hum of an open wormhole was silent beyond 7 blocks, because Minecraft's beacon hum only carries that far. 1.1.2 plays it louder so it carries about 17 blocks; it was heard at 10, 15 and 20 blocks.
 
+- **Forests, planets and restarts (1.1.3)**, in a Minecraft 1.20.1 client on a server with Ad Astra and CC: Tweaked, starting in a dark forest. 1.1.2 had these problems, all fixed:
+  - **Gate fields in a forest** went by the treetops. `/chevron7 field` set gates down on the canopy, left trunks and giant mushrooms in front of them, put the DHD on a bump and left the path too steep to walk. 1.1.3 finds the real ground under the trees, clears trees and mushrooms around each gate and along the paths (whole trees, so no trunk is left hanging), and levels the clearing and the ground in front of each step. In the same forest, a player walked from the DHD up the path into the middle gate and came out at the gate it had dialed. Natural gate fields now generate after trees; on a test world with them made very common, they generated in plains with no errors.
+  - **A closed iris didn't stop a player.** The gate couldn't tell which side a player had come from (the server moves players between ticks, so where they were and where they are looked the same), so a player walked straight through the open wormhole and out behind the gate they had dialed from, with the iris at the other end shut. 1.1.3 remembers which side each player is on. A player who kept walking into the gate was held in front of it, and with the iris open the same walk took them through.
+  - **A gate on a planet nobody was on never finished opening or closing.** A dimension without players stops running its gates, so the Moon's gate stayed "opening" after its wormhole closed, and every later dial to the Moon failed with "target busy". Connected gates now force-load their chunks, so both ends keep running, and a gate that was left like that is set right the next time it is dialed.
+  - **An open wormhole was lost when the server restarted.** It now carries on: both gates were still open after a restart, and their open time kept counting with no player online.
+  - `/chevron7 iris` now says what it is doing, and `/chevron7 address` shows whether the gate's iris is open or closed.
+
+![A gate field in a forest, before and after](../imgs/GateFieldForest.jpg)
+
+*Gate fields built with `/chevron7 field` in a dark forest, in a Minecraft 1.20.1 client. Left: 1.1.2, with gates up the hillside among the trunks and the DHD on a block of grass. Right: 1.1.3, with the trees cleared and the clearing level, the DHD on the path and every gate on its step.*
+
+- **Looks, iris, platforms and the gate room (1.2.0)**, in a Minecraft 1.20.1 client on a flat test world with Ad Astra:
+  - `/chevron7 platform` built 14 gates in every look and all four stone styles. Seven pairs dialed each other at once, and every look's ring, chevrons and wormhole showed as in the picture above.
+  - The Gate Look Crystal stepped a gate forward through the looks with each use, and back with a sneak-use. The look is kept when the server restarts.
+  - Fitted to an SG-1 and an Infinity gate, the iris closed as a spiral of curved blades, grey on the one and light blue with black ink lines on the other.
+  - `/chevron7 gateroom` built the room. Dialed from it, a player walked up the copper ramp into the gate and came out at the gate on the other platform.
+  - Dialing Mars generated its site as a platform, with the gate and stairs in place.
+
+![The spiral iris](../imgs/GateIrisSpiral.jpg)
+
+*The iris closing and shut on an SG-1 gate (left two) and an Infinity gate (right two).*
+
+- **The CAP pedestal and DHD (1.3.0)**, in a Minecraft 1.20.1 client:
+  - `/chevron7 platform … cap` built an SG-1 and an Infinity gate on pedestals, and `/chevron7 pedestal` built a small and a large one with no gate.
+  - Dialing from the SG-1 gate lit the DHD's keys for the dialed symbols and made the dome glow once the wormhole was open (the middle picture above).
+- **The supergate, the gate row, the dark DHD and the room (1.4.0)**, in a Minecraft 1.20.1 client:
+  - `/chevron7 gaterow` built all 13 looks in a row with a supergate behind them.
+  - A gate dialed the supergate and the supergate dialed a gate: the wormhole opened both ways, and the supergate's segments lit while it dialed out.
+  - A player walked up the supergate's stairs into its horizon and came out at the other gate.
+  - The DHD in front of the row is the dark one with the red dome; the CAP pedestal's stays orange.
+  - `/chevron7 gateroom` built the reworked room.
+
 ## Build
 
 ```
@@ -153,7 +257,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.1.2.jar`.
+The jar is `build/libs/chevron7-1.4.0.jar`.
 
 ## License
 

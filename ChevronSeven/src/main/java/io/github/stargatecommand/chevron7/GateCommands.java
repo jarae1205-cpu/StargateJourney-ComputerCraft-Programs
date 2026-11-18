@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.RegisterCommandsEvent;
 
 /**
- * /chevron7 list | address | dial | close | iris, for operators.
+ * /chevron7 list | address | dial | close | iris | field | look | platform | pedestal | gateroom | supergate | gaterow, for operators.
  */
 public final class GateCommands
 {
@@ -39,7 +39,8 @@ public final class GateCommands
 				.then(Commands.literal("address").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.executes(context -> {
 							StargateBlockEntity gate = gate(context);
-							String text = GateAddress.format(gate.getAddress()) + " " + gate.getState().name().toLowerCase();
+							String text = GateAddress.format(gate.getAddress()) + " " + gate.getState().name().toLowerCase()
+									+ (gate.hasIris() ? (gate.isIrisClosing() ? ", iris closed" : ", iris open") : "");
 							context.getSource().sendSuccess(() -> Component.literal(text), false);
 							return 1;
 						})))
@@ -66,7 +67,54 @@ public final class GateCommands
 						})))
 				.then(Commands.literal("iris").then(Commands.argument("gate", BlockPosArgument.blockPos())
 						.then(Commands.literal("open").executes(context -> iris(context, false)))
-						.then(Commands.literal("close").executes(context -> iris(context, true))))));
+						.then(Commands.literal("close").executes(context -> iris(context, true)))))
+				.then(Commands.literal("looks").executes(context -> {
+					StringBuilder names = new StringBuilder();
+					for(GateLook look : GateLook.values())
+						names.append(names.length() == 0 ? "" : ", ").append(look.id);
+					context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.looks", names.toString()), false);
+					return GateLook.values().length;
+				}))
+				.then(Commands.literal("look").then(Commands.argument("gate", BlockPosArgument.blockPos())
+						.then(Commands.argument("look", StringArgumentType.word()).suggests(GateCommands::suggestLooks)
+								.executes(context -> {
+									StargateBlockEntity gate = gate(context);
+									GateLook look = look(context, StringArgumentType.getString(context, "look"));
+									gate.setLook(look);
+									context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.look", look.displayName()), true);
+									return 1;
+								}))))
+				.then(Commands.literal("platform").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> platform(context, null, "sg1", "stone"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> platform(context, StringArgumentType.getString(context, "direction"), "sg1", "stone"))
+								.then(Commands.argument("look", StringArgumentType.word()).suggests(GateCommands::suggestLooks)
+										.executes(context -> platform(context, StringArgumentType.getString(context, "direction"),
+												StringArgumentType.getString(context, "look"), "stone"))
+										.then(Commands.argument("style", StringArgumentType.word()).suggests(GateCommands::suggestStyles)
+												.executes(context -> platform(context, StringArgumentType.getString(context, "direction"),
+														StringArgumentType.getString(context, "look"), StringArgumentType.getString(context, "style"))))))))
+				.then(Commands.literal("pedestal").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> pedestal(context, null, "small"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> pedestal(context, StringArgumentType.getString(context, "direction"), "small"))
+								.then(Commands.argument("size", StringArgumentType.word())
+										.suggests((context, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+												java.util.List.of("small", "large"), builder))
+										.executes(context -> pedestal(context, StringArgumentType.getString(context, "direction"),
+												StringArgumentType.getString(context, "size")))))))
+				.then(Commands.literal("supergate").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> build(context, null, "supergate"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> build(context, StringArgumentType.getString(context, "direction"), "supergate")))))
+				.then(Commands.literal("gaterow").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> build(context, null, "gaterow"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> build(context, StringArgumentType.getString(context, "direction"), "gaterow")))))
+				.then(Commands.literal("gateroom").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> gateRoom(context, null))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> gateRoom(context, StringArgumentType.getString(context, "direction")))))));
 	}
 
 	private static int list(CommandContext<CommandSourceStack> context)
@@ -97,6 +145,112 @@ public final class GateCommands
 		return built.size();
 	}
 
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestLooks(
+			CommandContext<CommandSourceStack> context, com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
+	{
+		return net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.Arrays.stream(GateLook.values()).map(look -> look.id), builder);
+	}
+
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestStyles(
+			CommandContext<CommandSourceStack> context, com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
+	{
+		return net.minecraft.commands.SharedSuggestionProvider.suggest(
+				java.util.Arrays.stream(GateBuildings.Style.values()).map(style -> style.name().toLowerCase(java.util.Locale.ROOT)), builder);
+	}
+
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestDirections(
+			CommandContext<CommandSourceStack> context, com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
+	{
+		return net.minecraft.commands.SharedSuggestionProvider.suggest(new String[] {"north", "east", "south", "west"}, builder);
+	}
+
+	private static GateLook look(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException
+	{
+		GateLook look = GateLook.byId(name);
+		if(look == null)
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.translatable("message.chevron7.bad_look", name)).create();
+		return look;
+	}
+
+	/** The way the gate faces: as given, or towards whoever ran the command. */
+	@javax.annotation.Nullable
+	private static net.minecraft.core.Direction facing(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String name)
+	{
+		if(name == null)
+			return net.minecraft.core.Direction.fromYRot(context.getSource().getRotation().y).getOpposite();
+		net.minecraft.core.Direction direction = net.minecraft.core.Direction.byName(name.toLowerCase());
+		if(direction == null || direction.getAxis().isVertical())
+		{
+			context.getSource().sendFailure(Component.translatable("message.chevron7.bad_direction"));
+			return null;
+		}
+		return direction;
+	}
+
+	private static int platform(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction, String lookName,
+			String styleName) throws CommandSyntaxException
+	{
+		BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+		net.minecraft.core.Direction facing = facing(context, direction);
+		if(facing == null)
+			return 0;
+		GateLook look = look(context, lookName);
+		GateBuildings.Style style = GateBuildings.Style.byName(styleName);
+		if(style == null)
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Styles: stone, deepslate, sandstone, blackstone, cap")).create();
+		GateBuildings.platform(context.getSource().getLevel(), pos, facing, look, style);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.platform_built"), true);
+		return 1;
+	}
+
+	/** /chevron7 supergate and /chevron7 gaterow. */
+	private static int build(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction, String what)
+			throws CommandSyntaxException
+	{
+		BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+		net.minecraft.core.Direction facing = facing(context, direction);
+		if(facing == null)
+			return 0;
+		if(what.equals("supergate"))
+			GateBuildings.supergate(context.getSource().getLevel(), pos, facing);
+		else
+			GateBuildings.gateRow(context.getSource().getLevel(), pos, facing);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7." + what + "_built"), true);
+		return 1;
+	}
+
+	/** A Carter Addon Pack pedestal with no gate, for a gate of any mod to stand on. */
+	private static int pedestal(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction, String size)
+			throws CommandSyntaxException
+	{
+		BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+		net.minecraft.core.Direction facing = facing(context, direction);
+		if(facing == null)
+			return 0;
+		int half;
+		if(size.equalsIgnoreCase("small"))
+			half = GateBuildings.PEDESTAL_SMALL;
+		else if(size.equalsIgnoreCase("large"))
+			half = GateBuildings.PEDESTAL_LARGE;
+		else
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.translatable("message.chevron7.bad_size")).create();
+		BlockPos base = GateBuildings.pedestal(context.getSource().getLevel(), pos, facing, half);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.pedestal_built",
+				base.getX(), base.getY(), base.getZ(), facing.getName()), true);
+		return 1;
+	}
+
+	private static int gateRoom(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction) throws CommandSyntaxException
+	{
+		BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+		net.minecraft.core.Direction facing = facing(context, direction);
+		if(facing == null)
+			return 0;
+		GateBuildings.gateRoom(context.getSource().getLevel(), pos, facing);
+		context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.gate_room_built"), true);
+		return 1;
+	}
+
 	private static int iris(CommandContext<CommandSourceStack> context, boolean closed) throws CommandSyntaxException
 	{
 		StargateBlockEntity gate = gate(context);
@@ -105,6 +259,7 @@ public final class GateCommands
 			context.getSource().sendFailure(Component.translatable("message.chevron7.no_iris"));
 			return 0;
 		}
+		context.getSource().sendSuccess(() -> Component.translatable(closed ? "message.chevron7.iris_closing" : "message.chevron7.iris_opening"), true);
 		return 1;
 	}
 

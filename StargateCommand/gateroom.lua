@@ -120,7 +120,7 @@ local rotating, rotation, lastRotationRead = false, 0, 0
 local running = true
 local speaker = peripheral.find("speaker")
 local alarm = { on = false, lastBeep = 0, beep = 0 }
-local autoCloseTimer
+local autoCloseAt -- os.clock() time to close an outgoing wormhole after a traveller
 local lastFrame = os.clock()
 
 local function setMessage(text, color)
@@ -200,9 +200,14 @@ local function paintBackground()
     canvas:invalidate()
 end
 
+local ringKey
 local function chooseStyle()
     style = Styles.resolve(book:setting("gateroomStyle", "auto"), gate)
     Styles.apply(target, style)
+    -- a style that draws the gate at another size needs the layout done again
+    local key = (style.gateScale or 1) .. "/" .. (style.gateLift or 0)
+    if canvas and ringKey and key ~= ringKey then os.queueEvent("gateroom_relayout") end
+    ringKey = key
     if canvas then paintBackground() end
 end
 
@@ -225,8 +230,10 @@ local function layout()
     L.gh = H - 1
     if L.pw == 0 then L.gh = H - 2 end
     canvas = Pixels.new(L.gw, L.gh, colors.black)
-    local r = math.min(canvas.w, canvas.h) / 2 / 1.1
-    ring = Ring.new(canvas, canvas.w / 2, canvas.h / 2 + 0.5, r)
+    -- a style can draw the gate smaller and higher, to leave room for its scene below
+    local scale, lift = style and style.gateScale or 1, style and style.gateLift or 0
+    local r = math.min(canvas.w, canvas.h) / 2 / 1.1 * scale
+    ring = Ring.new(canvas, canvas.w / 2, canvas.h / 2 + 0.5 - lift * canvas.h, r)
     paintBackground()
     target.setBackgroundColor(colors.black)
     target.clear()
@@ -310,7 +317,7 @@ local function closeGate()
     if not gate then return end
     gate:poll()
     if gate.state == "IDLE" then setMessage("The gate is already idle", colors.gray) return end
-    if autoCloseTimer then os.cancelTimer(autoCloseTimer) autoCloseTimer = nil end
+    autoCloseAt = nil
     gate:close()
     setMessage(gate.state == "INCOMING" and "Trying to close the incoming wormhole" or "Closing the gate", colors.lightGray)
 end
@@ -485,7 +492,7 @@ local function drawPanel(t)
         local timer = ""
         if open and gate.state ~= "CLOSING" then
             timer = "Open " .. UI.duration(open)
-            if autoCloseTimer then timer = timer .. "  closing soon" end
+            if autoCloseAt then timer = timer .. "  closing soon" end
         end
         line(timer, colors.lightBlue)
         local energy = "Energy " .. (gate.energy and (UI.energy(gate.energy) .. " " .. (gate.energyUnit or "FE")) or "?")
@@ -743,24 +750,53 @@ local function dialerTask()
     end
 end
 
+-- auto-iris when another gate starts dialing in. Stargate Journey's kawoosh destroys
+-- an iris that is closed when the wormhole forms, so there the iris stays open (or is
+-- opened) until the wormhole is open, and closes then; other mods' irises stop the
+-- kawoosh and close straight away.
+local irisReclose = false
+-- closes the iris for an incoming wormhole; says so if the gate won't
+local function autoCloseIris(message)
+    local ok, why = gate:closeIris()
+    if ok == false then
+        setMessage("Could not close the iris: " .. tostring(why), colors.orange)
+    elseif message then
+        setMessage(message, colors.red)
+    end
+end
+
+local function irisBeforeCall()
+    if gate.kawooshBreaksIris then
+        if (gate.iris or 0) > 0 then
+            gate:openIris()
+            irisReclose = true
+        end
+        setMessage("Unscheduled offworld activation - iris closes after the kawoosh", colors.red)
+    elseif (gate.iris or 0) < 100 then
+        autoCloseIris("Unscheduled offworld activation - closing the iris")
+    else
+        setMessage("Unscheduled offworld activation", colors.red)
+    end
+end
+
 local function onGateEvent(info)
     if not info then return end
     local ty = info.type
     if ty == "chevron" and info.incoming and not info.unset then
         if dial.active then dial.abort = true end
-        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 and info.n == 1 then
-            gate:closeIris()
-            setMessage("Unscheduled offworld activation - closing the iris", colors.red)
+        if CONFIG.autoIris and gate.hasIris and info.n == 1 then
+            irisBeforeCall()
         else
             setMessage("Unscheduled offworld activation", colors.red)
         end
     elseif ty == "dialin" then
-        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then gate:closeIris() end
+        if CONFIG.autoIris and gate.hasIris then irisBeforeCall() end
         setMessage("Unscheduled offworld activation", colors.red)
     elseif ty == "incoming" then
         local who = info.address and book:describe(info.address)
         setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
-        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then gate:closeIris() end
+        irisReclose = false
+        if CONFIG.autoIris and gate.hasIris and (gate.iris or 0) < 100 then autoCloseIris() end
         beginCall("in", info.address and book:find(info.address) and who or nil, info.address)
     elseif ty == "outgoing" then
         local who = (dial.entry and dial.entry.name) or (info.address and book:describe(info.address))
@@ -772,7 +808,10 @@ local function onGateEvent(info)
             sendCode(entry)
         end
     elseif ty == "closed" or ty == "reset" then
-        if autoCloseTimer then os.cancelTimer(autoCloseTimer) autoCloseTimer = nil end
+        autoCloseAt = nil
+        -- a dial-in that stopped before the wormhole formed: close the iris opened for it again
+        if irisReclose and CONFIG.autoIris and gate.hasIris then gate:closeIris() end
+        irisReclose = false
         if call and ty == "closed" then
             logCall({ kind = "closed", name = call.name, address = call.address, seconds = os.clock() - call.start, text = info.reason })
         end
@@ -789,8 +828,8 @@ local function onGateEvent(info)
         logCall({ kind = "traveler", text = (info.direction == "out" and "out: " or "in: ") .. name })
         if info.direction == "out" then
             setMessage(name .. " stepped through the gate", colors.lightBlue)
-            if CONFIG.autoClose > 0 and gate.outgoing and not autoCloseTimer then
-                autoCloseTimer = os.startTimer(CONFIG.autoClose)
+            if CONFIG.autoClose > 0 and gate.outgoing and not autoCloseAt then
+                autoCloseAt = os.clock() + CONFIG.autoClose
             end
         else
             setMessage(name .. " came through the gate", colors.lightBlue)
@@ -858,43 +897,75 @@ end
 -- arrive in the meantime, so the UI task reads them from this queue instead.
 local gateEvents = {}
 
+-- Keys, clicks and touches are queued by the listener too, for the same reason:
+-- the UI task polls the gate, and input that comes in meanwhile would be lost.
+local INPUT_EVENTS = {
+    key = true, key_up = true, char = true, paste = true, terminate = true,
+    mouse_click = true, mouse_up = true, mouse_drag = true, mouse_scroll = true,
+    monitor_touch = true, term_resize = true, monitor_resize = true,
+    peripheral = true, peripheral_detach = true,
+}
+local inputQueue = {}
+
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEvent())
+        local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
             os.queueEvent("gateroom_gate_event")
+        elseif INPUT_EVENTS[e[1]] then
+            inputQueue[#inputQueue + 1] = e
+            os.queueEvent("gateroom_input")
         end
+    end
+end
+
+-- Ticks for the UI task. A task that is waiting for a gate call loses the events
+-- that arrive meanwhile, timers included, so the UI task doesn't keep timers of
+-- its own: it checks its deadlines on every tick, and a lost tick doesn't matter.
+local function tickTask()
+    local every = math.max(0.05, math.min(CONFIG.frameTime, 0.5))
+    while true do
+        sleep(every)
+        os.queueEvent("gateroom_tick")
     end
 end
 
 local function uiTask()
     local held = {}
-    local frameTimer = os.startTimer(0)
     local nativeDirty = true
-    local pollTimer = os.startTimer(CONFIG.pollInterval)
+    local nextPoll, nextFrame = os.clock() + CONFIG.pollInterval, 0
+    local redraw = true
     while running do
-        local e = table.pack(os.pullEventRaw())
+        local e
+        if #inputQueue > 0 then
+            e = table.remove(inputQueue, 1)
+        else
+            e = table.pack(os.pullEventRaw())
+            -- input comes through the queue, in order
+            if INPUT_EVENTS[e[1]] then e = { n = 1, "gateroom_input" } end
+        end
         local name = e[1]
-        local redraw = false
+        local now = os.clock()
+        if now >= nextPoll then
+            if gate then gate:poll() end
+            nextPoll = os.clock() + CONFIG.pollInterval
+            redraw = true
+        end
+        if autoCloseAt and now >= autoCloseAt then
+            autoCloseAt = nil
+            if gate and gate.state == "OPEN" then
+                gate:close()
+                setMessage("Wormhole closed by auto-close", colors.lightGray)
+            end
+            redraw = true
+        end
+        -- keep animating while something moves; the poll redraws otherwise
+        if now >= nextFrame and animating() then
+            redraw = true
+        end
         if name == "terminate" then
             quit()
-        elseif name == "timer" then
-            if e[2] == frameTimer then
-                frameTimer = nil
-                redraw = true
-            elseif e[2] == pollTimer then
-                if gate then gate:poll() end
-                pollTimer = os.startTimer(CONFIG.pollInterval)
-                redraw = true
-            elseif e[2] == autoCloseTimer then
-                autoCloseTimer = nil
-                if gate and gate.state == "OPEN" then
-                    gate:close()
-                    setMessage("Wormhole closed by auto-close", colors.lightGray)
-                end
-                redraw = true
-            end
         elseif name == "gateroom_gate_event" then
             redraw = true
         elseif name == "peripheral" then
@@ -930,7 +1001,7 @@ local function uiTask()
         elseif name == "char" or name == "paste" then
             keyEvent(e, held)
             redraw, nativeDirty = true, true
-        elseif name == "monitor_resize" or name == "term_resize" then
+        elseif name == "monitor_resize" or name == "term_resize" or name == "gateroom_relayout" then
             layout()
             redraw = true
         elseif name == "gateroom_redraw" then
@@ -954,11 +1025,9 @@ local function uiTask()
                 drawNative()
                 nativeDirty = false
             end
-            -- keep animating while something moves; the poll timer redraws otherwise
-            if not frameTimer and animating() then
-                frameTimer = os.startTimer(CONFIG.frameTime)
-            end
+            nextFrame = os.clock() + CONFIG.frameTime
         end
+        redraw = false
     end
 end
 
@@ -976,7 +1045,7 @@ else
     setMessage("Ready. DIAL to pick a destination.", colors.lightGray)
 end
 
-local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask)
+local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 if CONFIG.alarmSide then redstone.setOutput(CONFIG.alarmSide, false) end
 Styles.reset(target)

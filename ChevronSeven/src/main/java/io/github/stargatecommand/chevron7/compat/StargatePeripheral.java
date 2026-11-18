@@ -11,6 +11,7 @@ import dan200.computercraft.api.peripheral.AttachedComputerSet;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.github.stargatecommand.chevron7.GateAddress;
+import io.github.stargatecommand.chevron7.GateLook;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 
 /**
@@ -91,7 +92,11 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	@LuaFunction(mainThread = true)
 	public final String getStargateVariant()
 	{
-		return "";
+		// the Gate Room and the Personal Dialer pick their style from this
+		if(gate.isSupergate())
+			return "chevron7:supergate";
+		GateLook look = gate.getLook();
+		return look == GateLook.SG1 ? "" : "chevron7:" + look.id;
 	}
 
 	@LuaFunction(mainThread = true)
