@@ -67,6 +67,7 @@ G.TYPES = {
     { match = "universe",  id = "universe",  name = "Universe",  symbols = 36 },
     { match = "tollan",    id = "tollan",    name = "Tollan",    symbols = 39 },
     { match = "classic",   id = "classic",   name = "Classic",   symbols = 39 },
+    { match = "chevron7:network", id = "milky_way", name = "Chevron Seven", symbols = 36 },
     { match = "chevron7",  id = "milky_way", name = "Chevron Seven", symbols = 39 },
 }
 
@@ -219,6 +220,12 @@ function G:detect()
     if self.mod == "sgcraft" then
         self.typeId, self.typeName, self.symbolCount = "sgcraft", "SGCraft", 36
         self.variant = nil
+        -- Chevron Seven's SG interface also names the kind of gate ("chevron7:stargate_network")
+        if self:has("getStargateVariant") then
+            local v = self:call("getStargateVariant")
+            v = type(v) == "string" and v:gsub("^.*:", "") or nil
+            if v and v ~= "" then self.variant, self.typeName = v, "Chevron Seven" end
+        end
         local la = self:call("localAddress")
         self.localAddress = A.fromValue(la)
         local iris = self:call("irisState")

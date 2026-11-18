@@ -13,7 +13,7 @@ They share one address book with the [Personal Dialer](../PersonalDialer/) and w
 | **SGCraft** (Greg Ewing's, and SGCraft 2.x, the "Stargate Network" mod) | 1.7.10 to 1.12.2 | the ComputerCraft stargate interface | every gate |
 | **Lantea: Stargates** 0.7.7.0+ | 1.20.1 (Forge), 1.21.1 (NeoForge) | a Stargate Power Coupler Kit on the gate controller | Milky Way gates (Pegasus gates can be watched, not dialed) |
 | **Just Stargate Mod** (JSG) | 1.20.1 | the gate's base block (it is a CC: Tweaked peripheral) | every gate |
-| **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral) | every gate |
+| **[Chevron Seven](../ChevronSeven/)** | 1.20.1 | any block of the gate ring (it is a CC: Tweaked peripheral), or its SG Computer Interface | every gate, including its Infinity and Stargate Network gates |
 
 On OpenComputers (SGCraft, and Just Stargate Mod for 1.12.2), use [gatedial](../OpenComputers/) instead. It reads and writes the same address book, iris codes and gate log.
 
@@ -44,6 +44,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
+| Stargate Network | Chevron Seven's Stargate Network gate: a dark steel-blue ring of letters with blue chevrons |
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
 
@@ -61,7 +62,7 @@ The supergate has no chevrons. Its segments light up one after another, clockwis
 - **SGCraft**: the ComputerCraft stargate interface under the gate base.
 - **Lantea: Stargates**: right-click a Stargate Power Coupler Kit onto the finished controller, then put the computer against the controller (or connect it with a wired modem). Needs Lantea 0.7.7.0 or newer.
 - **Just Stargate Mod**: put the computer against the gate's base block, or connect it with a wired modem. To open and close the iris from a computer, set the iris mode to OC/computer in the gate's GUI.
-- **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem.
+- **Chevron Seven**: put the computer against any block of the gate ring, or connect it with a wired modem. Or put it next to an SG Computer Interface within 6 blocks of the gate: the programs then treat the gate as an SGCraft gate and dial letter addresses such as `1KA0-9KT-HY`.
 - **LanteaCraft** (NeoForge 1.21.1, 0.2.5 or newer): put the computer against the gate's base block, or connect it with a wired modem.
 - An advanced computer and an advanced monitor. The programs also run on the computer's own screen.
 - Optional: a speaker (alarm for incoming wormholes) and redstone alarm lights.
