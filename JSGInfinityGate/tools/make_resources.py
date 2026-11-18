@@ -7,7 +7,7 @@ Writes into src/main/resources/:
   assets/jsginfinity/textures/gate/infinity_gate.png   the ring, symbol track and chevron housings
   assets/jsginfinity/textures/gate/chevron*.png        the chevrons: unlit, lit, off
   assets/jsginfinity/textures/block/*.png              the blocks you build the gate from
-  assets/jsginfinity/textures/dhd/*.png                the Infinity DHD: its body, keys and dome
+  assets/jsginfinity/textures/dhd/<look>/*.png         the Infinity and orange DHDs: body, keys and dome
   block states, models, names, recipes, loot tables, and JSG's block tags
 
 The gate is drawn with Just Stargate Mod's own Milky Way models, so its
@@ -33,6 +33,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RESOURCES = os.path.join(HERE, "..", "src", "main", "resources")
 OUT = os.path.join(RESOURCES, "assets", "jsginfinity", "textures")
 MOD = "jsginfinity"
+DHDS = {  # block: (name, the dye that turns JSG's Milky Way DHD into it)
+    "infinity_dhd": ("Infinity DHD", "lime_dye"),
+    "orange_dhd": ("Orange DHD", "orange_dye"),
+}
 BLOCKS = {  # block: (front texture, name, the JSG block it is made from)
     "infinity_stargate_base_block": ("infinity_stargate_base_front", "Infinity Stargate Base", "stargate_milkyway_base_block"),
     "infinity_stargate_ring_block": ("infinity_stargate_ring_front", "Infinity Stargate Ring", "stargate_milkyway_ring_block"),
@@ -379,6 +383,93 @@ def dhd_icon():
     return img
 
 
+# ---------------------------------------------------------------- orange DHD
+
+# In the style of the DHD from Carter's Addon Pack: an orange pedestal with amber panels and
+# yellow bands, a dark console with gold-edged keys that light orange, a turquoise dome.
+ORANGE = (232, 112, 28)
+ORANGE_DEEP = (196, 84, 20)
+AMBER = (250, 176, 52)
+YELLOW = (255, 214, 92)
+CONSOLE = (52, 32, 26)
+CONSOLE_LINE = (214, 150, 60)
+TURQUOISE = (64, 214, 214)
+
+
+def paint_orange_dhd_texture(models, size):
+    base = models["dhd_base"]
+    top = max(base.v[:, 1])
+    canvas = np.zeros((size, size, 3), float)
+    done = np.zeros((size, size), bool)
+
+    def paint_body(pos, n, edge, fi):
+        x, y, z = pos[:, 0], pos[:, 1], pos[:, 2]
+        if abs(n[1]) > 0.55 and np.mean(y) > top - 0.75:
+            # the top: the console's dark ring with gold edges, inside an orange bezel
+            d = np.hypot(x, z - 0.04)
+            c = np.tile(np.array(CONSOLE, float), (len(pos), 1))
+            c = mix(c, ORANGE, (d > 0.66).astype(float))
+            c = mix(c, YELLOW, (np.abs(d - 0.70) < 0.018).astype(float))
+            return mix(c, CONSOLE_LINE, ((edge < 0.012) & (d <= 0.66)).astype(float))
+        # the pedestal: orange, with wide amber panels and yellow bands
+        c = np.tile(np.array(ORANGE, float), (len(pos), 1))
+        c = mix(c, AMBER, (np.sin(np.arctan2(z, x) * 5) > 0.45).astype(float) * 0.85)
+        band = (np.abs(y - (top - 0.62)) < 0.035) | (np.abs(y - 0.12) < 0.03)
+        c = mix(c, YELLOW, band.astype(float))
+        return mix(c, ORANGE_DEEP, (edge < 0.012).astype(float) * 0.9)
+
+    def flat(colour, line, width):
+        def paint(pos, n, edge, fi):
+            return mix(np.tile(np.array(colour, float), (len(pos), 1)), line, (edge < width).astype(float))
+        return paint
+
+    rasterise(canvas, done, models["crystal_holder"], flat(ORANGE_DEEP, CONSOLE, 0.010))
+    rasterise(canvas, done, models["upgrade_cover"], flat(ORANGE_DEEP, CONSOLE, 0.010))
+    rasterise(canvas, done, base, paint_body)
+    rasterise(canvas, done, models["button_console"], flat(CONSOLE, CONSOLE_LINE, 0.010))
+    for name, model in models.items():
+        if name.startswith("key_"):
+            rasterise(canvas, done, model, flat((70, 44, 32), CONSOLE_LINE, 0.008))
+    return Image.fromarray(np.clip(bleed(canvas, done, 16), 0, 255).astype(np.uint8))
+
+
+def paint_orange_key_light(level, size=256):
+    """A key's light: dark bronze when off, glowing orange when lit."""
+    t = level / 5.0
+    body = mix(np.array([(86, 58, 40)]), np.array([(255, 168, 56)]), np.array([t]))[0]
+    rim = mix(np.array([(150, 100, 48)]), np.array([(255, 226, 140)]), np.array([t]))[0]
+    img = Image.new("RGB", (size, size), tuple(int(v) for v in body))
+    d = ImageDraw.Draw(img)
+    for i in range(3):
+        k = size * (0.04 + i * 0.05)
+        d.rectangle([k, k, size - k, size - k], outline=tuple(int(v) for v in rim), width=max(2, size // 64))
+    return img
+
+
+def paint_orange_dome(level, size=256):
+    """The big button: a turquoise glass dome that brightens as it lights."""
+    t = level / 5.0
+    yy, xx = np.mgrid[0:size, 0:size] / (size - 1)
+    r = np.hypot(xx - 0.5, yy - 0.5) * 2
+    base = mix(np.array((20, 92, 104), float), np.array(TURQUOISE, float), np.full(r.shape, 0.35 + 0.65 * t))
+    hot = mix(base, np.array((150, 255, 250), float), np.clip(1 - r, 0, 1) * t)
+    shine = np.clip(1 - np.hypot(xx - 0.36, yy - 0.32) / 0.16, 0, 1) * (0.5 + 0.5 * t)
+    img = mix(hot, np.array((255, 255, 255), float), shine)
+    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+
+
+def orange_dhd_icon():
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.polygon([(4, 7), (11, 7), (10, 15), (5, 15)], fill=ORANGE, outline=ORANGE_DEEP)
+    d.line([(7, 8), (7, 14)], fill=AMBER)
+    d.line([(5, 10), (10, 10)], fill=YELLOW)
+    d.ellipse([0, 2, 15, 9], fill=ORANGE, outline=YELLOW)
+    d.ellipse([3, 3, 12, 8], fill=CONSOLE, outline=CONSOLE_LINE)
+    d.ellipse([6, 4, 9, 6], fill=TURQUOISE)
+    return img
+
+
 # ---------------------------------------------------------------- blocks
 
 def block_textures():
@@ -470,38 +561,38 @@ def write_data():
             "rolls": 1.0, "bonus_rolls": 0.0,
             "conditions": [{"condition": "minecraft:survives_explosion"}],
             "entries": [entry]}]}, "data", MOD, "loot_tables", "blocks", block + ".json")
-    # The Infinity DHD: JSG's own Milky Way DHD underneath, drawn by the add-on's renderer.
-    dhd = "infinity_dhd"
-    write_json({"variants": {"": {"model": "jsg:block/dhd_generic"}}}, "assets", MOD, "blockstates", dhd + ".json")
-    write_json({"parent": "minecraft:item/generated", "textures": {"layer0": "%s:item/%s" % (MOD, dhd)}},
-               "assets", MOD, "models", "item", dhd + ".json")
-    key = "block.%s.%s" % (MOD, dhd)
-    lang.update({
-        key: "Infinity DHD",
-        key + ".tooltip": "Dials Milky Way gates, the Infinity gate among them",
-        key + ".no_crystal_warn": "The DHD has no control crystal",
-        key + ".not_linked_warn": "The DHD isn't linked to a gate",
-        key + ".not_enough_power": "Not enough power",
-        key + ".incoming_wormhole_warn": "An incoming wormhole can't be closed from here",
-        key + ".computer_dial": "A computer is dialling",
-    })
-    write_json({"type": "minecraft:crafting_shapeless", "group": "jsginfinity", "category": "redstone",
-                "ingredients": [{"item": "jsg:dhd_milkyway"}, {"item": "minecraft:lime_dye"}],
-                "result": {"item": "%s:%s" % (MOD, dhd)}}, "data", MOD, "recipes", dhd + ".json")
-    write_json({"type": "minecraft:block", "pools": [{
-        "rolls": 1.0, "bonus_rolls": 0.0,
-        "conditions": [{"condition": "minecraft:survives_explosion"}],
-        "entries": [{"type": "minecraft:item", "name": "%s:%s" % (MOD, dhd)}]}]},
-        "data", MOD, "loot_tables", "blocks", dhd + ".json")
+    # The DHDs: JSG's own Milky Way DHD underneath, each drawn by the add-on's renderer in its look.
+    for dhd, (dhd_name, dye) in DHDS.items():
+        write_json({"variants": {"": {"model": "jsg:block/dhd_generic"}}}, "assets", MOD, "blockstates", dhd + ".json")
+        write_json({"parent": "minecraft:item/generated", "textures": {"layer0": "%s:item/%s" % (MOD, dhd)}},
+                   "assets", MOD, "models", "item", dhd + ".json")
+        key = "block.%s.%s" % (MOD, dhd)
+        lang.update({
+            key: dhd_name,
+            key + ".tooltip": "Dials Milky Way gates, the Infinity gate among them",
+            key + ".no_crystal_warn": "The DHD has no control crystal",
+            key + ".not_linked_warn": "The DHD isn't linked to a gate",
+            key + ".not_enough_power": "Not enough power",
+            key + ".incoming_wormhole_warn": "An incoming wormhole can't be closed from here",
+            key + ".computer_dial": "A computer is dialling",
+        })
+        write_json({"type": "minecraft:crafting_shapeless", "group": "jsginfinity", "category": "redstone",
+                    "ingredients": [{"item": "jsg:dhd_milkyway"}, {"item": "minecraft:" + dye}],
+                    "result": {"item": "%s:%s" % (MOD, dhd)}}, "data", MOD, "recipes", dhd + ".json")
+        write_json({"type": "minecraft:block", "pools": [{
+            "rolls": 1.0, "bonus_rolls": 0.0,
+            "conditions": [{"condition": "minecraft:survives_explosion"}],
+            "entries": [{"type": "minecraft:item", "name": "%s:%s" % (MOD, dhd)}]}]},
+            "data", MOD, "loot_tables", "blocks", dhd + ".json")
 
     # JSG finds gates, their parts and DHDs by block tags, and links a gate to a DHD only when
     # each is in the other's tag. The Infinity blocks join the tags their Milky Way twins are in.
     tags = {
         "stargate/classic_stargate_bases": ["infinity_stargate_base_block"],
         "stargate/classic_stargate_parts": ["infinity_stargate_ring_block", "infinity_stargate_chevron_block"],
-        "stargate/stargate_milkyway_linkable": [dhd],  # what a Milky Way gate links to
+        "stargate/stargate_milkyway_linkable": list(DHDS),  # what a Milky Way gate links to
         "dhd/dhd_milkyway_linkable": ["infinity_stargate_base_block"],  # what a Milky Way DHD links to
-        "dhd/dhd_any": [dhd],
+        "dhd/dhd_any": list(DHDS),
     }
     for tag, blocks in tags.items():
         write_json({"replace": False, "values": ["%s:%s" % (MOD, b) for b in blocks]},
@@ -531,11 +622,17 @@ def main():
     save(paint_chevron_texture(mw, 256, (58, 64, 44), plain), "gate", "chevron_light_off.png")
     for name, img in block_textures().items():
         save(img, "block", name + ".png")
-    save(paint_dhd_texture(dhd_models(z), 2048), "dhd", "dhd_base.png")
-    for level in range(6):
-        save(paint_key_light(level), "dhd", "dhd_button_light_%d.png" % level)
-        save(paint_dome(level), "dhd", "dhd_brb_%d.png" % level)
-    save(dhd_icon(), "item", "infinity_dhd.png")
+    dhd = dhd_models(z)
+    looks = {  # folder: (body, key light, dome, item icon)
+        "infinity": (paint_dhd_texture, paint_key_light, paint_dome, dhd_icon),
+        "orange": (paint_orange_dhd_texture, paint_orange_key_light, paint_orange_dome, orange_dhd_icon),
+    }
+    for look, (body, key, dome, icon) in looks.items():
+        save(body(dhd, 2048), "dhd", look, "dhd_base.png")
+        for level in range(6):
+            save(key(level), "dhd", look, "dhd_button_light_%d.png" % level)
+            save(dome(level), "dhd", look, "dhd_brb_%d.png" % level)
+        save(icon(), "item", look + "_dhd.png")
     write_data()
 
 

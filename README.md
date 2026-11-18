@@ -79,6 +79,7 @@ An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity
  - JSG's own Milky Way gate underneath, so it has Milky Way addresses and is meant to take the DHD, upgrades, the iris and computers like one (see [what was tested](./JSGInfinityGate/README.md#tested))
  - Drawn with JSG's models, in the cartoon's colours: pale stone with ink outlines, lime-yellow chevrons and a pale wormhole
  - An Infinity DHD to go with it: JSG's Milky Way DHD in the same colours, which links to Infinity gates and JSG's Milky Way gates alike
+ - An orange DHD in the style of Carter's Addon Pack, also JSG's Milky Way DHD underneath
  - `/jsginfinity build` lays out a whole gate for operators
 
 ![Infinity gate](./imgs/JSGInfinityGate.png)

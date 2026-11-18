@@ -15,5 +15,12 @@
   "block.jsginfinity.infinity_dhd.not_linked_warn": "The DHD isn't linked to a gate",
   "block.jsginfinity.infinity_dhd.not_enough_power": "Not enough power",
   "block.jsginfinity.infinity_dhd.incoming_wormhole_warn": "An incoming wormhole can't be closed from here",
-  "block.jsginfinity.infinity_dhd.computer_dial": "A computer is dialling"
+  "block.jsginfinity.infinity_dhd.computer_dial": "A computer is dialling",
+  "block.jsginfinity.orange_dhd": "Orange DHD",
+  "block.jsginfinity.orange_dhd.tooltip": "Dials Milky Way gates, the Infinity gate among them",
+  "block.jsginfinity.orange_dhd.no_crystal_warn": "The DHD has no control crystal",
+  "block.jsginfinity.orange_dhd.not_linked_warn": "The DHD isn't linked to a gate",
+  "block.jsginfinity.orange_dhd.not_enough_power": "Not enough power",
+  "block.jsginfinity.orange_dhd.incoming_wormhole_warn": "An incoming wormhole can't be closed from here",
+  "block.jsginfinity.orange_dhd.computer_dial": "A computer is dialling"
 }

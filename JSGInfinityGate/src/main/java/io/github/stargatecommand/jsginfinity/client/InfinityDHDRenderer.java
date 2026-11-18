@@ -33,24 +33,31 @@ import java.util.regex.Pattern;
 
 /**
  * Draws every Milky Way DHD in place of JSG's own renderer. A JSG DHD is left entirely to JSG's
- * code. An Infinity DHD is drawn by the same steps as JSG draws its own, with the Infinity
- * textures: its body, console and key bases, and each key's light at the brightness JSG chose.
+ * code. The add-on's DHDs (Infinity and orange) are drawn by the same steps as JSG draws its own,
+ * with their own textures: the body, console and key bases, and each key's light at the
+ * brightness JSG chose.
  */
 public class InfinityDHDRenderer extends DHDMilkyWayRenderer {
-    private static final ResourceLocation BASE = texture("dhd_base");
     private static final Pattern KEY_TEXTURE = Pattern.compile("(dhd_(?:button_light|brb)_[0-5])");
 
-    /** JSG's key-light textures and the Infinity ones that stand in for them. */
-    private final Map<ResourceLocation, ResourceLocation> keyTextures = new HashMap<>();
-    /** The block of the DHD being drawn; set for the length of one render call. */
+    /** JSG's key-light textures and the ones that stand in for them, per look. */
+    private final Map<String, ResourceLocation> keyTextures = new HashMap<>();
+    /** The block of the DHD being drawn, and its look (its texture folder, or null for JSG's own); set for one render call. */
     private Block drawing;
+    private String look;
 
     public InfinityDHDRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
-    private static ResourceLocation texture(String name) {
-        return new ResourceLocation(JSGInfinity.MOD_ID, "textures/dhd/" + name + ".png");
+    private static ResourceLocation texture(String look, String name) {
+        return new ResourceLocation(JSGInfinity.MOD_ID, "textures/dhd/" + look + "/" + name + ".png");
+    }
+
+    private static String lookOf(Block block) {
+        if (block == JSGInfinity.DHD_BLOCK.get()) return "infinity";
+        if (block == JSGInfinity.ORANGE_DHD_BLOCK.get()) return "orange";
+        return null;
     }
 
     /** What JSG's texture binding does: the models draw with the active texture. */
@@ -59,36 +66,34 @@ public class InfinityDHDRenderer extends DHDMilkyWayRenderer {
         RenderSystem.setShaderTexture(0, texture);
     }
 
-    private boolean infinity() {
-        return drawing != null && drawing == JSGInfinity.DHD_BLOCK.get();
-    }
-
     @Override
     public void render(DHDAbstractBE dhd, float partialTicks, PoseStack stack, MultiBufferSource source, int light, int overlay) {
         Level level = dhd.getLevel();
         drawing = level != null ? level.getBlockState(dhd.getBlockPos()).getBlock() : null;
+        look = lookOf(drawing);
         try {
             super.render(dhd, partialTicks, stack, source, light, overlay);
         } finally {
             drawing = null;
+            look = null;
         }
     }
 
-    /** JSG draws a DHD only where its own block stands; an Infinity DHD's block counts too. */
+    /** JSG draws a DHD only where its own block stands; the add-on's DHD blocks count too. */
     @Override
     public Block getDHDBlock() {
-        return infinity() ? JSGInfinity.DHD_BLOCK.get() : super.getDHDBlock();
+        return look != null ? drawing : super.getDHDBlock();
     }
 
     @Override
     public void renderDHD(PoseStack stack, MultiBufferSource source, int light, int overlay) {
-        if (!infinity()) {
+        if (look == null) {
             super.renderDHD(stack, source, light, overlay);
             return;
         }
         BiomeOverlayRegistry.BiomeOverlayInstance biome = rendererState.getBiomeOverlay();
-        // the parts drawn with the DHD's own texture: the Infinity one
-        bind(BASE);
+        // the parts drawn with the DHD's own texture: this look's
+        bind(texture(look, "dhd_base"));
         ElementEnum.MILKYWAY_DHD_BASE.render(stack, source, light, overlay);
         ElementEnum.MILKYWAY_DHD_BUTTON_CONSOLE.render(stack, source, light, overlay);
         ElementEnum.MILKYWAY_DHD_CRYSTAL_HOLDER.render(stack, source, light, overlay);
@@ -113,10 +118,11 @@ public class InfinityDHDRenderer extends DHDMilkyWayRenderer {
 
     @Override
     public void renderSymbols(PoseStack stack, MultiBufferSource source, int light, int overlay) {
-        if (!infinity()) {
+        if (look == null) {
             super.renderSymbols(stack, source, light, overlay);
             return;
         }
+        ResourceLocation base = texture(look, "dhd_base");
         DHDMilkyWayRendererState state = rendererState;
         BiomeOverlayRegistry.BiomeOverlayInstance biome = state.getBiomeOverlay();
         CompoundTag notebookPage = getNoteBookPage();
@@ -127,7 +133,7 @@ public class InfinityDHDRenderer extends DHDMilkyWayRenderer {
             Vector3f tint = getColorByAddress(state, notebookPage, SymbolTypeRegistry.MILKYWAY, symbol);
             ResourceLocation keyLight = keyTexture(state.getButtonTexture(symbol, biome));
             if (symbol.origin()) {
-                bind(BASE);
+                bind(base);
                 models.getModel(models.getModelResource("milkyway/dhd/buttons/4_base.obj"))
                         .render(stack, source, light, overlay, false, tint.x, tint.y, tint.z, 1f, false);
                 bind(keyLight);
@@ -138,18 +144,19 @@ public class InfinityDHDRenderer extends DHDMilkyWayRenderer {
             symbol.getModel(tileEntity.getSymbolType().getPointOfOriginType(), tileEntity.getPointOfOrigin(), "dhd_light.obj")
                     .render(stack, source, light, overlay, state.isButtonActive(symbol), tint.x, tint.y, tint.z, 1f, false);
             if (symbol.brb()) RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-            bind(BASE);
+            bind(base);
             symbol.getModel(tileEntity.getSymbolType().getPointOfOriginType(), tileEntity.getPointOfOrigin(), "dhd.obj")
                     .render(stack, source, light, overlay, false, tint.x, tint.y, tint.z, 1f, false);
             stack.popPose();
         }
     }
 
-    /** The Infinity texture for one of JSG's key-light textures: the same key, the same brightness. */
+    /** This look's texture for one of JSG's key-light textures: the same key, the same brightness. */
     private ResourceLocation keyTexture(ResourceLocation jsgTexture) {
-        return keyTextures.computeIfAbsent(jsgTexture, jsg -> {
-            Matcher m = KEY_TEXTURE.matcher(jsg.getPath());
-            return m.find() ? texture(m.group(1)) : jsg;
+        String current = look;
+        return keyTextures.computeIfAbsent(current + "|" + jsgTexture, k -> {
+            Matcher m = KEY_TEXTURE.matcher(jsgTexture.getPath());
+            return m.find() ? texture(current, m.group(1)) : jsgTexture;
         });
     }
 }

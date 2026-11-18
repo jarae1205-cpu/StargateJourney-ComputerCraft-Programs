@@ -20,7 +20,8 @@ import net.minecraftforge.registries.RegistryObject;
  * The Infinity Stargate: a gate for Just Stargate Mod, built from its own base, ring and chevron
  * blocks in JSG's Milky Way pattern. Underneath it is JSG's Milky Way gate, so it dials, takes
  * a DHD, upgrades, an iris and computers just like one; only its blocks and its look differ.
- * The Infinity DHD to go with it is JSG's Milky Way DHD in the same colours.
+ * The Infinity DHD to go with it is JSG's Milky Way DHD in the same colours; the orange DHD is
+ * JSG's DHD in the colours of Carter's Addon Pack.
  */
 @Mod(JSGInfinity.MOD_ID)
 public class JSGInfinity {
@@ -36,6 +37,7 @@ public class JSGInfinity {
     public static final RegistryObject<Block> RING_BLOCK = BLOCKS.register("infinity_stargate_ring_block", InfinityBlocks.Ring::new);
     public static final RegistryObject<Block> CHEVRON_BLOCK = BLOCKS.register("infinity_stargate_chevron_block", InfinityBlocks.Chevron::new);
     public static final RegistryObject<Block> DHD_BLOCK = BLOCKS.register("infinity_dhd", InfinityBlocks.Dhd::new);
+    public static final RegistryObject<Block> ORANGE_DHD_BLOCK = BLOCKS.register("orange_dhd", InfinityBlocks.Dhd::new);
 
     public static final RegistryObject<Item> BASE_ITEM = ITEMS.register("infinity_stargate_base_block",
             () -> new BlockItem(BASE_BLOCK.get(), new Item.Properties()));
@@ -45,6 +47,8 @@ public class JSGInfinity {
             () -> new BlockItem(CHEVRON_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<Item> DHD_ITEM = ITEMS.register("infinity_dhd",
             () -> new BlockItem(DHD_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> ORANGE_DHD_ITEM = ITEMS.register("orange_dhd",
+            () -> new BlockItem(ORANGE_DHD_BLOCK.get(), new Item.Properties()));
 
     @SuppressWarnings("DataFlowIssue") // the data fixer type is unused for mod block entities
     public static final RegistryObject<BlockEntityType<InfinityBaseBE>> BASE_BE = BLOCK_ENTITIES.register("infinity_stargate_base",
@@ -61,6 +65,7 @@ public class JSGInfinity {
                 out.accept(RING_ITEM.get());
                 out.accept(CHEVRON_ITEM.get());
                 out.accept(DHD_ITEM.get());
+                out.accept(ORANGE_DHD_ITEM.get());
             })
             .build());
 

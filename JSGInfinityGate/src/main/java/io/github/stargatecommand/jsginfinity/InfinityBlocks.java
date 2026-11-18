@@ -36,8 +36,8 @@ public final class InfinityBlocks {
     }
 
     /**
-     * JSG's Milky Way DHD as it is, block entity and all, under its own name; the add-on's
-     * DHD renderer draws it in the Infinity colours.
+     * JSG's Milky Way DHD as it is, block entity and all, under its own name: the Infinity DHD
+     * and the orange DHD. The add-on's DHD renderer draws each in its own colours.
      */
     public static class Dhd extends DHDMilkyWayBlock {
     }

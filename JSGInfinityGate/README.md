@@ -8,7 +8,7 @@ An add-on for **Just Stargate Mod (JSG) 1.20.1** (Forge): the gate from *Stargat
 
 ## What you get
 
-Four blocks, in their own **Infinity Stargate** creative tab:
+Five blocks, in their own **Infinity Stargate** creative tab:
 
 | Block | Recipe (shapeless) |
 |---|---|
@@ -16,6 +16,7 @@ Four blocks, in their own **Infinity Stargate** creative tab:
 | **Infinity Stargate Ring** | JSG's Milky Way Stargate Ring + lime dye |
 | **Infinity Stargate Chevron** | JSG's Milky Way Stargate Chevron + lime dye |
 | **Infinity DHD** | JSG's Milky Way DHD + lime dye |
+| **Orange DHD** | JSG's Milky Way DHD + orange dye |
 
 Build them exactly like a JSG Milky Way gate: place the base first, and it shows you the diagram; then the ring and chevron blocks around it. When the ring is complete, the blocks form the gate.
 
@@ -43,6 +44,19 @@ JSG's Milky Way DHD in the gate's colours:
 
 Underneath it is JSG's own DHD, so it works the same way: place it within a few blocks of the gate and they link. It dials with the same keys and screen, takes the same control crystal, upgrades and fuel, and links to Infinity gates and JSG's Milky Way, Movie and Tollan gates alike. An ordinary JSG DHD also links to an Infinity gate.
 
+### Orange DHD
+
+![Orange DHD](../imgs/JSGOrangeDHD.png)
+
+*In a Minecraft 1.20.1 client: JSG's own DHD, the Infinity DHD and the orange DHD, and the orange DHD up close.*
+
+The DHD in the style of Carter's Addon Pack:
+- An orange pedestal with amber panels and yellow bands.
+- A dark console with gold-edged keys that light orange.
+- A turquoise dome.
+
+It is JSG's Milky Way DHD underneath too, and works just like the Infinity DHD.
+
 ### Command
 
 For operators, as JSG's `/jsg buildgate` does for its own gates:
@@ -56,7 +70,7 @@ This lays out a whole Infinity gate (base, rings and chevrons) at `<pos>` and fo
 ## Install
 
 1. Install [Just Stargate Mod](https://modrinth.com/mod/jsg) 5.1.2.0 or newer for Minecraft 1.20.1 (Forge 47).
-2. Put [`dist/jsginfinity-1.1.0.jar`](dist/jsginfinity-1.1.0.jar) in the same `mods` folder, on the client and on the server.
+2. Put [`dist/jsginfinity-1.2.0.jar`](dist/jsginfinity-1.2.0.jar) in the same `mods` folder, on the client and on the server. Take out any older `jsginfinity` jar.
 
 ## How it works
 
@@ -67,10 +81,10 @@ The add-on uses the same pattern as JSG's own Movie gate:
 - **Renderer:** it follows JSG's Milky Way renderer step for step, binding the Infinity textures where JSG binds its own.
 - **Tags:** JSG finds gates, their parts and DHDs by block tags, and links a gate and a DHD only when each is in the other's tag. The add-on adds its blocks to the tags their Milky Way twins are in, without replacing JSG's entries.
 
-The Infinity DHD is JSG's Milky Way DHD block entity on a block of its own:
-- At startup the add-on adds that block to the list of blocks JSG's DHD block entity may stand in; without it Minecraft wouldn't tick the DHD.
+The Infinity and orange DHDs are JSG's Milky Way DHD block entity on blocks of their own:
+- At startup the add-on adds those blocks to the list of blocks JSG's DHD block entity may stand in; without it Minecraft wouldn't tick the DHDs.
 - Its renderer takes over JSG's DHD renderer. It leaves every JSG DHD to JSG's own drawing.
-- For an Infinity DHD it follows JSG's steps with the Infinity textures: each key's light at the brightness JSG chose.
+- For the add-on's DHDs it follows JSG's steps with each DHD's own textures: each key's light at the brightness JSG chose.
 
 `tools/make_resources.py` makes the textures, block states, models, recipes, loot tables and tags. It paints every texture from scratch. From your JSG jar it reads only the shapes and UV layouts of the Milky Way gate and DHD models, so the textures line up with them; it never reads JSG's textures. Each texel is coloured from the point of the model it lands on, and sharp edges of the model get ink lines.
 
@@ -81,7 +95,7 @@ python3 tools/make_resources.py jsg-1.20.1-5.1.2.0.jar   # only after changing t
 ./gradlew build
 ```
 
-The jar is `build/libs/jsginfinity-1.1.0.jar`. Gradle fetches JSG from Modrinth's maven to compile against. `./gradlew runServer` and `./gradlew runClient` start Minecraft with JSG and the add-on installed.
+The jar is `build/libs/jsginfinity-1.2.0.jar`. Gradle fetches JSG from Modrinth's maven to compile against. `./gradlew runServer` and `./gradlew runClient` start Minecraft with JSG and the add-on installed.
 
 ## Tested
 
@@ -102,6 +116,11 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - After a restart it loaded and ticked like a JSG DHD.
 - In the client it drew in the Infinity colours, and a JSG DHD beside it still drew as JSG's own.
 - In a player's own game, 1.1.0 showed the gate and the Infinity DHD, and the DHD's keys lit as they dialled.
+
+**The orange DHD (1.2.0)**, on the dev server and client:
+- Placed in front of an Infinity gate, it linked both ways.
+- The DHDs placed before the update loaded and ticked as before.
+- In the client the three DHDs drew side by side, each in its own look (picture above).
 
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
