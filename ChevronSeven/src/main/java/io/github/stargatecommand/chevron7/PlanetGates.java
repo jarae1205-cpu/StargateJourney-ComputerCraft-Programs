@@ -65,6 +65,16 @@ public final class PlanetGates
 		return path.isEmpty() ? path : Character.toUpperCase(path.charAt(0)) + path.substring(1);
 	}
 
+	/** Whether a planet's gate has this address, without generating anything. */
+	public static boolean isPlanetAddress(MinecraftServer server, int[] address)
+	{
+		long seed = server.getWorldData().worldGenOptions().seed();
+		for(ServerLevel planet : planets(server))
+			if(GateAddress.same(addressFor(seed, planet.dimension()), address))
+				return true;
+		return false;
+	}
+
 	/**
 	 * The gate of the planet with this address, generating its site if nobody has been there yet.
 	 * Null if no planet has this address.

@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
 import io.github.stargatecommand.chevron7.Chevron7;
-import io.github.stargatecommand.chevron7.GateAddress;
+import io.github.stargatecommand.chevron7.GateStyle;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 import io.github.stargatecommand.chevron7.StargateBlockEntity.State;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -29,12 +29,43 @@ import net.minecraft.world.level.Level;
  */
 public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity>
 {
-	static final ResourceLocation STONE = Chevron7.id("textures/entity/gate_stone.png");
-	static final ResourceLocation TRACK = Chevron7.id("textures/entity/gate_track.png");
 	static final ResourceLocation CHEVRON = Chevron7.id("textures/entity/chevron.png");
-	static final ResourceLocation HORIZON = Chevron7.id("textures/entity/event_horizon.png");
-	static final ResourceLocation IRIS = Chevron7.id("textures/entity/iris.png");
 	public static final ResourceLocation GLYPHS = Chevron7.id("textures/gui/glyphs.png");
+	/** The letters and digits of a Stargate Network gate, A to 9, in the same 8 by 5 grid as the symbols. */
+	public static final ResourceLocation LETTERS = Chevron7.id("textures/gui/letters.png");
+
+	/** How a kind of gate looks: its textures, and the colours the renderer tints them with. */
+	record Look(ResourceLocation stone, ResourceLocation track, ResourceLocation glyphs, ResourceLocation horizon, ResourceLocation iris,
+			float[] glyph, float[] lit, float[] unlit, float housing, float[] horizonTint)
+	{
+	}
+
+	static final Look CLASSIC = new Look(entity("gate_stone"), entity("gate_track"), GLYPHS, entity("event_horizon"), entity("iris"),
+			new float[] {0.17F, 0.16F, 0.15F}, new float[] {1.0F, 0.58F, 0.16F}, new float[] {0.42F, 0.24F, 0.13F}, 0.62F,
+			new float[] {0.72F, 0.86F, 1.0F});
+	/** Stargate Infinity: a pale cartoon gate drawn with ink, black glyphs, dark chevrons that light lime-yellow, a pale whirlpool. */
+	static final Look INFINITY = new Look(entity("infinity_stone"), entity("infinity_track"), GLYPHS, entity("infinity_horizon"), entity("infinity_iris"),
+			new float[] {0.06F, 0.07F, 0.09F}, new float[] {0.84F, 0.95F, 0.24F}, new float[] {0.17F, 0.19F, 0.24F}, 0.30F,
+			new float[] {1.0F, 1.0F, 1.0F});
+	/** Stargate Network: a dark steel-blue gate with a ring of letters and blue chevrons. */
+	static final Look NETWORK = new Look(entity("network_stone"), entity("network_track"), LETTERS, entity("event_horizon"), entity("iris"),
+			new float[] {0.80F, 0.88F, 1.0F}, new float[] {0.32F, 0.70F, 1.0F}, new float[] {0.14F, 0.20F, 0.30F}, 0.50F,
+			new float[] {0.66F, 0.84F, 1.0F});
+
+	private static ResourceLocation entity(String name)
+	{
+		return Chevron7.id("textures/entity/" + name + ".png");
+	}
+
+	public static Look look(GateStyle style)
+	{
+		return switch(style)
+		{
+			case INFINITY -> INFINITY;
+			case NETWORK -> NETWORK;
+			default -> CLASSIC;
+		};
+	}
 
 	static final float R_OUT = 3.42F, R_MID = 2.94F, R_IN = 2.45F;
 	static final float D_OUT = 0.42F, D_TRACK = 0.33F;
@@ -71,13 +102,15 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		float angle = gate.ringAngle(time);
 		Matrix4f m = pose.last().pose();
 		Matrix3f n = pose.last().normal();
+		GateStyle style = gate.style();
+		Look look = look(style);
 
-		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(STONE)), m, n, R_MID, R_OUT, D_OUT, 36, 0, light, 1.0F);
-		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(TRACK)), m, n, R_IN, R_MID, D_TRACK, GateAddress.SYMBOLS, angle, light, 1.0F);
-		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(GLYPHS)), m, n, angle, light);
-		chevrons(gate, time, buffers, m, n, light);
-		horizon(gate, time, buffers.getBuffer(RenderType.entityTranslucent(HORIZON)), m, n);
-		iris(gate, time, buffers.getBuffer(RenderType.entityCutoutNoCull(IRIS)), m, n, light);
+		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.stone())), m, n, R_MID, R_OUT, D_OUT, 36, 0, light, 1.0F);
+		ring(buffers.getBuffer(RenderType.entityCutoutNoCull(look.track())), m, n, R_IN, R_MID, D_TRACK, style.symbols, angle, light, 1.0F);
+		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(look.glyphs())), m, n, style, look, angle, light);
+		chevrons(gate, time, buffers, m, n, look, light);
+		horizon(gate, time, buffers.getBuffer(RenderType.entityTranslucent(look.horizon())), m, n, look);
+		iris(gate, time, buffers.getBuffer(RenderType.entityCutoutNoCull(look.iris())), m, n, light);
 
 		pose.popPose();
 	}
@@ -123,12 +156,13 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		}
 	}
 
-	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, float rot, int light)
+	private static void glyphs(VertexConsumer vc, Matrix4f m, Matrix3f n, GateStyle style, Look look, float rot, int light)
 	{
 		float rc = (R_IN + R_MID) / 2, h = 0.2F;
-		for(int k = 0; k < GateAddress.SYMBOLS; k++)
+		float[] c = look.glyph();
+		for(int k = 0; k < style.symbols; k++)
 		{
-			float a = (float) Math.toRadians(k * StargateBlockEntity.STEP + rot);
+			float a = (float) Math.toRadians(k * style.step() + rot);
 			float nx = Mth.sin(a), ny = Mth.cos(a); // outwards
 			float tx = ny, ty = -nx; // clockwise
 			float cx = rc * nx, cy = rc * ny;
@@ -142,20 +176,21 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 						cx + h * sx + h * nx, cy + h * sy + h * ny, z,
 						cx + h * sx - h * nx, cy + h * sy - h * ny, z,
 						cx - h * sx - h * nx, cy - h * sy - h * ny, z};
-				quad(vc, m, n, p, new float[] {u0, v0, u1, v0, u1, v1, u0, v1}, 0.17F, 0.16F, 0.15F, 1, light, 0, 0, side);
+				quad(vc, m, n, p, new float[] {u0, v0, u1, v0, u1, v1, u0, v1}, c[0], c[1], c[2], 1, light, 0, 0, side);
 			}
 		}
 	}
 
 	/** Which chevron slots are lit, and how far the top chevron has moved while locking. */
-	private static void chevrons(StargateBlockEntity gate, float time, MultiBufferSource buffers, Matrix4f m, Matrix3f n, int light)
+	private static void chevrons(StargateBlockEntity gate, float time, MultiBufferSource buffers, Matrix4f m, Matrix3f n, Look look, int light)
 	{
 		State state = gate.getState();
 		int count = gate.getChevronsEngaged();
+		int[] order = gate.chevronOrder();
 		boolean[] lit = new boolean[9];
 		if(state != State.RESETTING)
-			for(int i = 0; i < Math.min(count, StargateBlockEntity.CHEVRON_ORDER.length); i++)
-				lit[StargateBlockEntity.CHEVRON_ORDER[i]] = true;
+			for(int i = 0; i < Math.min(count, order.length); i++)
+				lit[order[i]] = true;
 		float lock = gate.lockProgress(time);
 		float topOffset = 0;
 		if(lock >= 0)
@@ -170,12 +205,12 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 			if(p > 0.5F)
 				lit = new boolean[9];
 		}
-		VertexConsumer housing = buffers.getBuffer(RenderType.entityCutoutNoCull(STONE));
+		VertexConsumer housing = buffers.getBuffer(RenderType.entityCutoutNoCull(look.stone()));
 		for(int slot = 0; slot < 9; slot++)
-			chevronHousing(housing, m, n, slot * 40.0F, light);
+			chevronHousing(housing, m, n, slot * 40.0F, look.housing(), light);
 		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(CHEVRON));
 		for(int slot = 0; slot < 9; slot++)
-			chevronLight(glow, m, n, slot * 40.0F, lit[slot], slot == 0 ? topOffset : 0, light);
+			chevronLight(glow, m, n, slot * 40.0F, lit[slot], look, slot == 0 ? topOffset : 0, light);
 	}
 
 	private static float[] at(float angleDeg, float u, float v, float z)
@@ -195,10 +230,9 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		return all;
 	}
 
-	private static void chevronHousing(VertexConsumer vc, Matrix4f m, Matrix3f n, float angle, int light)
+	private static void chevronHousing(VertexConsumer vc, Matrix4f m, Matrix3f n, float angle, float shade, int light)
 	{
 		float outerHalf = 0.36F, innerHalf = 0.15F, top = 0.36F, bottom = -0.34F;
-		float shade = 0.62F;
 		float[] uv = {0, 0, 1, 0, 1, 1, 0, 1};
 		for(int side = 1; side >= -1; side -= 2)
 		{
@@ -217,11 +251,12 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		}
 	}
 
-	private static void chevronLight(VertexConsumer vc, Matrix4f m, Matrix3f n, float angle, boolean lit, float offset, int light)
+	private static void chevronLight(VertexConsumer vc, Matrix4f m, Matrix3f n, float angle, boolean lit, Look look, float offset, int light)
 	{
 		float half = 0.33F, top = 0.34F + offset, bottom = -0.32F + offset;
 		float[] uv = {0, 0, 1, 0, 1, 1, 0, 1};
-		float r = lit ? 1.0F : 0.42F, g = lit ? 0.58F : 0.24F, b = lit ? 0.16F : 0.13F;
+		float[] c = lit ? look.lit() : look.unlit();
+		float r = c[0], g = c[1], b = c[2];
 		int l = lit ? FULL_BRIGHT : light;
 		for(int side = 1; side >= -1; side -= 2)
 		{
@@ -233,7 +268,7 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 
 	//============================================================================================
 
-	private static void horizon(StargateBlockEntity gate, float time, VertexConsumer vc, Matrix4f m, Matrix3f n)
+	private static void horizon(StargateBlockEntity gate, float time, VertexConsumer vc, Matrix4f m, Matrix3f n, Look look)
 	{
 		State state = gate.getState();
 		if(!state.connected() && state != State.CLOSING)
@@ -286,6 +321,7 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 				bright[i][j] = 0.78F + 0.22F * (1 - rr) + 0.5F * flash + (bulge > 0 ? 0.25F : 0);
 			}
 		}
+		float[] tint = look.horizonTint();
 		for(int i = 0; i < rings; i++)
 		{
 			for(int j = 0; j < segments; j++)
@@ -295,7 +331,7 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 				{
 					float b = Math.min(1.0F, bright[c[0]][c[1]]);
 					vertex(vc, m, n, x[c[0]][c[1]], y[c[0]][c[1]], z[c[0]][c[1]], u[c[0]][c[1]], v[c[0]][c[1]],
-							0.72F * b, 0.86F * b, 1.0F * b, alpha, FULL_BRIGHT, 0, 0, 1);
+							tint[0] * b, tint[1] * b, tint[2] * b, alpha, FULL_BRIGHT, 0, 0, 1);
 				}
 			}
 		}

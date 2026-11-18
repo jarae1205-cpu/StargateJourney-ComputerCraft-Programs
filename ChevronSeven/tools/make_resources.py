@@ -1,6 +1,7 @@
 """
-Generates Chevron Seven's textures and data files: the gate textures, the 39 gate symbols,
-the DHD, item icons, blockstates, models, loot tables, recipes, tags, the kawoosh damage type
+Generates Chevron Seven's textures and data files: the gate textures (classic, Stargate Infinity
+and Stargate Network), the 39 gate symbols and the 36 letters and digits, the DHD, the SG computer
+interface, item icons, blockstates, models, loot tables, recipes, tags, the kawoosh damage type
 and the English text.
 
     python3 tools/make_resources.py        (run from ChevronSeven/; needs Pillow)
@@ -277,12 +278,225 @@ def particle():
 
 
 # --------------------------------------------------------------------------
+# Stargate Infinity: the cartoon gate of the animated series
+# --------------------------------------------------------------------------
+
+INK = (20, 22, 28, 255)
+INF_PALE = (201, 211, 226, 255)
+INF_STONE = (180, 192, 210, 255)
+INF_MID = (137, 149, 170, 255)
+INF_TRACK = (157, 169, 188, 255)
+
+
+def infinity_stone():
+    """The outer ring in flat cartoon tones with ink at its edges. v runs from the outer edge (0) to the inner (1);
+    the rims are drawn from the bottom rows."""
+    img = Image.new("RGBA", (64, 64), INF_STONE)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 3, 63, 22], fill=INF_PALE)          # a lit band near the rim
+    d.line([(0, 34), (63, 34)], fill=INF_MID, width=2)  # an engraved line
+    d.rectangle([0, 52, 63, 61], fill=INF_MID)          # the inner rim, in shadow
+    d.line([(0, 0), (63, 0)], fill=INK, width=3)        # ink along both edges
+    d.line([(0, 62), (63, 62)], fill=INK, width=3)
+    d.line([(0, 0), (0, 63)], fill=INF_MID)             # a faint seam between segments
+    return img
+
+
+def infinity_track():
+    """The symbol track: one cell per symbol, outlined in ink."""
+    img = Image.new("RGBA", (64, 64), INF_TRACK)
+    d = ImageDraw.Draw(img)
+    d.line([(0, 0), (63, 0)], fill=INK, width=3)
+    d.line([(0, 63), (63, 63)], fill=INK, width=3)
+    d.line([(0, 0), (0, 63)], fill=INK, width=3)
+    d.rectangle([3, 52, 60, 60], fill=INF_MID)
+    return img
+
+
+def infinity_horizon():
+    """A pale whirlpool with ink spiral lines; the renderer maps it onto the disc and swirls it."""
+    s = 256
+    img = Image.new("RGBA", (s, s))
+    px = img.load()
+    c = (s - 1) / 2
+    lines = 10
+    for y in range(s):
+        for x in range(s):
+            dx, dy = x - c, y - c
+            r = math.hypot(dx, dy) / (s * 0.48)
+            th = math.atan2(dy, dx)
+            rr = max(r, 0.02)
+            a = (th - 2.2 * math.log(rr)) * lines / math.tau
+            dist = abs(a - round(a)) * (math.tau * rr / lines) * (s * 0.48)
+            width = 0.9 + 2.2 * min(r, 1.0)
+            ink = max(0.0, min(1.0, 1 - (dist - width) / 1.2)) if 0.07 < r < 0.99 else 0.0
+            t = max(0.0, 1 - min(r, 1.0)) ** 2
+            base = (217 + 27 * t, 233 + 15 * t, 247 + 5 * t)
+            col = tuple(int(base[k] * (1 - ink) + INK[k] * ink) for k in range(3))
+            px[x, y] = col + (238,)
+    return img
+
+
+def infinity_iris():
+    """Pale blades; the ink on each blade's leading edge draws the spiral when the iris closes."""
+    img = Image.new("RGBA", (64, 64), (214, 226, 238, 255))
+    d = ImageDraw.Draw(img)
+    for x in range(64):
+        shade = int(18 * x / 63)
+        d.line([(x, 0), (x, 63)], fill=(214 - shade, 226 - shade, 238 - shade, 255))
+    d.line([(0, 0), (0, 63)], fill=INK, width=5)
+    d.line([(6, 0), (6, 63)], fill=(240, 246, 252, 255), width=2)
+    d.line([(0, 0), (63, 0)], fill=INK, width=2)
+    return img
+
+
+# --------------------------------------------------------------------------
+# Stargate Network: a dark steel-blue gate with a ring of letters and blue chevrons
+# --------------------------------------------------------------------------
+
+def network_stone():
+    img = noise_tile(64, 64, (74, 84, 102), 40, 51)
+    d = ImageDraw.Draw(img)
+    for y, col in ((3, (44, 50, 62)), (4, (110, 122, 142)), (24, (44, 50, 62)), (25, (104, 116, 136)),
+                   (47, (44, 50, 62)), (48, (104, 116, 136)), (60, (44, 50, 62)), (61, (110, 122, 142))):
+        d.line([(0, y), (63, y)], fill=col + (255,))
+    # a panel with a small blue light in each segment
+    d.rectangle([22, 30, 42, 42], outline=(44, 50, 62, 255), fill=(64, 72, 88, 255))
+    d.rectangle([29, 34, 35, 38], fill=(90, 170, 255, 255))
+    d.line([(0, 0), (0, 63)], fill=(40, 46, 58, 255))
+    return img
+
+
+def network_track():
+    img = noise_tile(64, 64, (46, 52, 64), 26, 53)
+    d = ImageDraw.Draw(img)
+    d.line([(0, 0), (0, 63)], fill=(28, 32, 40, 255), width=2)
+    d.line([(63, 0), (63, 63)], fill=(78, 88, 106, 255))
+    d.line([(0, 2), (63, 2)], fill=(30, 34, 42, 255))
+    d.line([(0, 61), (63, 61)], fill=(30, 34, 42, 255))
+    return img
+
+
+# A blocky 5 by 7 font for the letters and digits of the ring, the DHD and the interface
+FONT = {
+    "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+    "B": ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
+    "C": ["01110", "10001", "10000", "10000", "10000", "10001", "01110"],
+    "D": ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
+    "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+    "F": ["11111", "10000", "10000", "11110", "10000", "10000", "10000"],
+    "G": ["01110", "10001", "10000", "10111", "10001", "10001", "01111"],
+    "H": ["10001", "10001", "10001", "11111", "10001", "10001", "10001"],
+    "I": ["01110", "00100", "00100", "00100", "00100", "00100", "01110"],
+    "J": ["00111", "00010", "00010", "00010", "00010", "10010", "01100"],
+    "K": ["10001", "10010", "10100", "11000", "10100", "10010", "10001"],
+    "L": ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
+    "M": ["10001", "11011", "10101", "10101", "10001", "10001", "10001"],
+    "N": ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
+    "O": ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
+    "P": ["11110", "10001", "10001", "11110", "10000", "10000", "10000"],
+    "Q": ["01110", "10001", "10001", "10001", "10101", "10010", "01101"],
+    "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+    "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+    "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+    "U": ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
+    "V": ["10001", "10001", "10001", "10001", "10001", "01010", "00100"],
+    "W": ["10001", "10001", "10001", "10101", "10101", "10101", "01010"],
+    "X": ["10001", "10001", "01010", "00100", "01010", "10001", "10001"],
+    "Y": ["10001", "10001", "01010", "00100", "00100", "00100", "00100"],
+    "Z": ["11111", "00001", "00010", "00100", "01000", "10000", "11111"],
+    "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+    "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+    "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+    "3": ["11111", "00010", "00100", "00010", "00001", "10001", "01110"],
+    "4": ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+    "5": ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+    "6": ["00110", "01000", "10000", "11110", "10001", "10001", "01110"],
+    "7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+    "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+    "9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+}
+LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+
+def draw_char(d, ch, x, y, cell, fill):
+    """One character of the block font, cell pixels per font pixel, top left at x, y."""
+    for row, bits in enumerate(FONT[ch]):
+        for col, bit in enumerate(bits):
+            if bit == "1":
+                d.rectangle([x + col * cell, y + row * cell, x + (col + 1) * cell - 1, y + (row + 1) * cell - 1], fill=fill)
+
+
+def letter_atlas():
+    """The 36 letters and digits, white on transparent, 32x32 each, 8 per row (the same grid as the symbols)."""
+    atlas = Image.new("RGBA", (256, 160), (0, 0, 0, 0))
+    d = ImageDraw.Draw(atlas)
+    for i, ch in enumerate(LETTERS):
+        x, y = (i % 8) * 32, (i // 8) * 32
+        draw_char(d, ch, x + 6, y + 2, 4, (255, 255, 255, 255))
+    return atlas
+
+
+def sg_interface_side():
+    img = noise_tile(16, 16, (96, 102, 112), 26, 61, grain=2)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 15, 15], outline=(58, 62, 70, 255))
+    d.rectangle([2, 2, 13, 9], fill=(22, 28, 40, 255))
+    draw_char(d, "S", 3, 3, 1, (110, 190, 255, 255))
+    draw_char(d, "G", 8, 3, 1, (110, 190, 255, 255))
+    d.rectangle([3, 11, 5, 13], fill=(70, 200, 110, 255))
+    d.rectangle([7, 11, 12, 13], fill=(64, 70, 80, 255))
+    return img
+
+
+def sg_interface_top():
+    img = noise_tile(16, 16, (96, 102, 112), 26, 67, grain=2)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 15, 15], outline=(58, 62, 70, 255))
+    d.rectangle([5, 5, 10, 10], outline=(70, 76, 86, 255))
+    return img
+
+
+def styled_gate_icon(ring, edge, chevron, water, glint):
+    s = 64
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = s / 2
+    d.ellipse([c - 21, c - 21, c + 21, c + 21], fill=water)
+    d.ellipse([c - 14, c - 14, c + 6, c + 6], fill=glint)
+    d.ellipse([c - 30, c - 30, c + 30, c + 30], outline=ring, width=10)
+    d.ellipse([c - 30, c - 30, c + 30, c + 30], outline=edge, width=2)
+    d.ellipse([c - 21, c - 21, c + 21, c + 21], outline=edge, width=2)
+    for i in range(9):
+        a = math.tau * i / 9
+        x, y = c + 28 * math.sin(a), c - 28 * math.cos(a)
+        d.regular_polygon((x, y, 5), 3, rotation=math.degrees(-a) + 180, fill=chevron)
+    return img.resize((16, 16), Image.LANCZOS)
+
+
+def infinity_icon():
+    return styled_gate_icon((190, 200, 216, 255), INK, (214, 242, 60, 255), (210, 228, 246, 255), (244, 248, 252, 255))
+
+
+def network_icon():
+    return styled_gate_icon((74, 84, 102, 255), (36, 40, 50, 255), (90, 180, 255, 255), (80, 140, 225, 255), (150, 200, 250, 255))
+
+
+# --------------------------------------------------------------------------
 # data
 # --------------------------------------------------------------------------
 
 LANG = {
     "itemGroup.chevron7": "Chevron Seven",
     "block.chevron7.stargate": "Stargate",
+    "block.chevron7.infinity_stargate": "Stargate (Infinity)",
+    "block.chevron7.network_stargate": "Stargate (Stargate Network)",
+    "block.chevron7.sg_interface": "SG Computer Interface",
+    "message.chevron7.address_both": "This gate's address: %s   letters: %s",
+    "message.chevron7.address_letters": "Stargate address: %s   symbols: %s",
+    "message.chevron7.interface_no_gate": "No stargate within %s blocks of this interface",
+    "message.chevron7.interface_gate": "This interface controls the stargate %s",
+    "screen.chevron7.letter": "%s",
     "block.chevron7.gate_frame": "Stargate",
     "block.chevron7.dhd": "Dial Home Device",
     "item.chevron7.iris": "Gate Iris",
@@ -377,13 +591,23 @@ def data_files():
         ],
     })
     write_json(os.path.join(ASSETS, "models", "item", "stargate.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/stargate"}})
+    for name, particle in (("infinity_stargate", "infinity_stone"), ("network_stargate", "network_stone")):
+        write_json(os.path.join(ASSETS, "blockstates", name + ".json"), {"variants": {"": {"model": "chevron7:block/" + name}}})
+        write_json(os.path.join(ASSETS, "models", "block", name + ".json"), {"textures": {"particle": "chevron7:block/" + particle}})
+        write_json(os.path.join(ASSETS, "models", "item", name + ".json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/" + name}})
+    write_json(os.path.join(ASSETS, "blockstates", "sg_interface.json"), {"variants": {"": {"model": "chevron7:block/sg_interface"}}})
+    write_json(os.path.join(ASSETS, "models", "block", "sg_interface.json"), {
+        "parent": "minecraft:block/cube_bottom_top",
+        "textures": {"side": "chevron7:block/sg_interface_side", "top": "chevron7:block/sg_interface_top",
+                     "bottom": "chevron7:block/sg_interface_top"}})
+    write_json(os.path.join(ASSETS, "models", "item", "sg_interface.json"), {"parent": "chevron7:block/sg_interface"})
     write_json(os.path.join(ASSETS, "models", "item", "iris.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/iris"}})
     write_json(os.path.join(ASSETS, "models", "item", "address_book.json"), {"parent": "item/generated", "textures": {"layer0": "chevron7:item/address_book"}})
     write_json(os.path.join(ASSETS, "models", "item", "dhd.json"), {"parent": "chevron7:block/dhd"})
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), LANG)
 
     # loot
-    for name in ("stargate", "dhd"):
+    for name in ("stargate", "dhd", "infinity_stargate", "network_stargate", "sg_interface"):
         write_json(os.path.join(DATA, "loot_tables", "blocks", name + ".json"), {
             "type": "minecraft:block",
             "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "chevron7:" + name}],
@@ -404,18 +628,30 @@ def data_files():
            {"R": "minecraft:redstone_block", "G": "minecraft:gold_ingot", "C": "minecraft:compass", "S": "minecraft:smooth_sandstone"},
            "chevron7:dhd")
     shaped("iris", ["III", "ITI", "III"], {"I": "minecraft:iron_ingot", "T": "minecraft:iron_trapdoor"}, "chevron7:iris")
-    write_json(os.path.join(DATA, "recipes", "address_book.json"), {
-        "type": "minecraft:crafting_shapeless", "category": "misc",
-        "ingredients": [{"item": "minecraft:book"}, {"item": "minecraft:ender_eye"}],
-        "result": {"item": "chevron7:address_book", "count": 1},
-    })
+    def shapeless(name, ingredients, result):
+        write_json(os.path.join(DATA, "recipes", name + ".json"), {
+            "type": "minecraft:crafting_shapeless", "category": "misc",
+            "ingredients": [{"item": i} for i in ingredients],
+            "result": {"item": result, "count": 1},
+        })
+
+    shapeless("address_book", ["minecraft:book", "minecraft:ender_eye"], "chevron7:address_book")
+    # the other kinds of gate are made from a gate, and turn back into one on their own
+    shapeless("infinity_stargate", ["chevron7:stargate", "minecraft:lime_dye", "minecraft:ink_sac"], "chevron7:infinity_stargate")
+    shapeless("network_stargate", ["chevron7:stargate", "minecraft:lapis_block"], "chevron7:network_stargate")
+    shapeless("stargate_from_infinity", ["chevron7:infinity_stargate"], "chevron7:stargate")
+    shapeless("stargate_from_network", ["chevron7:network_stargate"], "chevron7:stargate")
+    shaped("sg_interface", ["IRI", "RCR", "IRI"],
+           {"I": "minecraft:iron_ingot", "R": "minecraft:redstone", "C": "minecraft:comparator"}, "chevron7:sg_interface")
 
     # tags
     tags = os.path.join(RES, "data", "minecraft", "tags")
     write_json(os.path.join(tags, "blocks", "mineable", "pickaxe.json"),
-               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:dhd"]})
+               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:dhd", "chevron7:infinity_stargate",
+                                             "chevron7:network_stargate", "chevron7:sg_interface"]})
     write_json(os.path.join(tags, "blocks", "needs_iron_tool.json"),
-               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame"]})
+               {"replace": False, "values": ["chevron7:stargate", "chevron7:gate_frame", "chevron7:infinity_stargate",
+                                             "chevron7:network_stargate"]})
     write_json(os.path.join(tags, "damage_type", "bypasses_armor.json"), {"replace": False, "values": ["chevron7:kawoosh"]})
     # gate fields: a feature added to plains, meadows and savannas by a Forge biome modifier
     write_json(os.path.join(DATA, "worldgen", "configured_feature", "gate_field.json"),
@@ -476,6 +712,19 @@ def main():
     save(gate_icon(), "item", "stargate")
     save(iris_icon(), "item", "iris")
     save(address_book_icon(), "item", "address_book")
+    save(infinity_stone(), "entity", "infinity_stone")
+    save(infinity_track(), "entity", "infinity_track")
+    save(infinity_horizon(), "entity", "infinity_horizon")
+    save(infinity_iris(), "entity", "infinity_iris")
+    save(infinity_stone().resize((16, 16), Image.LANCZOS), "block", "infinity_stone")
+    save(network_stone(), "entity", "network_stone")
+    save(network_track(), "entity", "network_track")
+    save(network_stone().resize((16, 16), Image.LANCZOS), "block", "network_stone")
+    save(letter_atlas(), "gui", "letters")
+    save(sg_interface_side(), "block", "sg_interface_side")
+    save(sg_interface_top(), "block", "sg_interface_top")
+    save(infinity_icon(), "item", "infinity_stargate")
+    save(network_icon(), "item", "network_stargate")
     data_files()
     print("resources written to", os.path.normpath(RES))
 

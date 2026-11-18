@@ -34,10 +34,18 @@ public class StargateBlock extends BaseEntityBlock
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
-	public StargateBlock(Properties properties)
+	private final GateStyle style;
+
+	public StargateBlock(Properties properties, GateStyle style)
 	{
 		super(properties);
+		this.style = style;
 		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
+	}
+
+	public GateStyle style()
+	{
+		return style;
 	}
 
 	@Override
@@ -136,7 +144,14 @@ public class StargateBlock extends BaseEntityBlock
 		if(held.getItem() instanceof IrisItem)
 			return InteractionResult.PASS;
 		if(!level.isClientSide() && level.getBlockEntity(core) instanceof StargateBlockEntity gate)
-			player.displayClientMessage(Component.translatable("message.chevron7.address", GateAddress.format(gate.getAddress())), true);
+		{
+			// a Stargate Network gate is dialed by its letters; every gate can be dialed both ways
+			int[] address = gate.getAddress();
+			Component message = gate.style().letters()
+					? Component.translatable("message.chevron7.address_letters", SGAddress.formatOf(address), GateAddress.format(address))
+					: Component.translatable("message.chevron7.address_both", GateAddress.format(address), SGAddress.formatOf(address));
+			player.displayClientMessage(message, true);
+		}
 		return InteractionResult.sidedSuccess(level.isClientSide());
 	}
 
@@ -155,7 +170,7 @@ public class StargateBlock extends BaseEntityBlock
 	@Override
 	public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state)
 	{
-		return new ItemStack(Chevron7.STARGATE_ITEM.get());
+		return new ItemStack(this);
 	}
 
 	@Nullable

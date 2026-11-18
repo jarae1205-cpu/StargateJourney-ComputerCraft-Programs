@@ -11,6 +11,8 @@ import dan200.computercraft.api.peripheral.AttachedComputerSet;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.github.stargatecommand.chevron7.GateAddress;
+import io.github.stargatecommand.chevron7.GateStyle;
+import io.github.stargatecommand.chevron7.SGAddress;
 import io.github.stargatecommand.chevron7.StargateBlockEntity;
 
 /**
@@ -53,6 +55,8 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	@Override
 	public void gateEvent(String name, Object... args)
 	{
+		if(name.startsWith("_"))
+			return; // internal events, for the SG interface
 		computers.forEach(computer -> {
 			Object[] withName = new Object[args.length + 1];
 			withName[0] = computer.getAttachmentName();
@@ -85,13 +89,22 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 	@LuaFunction(mainThread = true)
 	public final String getStargateType()
 	{
-		return "chevron7:stargate";
+		return gate.style() == GateStyle.NETWORK ? "chevron7:network_stargate" : "chevron7:stargate";
 	}
 
+	/** "chevron7:infinity" for the Stargate Infinity gate, "chevron7:stargate_network" for the Network gate, "" for the classic gate. */
 	@LuaFunction(mainThread = true)
 	public final String getStargateVariant()
 	{
-		return "";
+		return gate.style().variant;
+	}
+
+	/** The gate's letter address, e.g. "1KA09KTHY": any gate can dial it with {@link #dialLetters}. */
+	@LuaFunction(mainThread = true)
+	public final String getLocalLetters()
+	{
+		String letters = SGAddress.encode(gate.getAddress());
+		return letters == null ? "" : letters;
 	}
 
 	@LuaFunction(mainThread = true)
@@ -213,6 +226,13 @@ public class StargatePeripheral implements IPeripheral, StargateBlockEntity.List
 		if(symbols.length == GateAddress.LENGTH + 1 && symbols[GateAddress.LENGTH] == GateAddress.POINT_OF_ORIGIN)
 			symbols = java.util.Arrays.copyOf(symbols, GateAddress.LENGTH);
 		return gate.dial(symbols);
+	}
+
+	/** Dials a letter address such as "1KA0-9KT-HY". */
+	@LuaFunction(mainThread = true)
+	public final int dialLetters(String address)
+	{
+		return gate.dialLetters(address);
 	}
 
 	@LuaFunction(mainThread = true)

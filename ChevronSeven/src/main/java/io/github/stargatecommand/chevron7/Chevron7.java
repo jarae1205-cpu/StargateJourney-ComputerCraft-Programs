@@ -51,15 +51,21 @@ public class Chevron7
 
 	public static final ResourceKey<DamageType> KAWOOSH = ResourceKey.create(Registries.DAMAGE_TYPE, id("kawoosh"));
 
+	private static StargateBlock gate(GateStyle style)
+	{
+		return new StargateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0), style);
+	}
+
 	private static BlockBehaviour.Properties gateProperties()
 	{
 		return BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(8.0F, 1200.0F).sound(SoundType.NETHERITE_BLOCK)
 				.noOcclusion().requiresCorrectToolForDrops().pushReaction(PushReaction.BLOCK);
 	}
 
-	/** The bottom middle block of the ring: owns the gate and draws all of it. */
-	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate",
-			() -> new StargateBlock(gateProperties().lightLevel(state -> state.getValue(StargateBlock.LIT) ? 12 : 0)));
+	/** The bottom middle block of the ring: owns the gate and draws all of it. One block for each kind of gate. */
+	public static final RegistryObject<StargateBlock> STARGATE = BLOCKS.register("stargate", () -> gate(GateStyle.CLASSIC));
+	public static final RegistryObject<StargateBlock> INFINITY_STARGATE = BLOCKS.register("infinity_stargate", () -> gate(GateStyle.INFINITY));
+	public static final RegistryObject<StargateBlock> NETWORK_STARGATE = BLOCKS.register("network_stargate", () -> gate(GateStyle.NETWORK));
 	/** The other 23 blocks of the ring, invisible: they give the ring its collision. */
 	public static final RegistryObject<GateFrameBlock> GATE_FRAME = BLOCKS.register("gate_frame",
 			() -> new GateFrameBlock(gateProperties().noLootTable().lightLevel(state -> state.getValue(GateFrameBlock.LIT) ? 12 : 0)));
@@ -67,8 +73,19 @@ public class Chevron7
 			() -> new DHDBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_BROWN).strength(4.0F, 1200.0F)
 					.sound(SoundType.STONE).noOcclusion().requiresCorrectToolForDrops().lightLevel(state -> 4)));
 
+	/** Put next to a gate, it is an SGCraft-style computer interface for it. */
+	public static final RegistryObject<SGInterfaceBlock> SG_INTERFACE = BLOCKS.register("sg_interface",
+			() -> new SGInterfaceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0F, 1200.0F)
+					.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+
 	public static final RegistryObject<Item> STARGATE_ITEM = ITEMS.register("stargate",
 			() -> new BlockItem(STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+	public static final RegistryObject<Item> INFINITY_STARGATE_ITEM = ITEMS.register("infinity_stargate",
+			() -> new BlockItem(INFINITY_STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+	public static final RegistryObject<Item> NETWORK_STARGATE_ITEM = ITEMS.register("network_stargate",
+			() -> new BlockItem(NETWORK_STARGATE.get(), new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+	public static final RegistryObject<Item> SG_INTERFACE_ITEM = ITEMS.register("sg_interface",
+			() -> new BlockItem(SG_INTERFACE.get(), new Item.Properties()));
 	public static final RegistryObject<Item> DHD_ITEM = ITEMS.register("dhd",
 			() -> new BlockItem(DHD.get(), new Item.Properties().stacksTo(1)));
 	public static final RegistryObject<Item> IRIS = ITEMS.register("iris",
@@ -77,7 +94,9 @@ public class Chevron7
 			() -> new AddressBookItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistryObject<BlockEntityType<StargateBlockEntity>> STARGATE_ENTITY = BLOCK_ENTITIES.register("stargate",
-			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get()).build(null));
+			() -> BlockEntityType.Builder.of(StargateBlockEntity::new, STARGATE.get(), INFINITY_STARGATE.get(), NETWORK_STARGATE.get()).build(null));
+	public static final RegistryObject<BlockEntityType<SGInterfaceBlockEntity>> SG_INTERFACE_ENTITY = BLOCK_ENTITIES.register("sg_interface",
+			() -> BlockEntityType.Builder.of(SGInterfaceBlockEntity::new, SG_INTERFACE.get()).build(null));
 
 	public static final RegistryObject<CreativeModeTab> TAB = TABS.register("chevron7", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.chevron7"))

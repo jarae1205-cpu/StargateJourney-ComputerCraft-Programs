@@ -51,7 +51,6 @@ public class StargateBlockEntity extends BlockEntity
 		}
 	}
 
-	public static final float STEP = 360.0F / GateAddress.SYMBOLS;
 	public static final float SPIN_SPEED = 7.0F; // degrees per tick
 	public static final int LOCK_TICKS = 12;
 	public static final int FAST_LOCK_TICKS = 6;
@@ -60,9 +59,6 @@ public class StargateBlockEntity extends BlockEntity
 	public static final int RESET_TICKS = 30;
 	public static final int IRIS_TICKS = 24;
 	private static final int FAST = 100;
-
-	/** Chevron slots (every 40 degrees, 0 at the top) in the order they light; the top one locks last. */
-	public static final int[] CHEVRON_ORDER = {1, 2, 3, 6, 7, 8, 0};
 
 	public static final TicketType<ChunkPos> TICKET = TicketType.create("chevron7_wormhole", Comparator.comparingLong(ChunkPos::toLong), 300);
 
@@ -191,6 +187,18 @@ public class StargateBlockEntity extends BlockEntity
 		return getBlockState().getValue(StargateBlock.FACING);
 	}
 
+	/** Which kind of gate this is: it decides the look, and whether the gate dials letters. */
+	public GateStyle style()
+	{
+		return getBlockState().getBlock() instanceof StargateBlock block ? block.style() : GateStyle.CLASSIC;
+	}
+
+	/** Chevron slots in the order they light. */
+	public int[] chevronOrder()
+	{
+		return style().chevronOrder();
+	}
+
 	/** How far the current chevron lock has gone, 0 to 1, or -1 when no chevron is locking. */
 	public float lockProgress(float time)
 	{
@@ -199,7 +207,7 @@ public class StargateBlockEntity extends BlockEntity
 		return Math.min(1.0F, Math.max(0.0F, (time - lockStart) / lockLength));
 	}
 
-	/** Ring angle in degrees, clockwise as seen from the front. Symbol k sits under the top chevron at -k * STEP. */
+	/** Ring angle in degrees, clockwise as seen from the front. Symbol k sits under the top chevron at -k * step. */
 	public float ringAngle(float time)
 	{
 		if(!rotating || rotDuration <= 0)
@@ -220,8 +228,9 @@ public class StargateBlockEntity extends BlockEntity
 
 	public int currentSymbol(float time)
 	{
-		int symbol = Math.round(-ringAngle(time) / STEP) % GateAddress.SYMBOLS;
-		return symbol < 0 ? symbol + GateAddress.SYMBOLS : symbol;
+		GateStyle style = style();
+		int symbol = Math.round(-ringAngle(time) / style.step()) % style.symbols;
+		return symbol < 0 ? symbol + style.symbols : symbol;
 	}
 
 	public boolean hasIris()
@@ -280,26 +289,34 @@ public class StargateBlockEntity extends BlockEntity
 
 	/**
 	 * Adds a symbol to the address being dialed. The ring turns to it and the chevron locks,
-	 * or with {@code fast} (the DHD) the chevron locks straight away.
+	 * or with {@code fast} (the DHD) the chevron locks straight away. On a Stargate Network
+	 * gate the symbols are the letters and digits of its ring, 0 for A to 35 for 9.
 	 */
 	public int engageSymbol(int symbol, boolean fast)
 	{
 		if(state.connected() || state == State.CLOSING)
 			return feedback(ALREADY_CONNECTED, "already_connected");
-		if(symbol < 0 || symbol >= GateAddress.SYMBOLS)
+		GateStyle style = style();
+		if(symbol < 0 || symbol >= style.symbols)
 			return feedback(SYMBOL_OUT_OF_BOUNDS, "symbol_out_of_bounds");
 		List<Integer> planned = plannedSymbols();
-		if(planned.contains(symbol))
-			return feedback(SYMBOL_IN_ADDRESS, "symbol_in_address");
-		if(planned.contains(GateAddress.POINT_OF_ORIGIN))
-			return feedback(ADDRESS_FULL, "address_full");
-		if(planned.size() >= GateAddress.LENGTH && symbol != GateAddress.POINT_OF_ORIGIN)
-			return feedback(ADDRESS_FULL, "address_full");
-		if(state == State.RESETTING)
+		if(style.letters())
 		{
-			state = State.IDLE;
-			stateTick = now();
+			// letters may repeat; the ninth completes the address
+			if(planned.size() >= style.chevrons)
+				return feedback(ADDRESS_FULL, "address_full");
 		}
+		else
+		{
+			if(planned.contains(symbol))
+				return feedback(SYMBOL_IN_ADDRESS, "symbol_in_address");
+			if(planned.contains(GateAddress.POINT_OF_ORIGIN))
+				return feedback(ADDRESS_FULL, "address_full");
+			if(planned.size() >= GateAddress.LENGTH && symbol != GateAddress.POINT_OF_ORIGIN)
+				return feedback(ADDRESS_FULL, "address_full");
+		}
+		if(state == State.RESETTING)
+			setState(State.IDLE, now());
 		queue.add(symbol + (fast ? FAST : 0));
 		setChanged();
 		return feedback(SYMBOL_ENCODED, "symbol_encoded");
@@ -316,11 +333,13 @@ public class StargateBlockEntity extends BlockEntity
 		return planned;
 	}
 
-	/** Dials a whole address, ring turning for each symbol. */
+	/** Dials a whole address, ring turning for each symbol. A Stargate Network gate dials its letters. */
 	public int dial(int[] target)
 	{
 		if(!GateAddress.valid(target))
 			return feedback(INVALID_ADDRESS, "invalid_address");
+		if(style().letters())
+			return dialLetters(SGAddress.encode(target));
 		if(state.connected() || state == State.CLOSING)
 			return feedback(ALREADY_CONNECTED, "already_connected");
 		if(!plannedSymbols().isEmpty())
@@ -330,13 +349,38 @@ public class StargateBlockEntity extends BlockEntity
 		return engageSymbol(GateAddress.POINT_OF_ORIGIN, false);
 	}
 
+	/**
+	 * Dials a letter address such as "1KA0-9KT-HY". A Stargate Network gate turns its ring to
+	 * each of the nine characters; other gates dial the symbol address the letters stand for.
+	 */
+	public int dialLetters(@Nullable String text)
+	{
+		if(text == null)
+			return feedback(INVALID_ADDRESS, "invalid_address");
+		if(!style().letters())
+		{
+			int[] target = SGAddress.decode(text);
+			return target == null ? feedback(INVALID_ADDRESS, "invalid_address") : dial(target);
+		}
+		if(!SGAddress.wellFormed(text))
+			return feedback(INVALID_ADDRESS, "invalid_address");
+		if(state.connected() || state == State.CLOSING)
+			return feedback(ALREADY_CONNECTED, "already_connected");
+		if(!plannedSymbols().isEmpty())
+			abort();
+		int result = feedback(SYMBOL_ENCODED, "symbol_encoded");
+		for(int position : SGAddress.positions(text))
+			result = engageSymbol(position, false);
+		return result;
+	}
+
 	/** The big red button of the DHD. */
 	public int dhdButton()
 	{
 		if(state.connected())
 			return disconnect(false);
 		List<Integer> planned = plannedSymbols();
-		if(planned.size() == GateAddress.LENGTH && !planned.contains(GateAddress.POINT_OF_ORIGIN))
+		if(!style().letters() && planned.size() == GateAddress.LENGTH && !planned.contains(GateAddress.POINT_OF_ORIGIN))
 			return engageSymbol(GateAddress.POINT_OF_ORIGIN, true);
 		if(!planned.isEmpty())
 		{
@@ -388,10 +432,7 @@ public class StargateBlockEntity extends BlockEntity
 		pendingSymbol = -1;
 		lockStart = -1;
 		if(state == State.DIALING)
-		{
-			state = State.IDLE;
-			stateTick = now();
-		}
+			setState(State.IDLE, now());
 	}
 
 	public void installIris()
@@ -414,6 +455,7 @@ public class StargateBlockEntity extends BlockEntity
 		irisClosed = closed;
 		irisTick = now;
 		sound(closed ? SoundEvents.PISTON_EXTEND : SoundEvents.PISTON_CONTRACT, 1.0F, 0.55F);
+		fire("_iris", closed);
 		sync();
 		return true;
 	}
@@ -531,7 +573,7 @@ public class StargateBlockEntity extends BlockEntity
 		else
 		{
 			float angle = normalize(ringAngle(now));
-			float target = normalize(-symbol * STEP);
+			float target = normalize(-symbol * style().step());
 			// the ring turns one way, then the other
 			float delta = encoded.size() % 2 == 0 ? positive(target - angle) : -positive(angle - target);
 			if(Math.abs(delta) < 0.01F)
@@ -561,7 +603,9 @@ public class StargateBlockEntity extends BlockEntity
 		int n = encoded.size();
 		sound(SoundEvents.IRON_TRAPDOOR_CLOSE, 1.0F, 0.6F);
 		fire("stargate_chevron_engaged", n, n, false, symbol);
-		if(symbol == GateAddress.POINT_OF_ORIGIN)
+		GateStyle style = style();
+		boolean complete = style.letters() ? n >= style.chevrons : symbol == GateAddress.POINT_OF_ORIGIN;
+		if(complete)
 			connect(level, now);
 		else
 			sync();
@@ -569,14 +613,28 @@ public class StargateBlockEntity extends BlockEntity
 
 	private void connect(ServerLevel level, long now)
 	{
-		if(encoded.size() != GateAddress.LENGTH + 1)
+		int[] target;
+		if(style().letters())
 		{
-			fail(INCOMPLETE_ADDRESS, "incomplete_address", now);
-			return;
+			// the nine letters stand for a symbol address, or for nothing (a mistyped address)
+			target = SGAddress.decode(SGAddress.letters(encoded));
+			if(target == null)
+			{
+				fail(INVALID_ADDRESS, "invalid_address", now);
+				return;
+			}
 		}
-		int[] target = new int[GateAddress.LENGTH];
-		for(int i = 0; i < GateAddress.LENGTH; i++)
-			target[i] = encoded.get(i);
+		else
+		{
+			if(encoded.size() != GateAddress.LENGTH + 1)
+			{
+				fail(INCOMPLETE_ADDRESS, "incomplete_address", now);
+				return;
+			}
+			target = new int[GateAddress.LENGTH];
+			for(int i = 0; i < GateAddress.LENGTH; i++)
+				target[i] = encoded.get(i);
+		}
 		if(GateAddress.same(target, address))
 		{
 			fail(SELF_DIAL, "self_dial", now);
@@ -636,9 +694,14 @@ public class StargateBlockEntity extends BlockEntity
 		remoteAddress = caller.address.clone();
 		openTicks = 0;
 		encoded.clear();
-		for(int symbol : caller.address)
-			encoded.add(symbol);
-		encoded.add(GateAddress.POINT_OF_ORIGIN);
+		if(style().letters())
+			encoded.addAll(SGAddress.positions(SGAddress.encode(caller.address)));
+		else
+		{
+			for(int symbol : caller.address)
+				encoded.add(symbol);
+			encoded.add(GateAddress.POINT_OF_ORIGIN);
+		}
 		setState(State.OPENING, now);
 		for(int i = 0; i < encoded.size(); i++)
 			fire("stargate_chevron_engaged", i + 1, i + 1, true, encoded.get(i));
@@ -691,9 +754,12 @@ public class StargateBlockEntity extends BlockEntity
 
 	private void setState(State newState, long now)
 	{
+		State old = state;
 		boolean wasLit = state.connected();
 		state = newState;
 		stateTick = now;
+		if(old != newState)
+			fire("_state", old.name(), newState.name()); // for the SG interface; computers on the gate don't see it
 		boolean lit = newState.connected();
 		if(lit != wasLit && level != null)
 			setLit(lit);
