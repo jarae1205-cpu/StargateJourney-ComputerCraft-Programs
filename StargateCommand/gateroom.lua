@@ -58,6 +58,9 @@ local CONFIG = {
     -- send it by themselves after the wormhole opens.
     irisCodes = true,
     codesFile = "iris_codes.db",
+    -- with a wireless or ender modem on the computer, pass codes from travellers'
+    -- GDOs (the gdo program on a pocket computer) through the open wormhole
+    gdoRelay = true,
     -- log of wormholes, travellers and codes (Ctrl+L, or LOG in the destination list)
     logFile = "gate_log.db",
     logSize = 200,
@@ -70,6 +73,7 @@ local A = require("sgc.address")
 local Book = require("sgc.book")
 local CallLog = require("sgc.calllog")
 local Gate = require("sgc.gate")
+local GDO = require("sgc.gdo")
 local IDC = require("sgc.idc")
 local Styles = require("sgc.styles")
 local Pixels = require("sgc.pixels")
@@ -122,6 +126,8 @@ local speaker = peripheral.find("speaker")
 local alarm = { on = false, lastBeep = 0, beep = 0 }
 local autoCloseAt -- os.clock() time to close an outgoing wormhole after a traveller
 local lastFrame = os.clock()
+-- passes codes from travellers' GDOs through the wormhole (nil without a radio)
+local relay = CONFIG.gdoRelay and GDO.newRelay(function() return gate end) or nil
 
 local function setMessage(text, color)
     message.text = text or ""
@@ -674,6 +680,9 @@ local function drawNative()
         { "", colors.white },
         { "Ctrl+X close gate   Ctrl+I iris   Ctrl+S style", colors.lightGray },
         { "Ctrl+D destinations   Ctrl+L log   Ctrl+Q quit", colors.lightGray },
+        { "", colors.white },
+        relay and { "GDO relay on: travellers' codes go through the gate", colors.gray }
+            or { "Fit a wireless or ender modem to relay GDO codes", colors.gray },
     }
     for i, l in ipairs(lines) do
         native.setCursorPos(1, i)
@@ -810,6 +819,7 @@ local function onGateEvent(info)
         end
     elseif ty == "closed" or ty == "reset" then
         autoCloseAt = nil
+        if relay then relay:closed() end
         -- a dial-in that stopped before the wormhole formed: close the iris opened for it again
         if irisReclose and CONFIG.autoIris and gate.hasIris then gate:closeIris() end
         irisReclose = false
@@ -847,11 +857,13 @@ local function onGateEvent(info)
         if kind == "code" then
             onCode(value, info)
         elseif kind == "accepted" then
-            setMessage("Iris code accepted" .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
-            logCall({ kind = "code", text = "our code accepted" })
+            local forGdo = relay and relay:answer(kind, value)
+            setMessage((forGdo and "GDO code accepted" or "Iris code accepted") .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
+            logCall({ kind = "code", text = forGdo and "GDO code accepted" or "our code accepted" })
         elseif kind == "rejected" then
-            setMessage("Iris code rejected - their iris stays closed", colors.red)
-            logCall({ kind = "code", text = "our code rejected" })
+            local forGdo = relay and relay:answer(kind, value)
+            setMessage((forGdo and "GDO code rejected" or "Iris code rejected") .. " - their iris stays closed", colors.red)
+            logCall({ kind = "code", text = forGdo and "GDO code rejected" or "our code rejected" })
         else
             setMessage("Message: " .. info.text, colors.yellow)
         end
@@ -907,12 +919,16 @@ local INPUT_EVENTS = {
     peripheral = true, peripheral_detach = true,
 }
 local inputQueue = {}
+local radioEvents = {}
 
 local function listenerTask()
     while true do
         local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
+            os.queueEvent("gateroom_gate_event")
+        elseif e[1] == "modem_message" then
+            radioEvents[#radioEvents + 1] = e
             os.queueEvent("gateroom_gate_event")
         elseif INPUT_EVENTS[e[1]] then
             inputQueue[#inputQueue + 1] = e
@@ -977,6 +993,10 @@ local function uiTask()
                 redraw = true
             end
             if not speaker and peripheral.getType(e[2]) == "speaker" then speaker = peripheral.wrap(e[2]) end
+            if not relay and CONFIG.gdoRelay and peripheral.getType(e[2]) == "modem" then
+                relay = GDO.newRelay(function() return gate end)
+                nativeDirty = true
+            end
         elseif name == "peripheral_detach" then
             if gate and e[2] == gate.name then
                 if dial.active then dial.abort = true end
@@ -986,6 +1006,10 @@ local function uiTask()
                 redraw = true
             elseif monitorName and e[2] == monitorName then
                 running = false
+            end
+            if relay and relay:detached(e[2]) then
+                relay = nil
+                nativeDirty = true
             end
         elseif name == "monitor_touch" then
             if e[2] == monitorName then ui:click(e[3], e[4], 1) redraw = true end
@@ -1018,6 +1042,21 @@ local function uiTask()
             end
             redraw = true
         end
+        if #radioEvents > 0 then
+            local pending = radioEvents
+            radioEvents = {}
+            for _, re in ipairs(pending) do
+                local r = relay and relay:event(re)
+                if r and r.kind == "sent" then
+                    setMessage("A traveller's GDO sent code " .. r.code .. " through the gate", colors.lightBlue)
+                    logCall({ kind = "code", text = "GDO sent " .. r.code })
+                    redraw = true
+                elseif r then
+                    setMessage("A traveller's GDO code " .. tostring(r.code) .. " was not sent: " .. r.why, colors.orange)
+                    redraw = true
+                end
+            end
+        end
 
         if running and redraw then
             updateAlarm(os.clock())
@@ -1049,6 +1088,7 @@ end
 local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 if CONFIG.alarmSide then redstone.setOutput(CONFIG.alarmSide, false) end
+if relay then relay:close() end
 Styles.reset(target)
 target.setBackgroundColor(colors.black)
 target.setTextColor(colors.white)

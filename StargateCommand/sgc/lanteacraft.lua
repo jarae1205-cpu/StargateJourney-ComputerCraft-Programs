@@ -221,6 +221,10 @@ function M.openIris(g) return iris(g, "openIris") end
 function M.closeIris(g) return iris(g, "closeIris") end
 
 -- the GDO is the only way to send a code; replies to a code have nowhere to go
+function M.canSendMessages(g)
+    return false, "LanteaCraft gates take codes from LanteaCraft's own GDO"
+end
+
 function M.sendMessage(g, text)
     return false, "LanteaCraft gates take iris codes from a GDO, not from a computer"
 end
