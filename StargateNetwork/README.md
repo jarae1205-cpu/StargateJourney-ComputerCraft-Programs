@@ -11,6 +11,7 @@ Written for **Stargate Journey 0.6.x** and **CC:Tweaked** on **Minecraft 1.20.1*
 - **Dial from a list:** use the arrow keys and Enter, or click an entry twice. You can also type any address and save it to the address book.
 - **Caller ID:** an incoming wormhole shows which network gate is calling.
 - **Auto-iris (optional):** the iris closes for every incoming wormhole and opens again only for gates from your network. Stargate Journey's kawoosh destroys an iris that is closed when the wormhole forms, so the iris closes as soon as the wormhole is open (it takes about three seconds) and not while the other gate is still dialing. If it was already closed, it opens for the kawoosh and closes again afterwards.
+- **Iris codes:** a team coming home can send its code through the wormhole from a [GDO pocket computer](../StargateCommand/#gdo) or a dialer, and a trusted code opens the iris. See [Iris codes](#iris-codes).
 - **Remote control:** a pocket computer (or any computer without a gate) can dial, close the gate and work the iris on any gate that shares the network key.
 - **Network log:** see what the other gates are doing ("Earth is dialing Abydos").
 - **Works with any interface:** Milky Way gates spin the ring and lift the chevrons, and other gates dial with `engageSymbol`.
@@ -46,7 +47,7 @@ Run `sgnet`. Setup asks for:
 2. **Network name**: only gates with the same network see each other
 3. **Network key**: a shared password for remote control. Leave it blank to turn remote control off.
 4. Whether others with the key may control this gate
-5. Auto-iris on or off (only if the gate supports an iris)
+5. Auto-iris on or off, and the trusted iris codes (only if the gate supports an iris)
 6. The gate's address, if the interface can't read it
 
 Run `sgnet setup`, or press **S** in the program, to change these later.
@@ -95,6 +96,17 @@ In a Minecraft 1.20.1 world with Stargate Journey 0.6.54 and CC: Tweaked 1.120.2
 - Every gate found the others, and dialed them from the list, from a typed address (saved to the address book) and from the remote. Closing from the remote stopped a dial in progress and closed an open wormhole.
 - Caller ID named the network gate that was calling, and an unknown gate as unknown.
 - With auto-iris on, the iris stayed whole: it closed for the unknown gate once its wormhole was open, stayed open for the network gate, and went back to how it was when the wormhole closed.
+
+## Iris codes
+
+When a code comes in through an incoming wormhole (`IDC:600`, as the [Gate Room](../StargateCommand/#iris-codes-and-the-gate-log) and the [GDO](../StargateCommand/#gdo) send it), sgnet checks it:
+
+- A **trusted** code opens the iris, and sgnet answers "accepted" with the name the code is trusted under. The iris goes back to how it was before the call once the wormhole closes.
+- An **unknown** code is answered "rejected", and the iris stays as it is.
+
+Trust codes in setup (`sgnet setup`, or **S**), or with `irisCodes` in `sgnet.cfg`, separated by commas, each with an optional name: `irisCodes = "600=SG-1, 1234=SG-3, 4711"`. Codes trusted with the `idc` program (`/iris_codes.db`, shared with the Gate Room) count too. The log shows each code and the answer. Answering needs a crystal interface.
+
+This has only been run in a headless test harness so far, against a GDO sending trusted and unknown codes, and with an iris that was closed before the call.
 
 ## Security note
 
