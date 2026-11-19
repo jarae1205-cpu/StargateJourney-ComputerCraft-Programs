@@ -3,14 +3,16 @@
 --
 --   wget run https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/StargateCommand/install.lua
 --
---   Downloads the Gate Room, the Network Hub, the Personal Dialer and the
---   shared sgc library into the current folder. Run it again to update; your
+--   Downloads the Gate Room, the Network Hub, the Personal Dialer, the GDO and
+--   the shared sgc library into the current folder. Run it again to update; your
 --   address book (dialer_addresses.db) is kept.
 --
 --   install                 download everything
 --   install gateroom        ... and start the Gate Room when the computer boots
 --   install hub             ... and start the Network Hub when the computer boots
 --   install dialer          ... and start the Personal Dialer when the computer boots
+--   install gdo             ... and start the GDO when the pocket computer boots
+--   install relay           ... and start the GDO relay when the computer boots
 --
 
 local BASE = "https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/"
@@ -18,11 +20,14 @@ local BASE = "https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-Co
 local FILES = {
     { "StargateCommand/gateroom.lua",    "gateroom.lua" },
     { "StargateCommand/idc.lua",         "idc.lua" },
+    { "StargateCommand/gdo.lua",         "gdo.lua" },
     { "StargateCommand/hub.lua",         "hub.lua" },
     { "StargateCommand/sgc/address.lua", "sgc/address.lua" },
     { "StargateCommand/sgc/book.lua",    "sgc/book.lua" },
     { "StargateCommand/sgc/calllog.lua", "sgc/calllog.lua" },
     { "StargateCommand/sgc/idc.lua",     "sgc/idc.lua" },
+    { "StargateCommand/sgc/gdo.lua",     "sgc/gdo.lua" },
+    { "StargateCommand/sgc/glyphs.lua",  "sgc/glyphs.lua" },
     { "StargateCommand/sgc/gate.lua",    "sgc/gate.lua" },
     { "StargateCommand/sgc/lantea.lua",  "sgc/lantea.lua" },
     { "StargateCommand/sgc/lanteacraft.lua", "sgc/lanteacraft.lua" },
@@ -34,7 +39,7 @@ local FILES = {
     { "PersonalDialer/dialer.lua",       "dialer.lua" },
 }
 
-local STARTUP = { gateroom = "gateroom", hub = "hub", dialer = "dialer" }
+local STARTUP = { gateroom = "gateroom", hub = "hub", dialer = "dialer", gdo = "gdo", relay = "gdo relay" }
 
 local args = { ... }
 local dir = shell.dir()
@@ -93,4 +98,5 @@ print("Done. Programs:")
 print("  gateroom   SGC style gate room on a monitor")
 print("  hub        destination cards, tap to dial")
 print("  dialer     address book dialer")
-print("All three share dialer_addresses.db.")
+print("  gdo        iris code transmitter (pocket computer)")
+print("The first three share dialer_addresses.db.")

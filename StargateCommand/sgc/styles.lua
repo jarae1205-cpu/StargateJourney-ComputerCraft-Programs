@@ -55,6 +55,21 @@ S.LIST = {
         palette = palette({ [colors.orange] = 0xFF4E1A, [colors.yellow] = 0xFFB050, [colors.magenta] = 0x5A2A1A }),
     },
     {
+        -- the SGC's dialing computer: the gate drawn in teal lines on a dark screen,
+        -- each symbol shown big over the gate as it is encoded, then filed in its
+        -- numbered box beside it. Pick it with STYLE; any gate can use it
+        id = "sgc_computer", room = "STARGATE COMMAND", name = "SGC Computer", series = "Stargate SG-1", place = "Stargate Command",
+        shape = "wire", track = true, computer = true,
+        palette = palette({
+            [colors.black] = 0x020A0A, [colors.white] = 0xDFFFF8,
+            [colors.lightGray] = 0x36B3A6, [colors.gray] = 0x0F4A45, [colors.brown] = 0x0A2E2B, [colors.pink] = 0x2C8C83,
+            [colors.magenta] = 0x0D3B37, [colors.orange] = 0x5CF5DC, [colors.yellow] = 0xE0FFF8,
+            [colors.blue] = 0x06303E, [colors.cyan] = 0x1B8FAE, [colors.lightBlue] = 0x8CE6FF,
+            [colors.green] = 0x0B2C2A, [colors.purple] = 0x45D6C4,
+            [colors.red] = 0xFF4B3A, [colors.lime] = 0x8CFF9E,
+        }),
+    },
+    {
         id = "movie", room = "STARGATE COMMAND", name = "Movie", series = "Stargate (1994)", place = "Giza, Earth",
         shape = "v", track = true, chevronWidth = 1.3,
         palette = palette({
@@ -229,7 +244,7 @@ local VARIANT_MATCH = {
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
-    { "%f[%a]network%f[%A]", "network" },
+    { "%f[%a]network%f[%A]", "network" }, { "computer", "sgc_computer" },
 }
 
 function S.forGate(gate)

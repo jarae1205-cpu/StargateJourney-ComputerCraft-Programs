@@ -1,9 +1,10 @@
 # Stargate Command
 
-Two monitor programs and a shared library for ComputerCraft stargates:
+Two monitor programs, a GDO for pocket computers and a shared library for ComputerCraft stargates:
 
 - **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it.
 - **Gate Network Hub**: a touch screen of destination cards. Each card has its own portal colour and a tab (Milky Way, Pegasus, Crossover...). Tap a card to dial it.
+- **[GDO](#gdo)**: a pocket computer turned into the team's iris code transmitter. Punch in your code at the far gate, and the Gate Room at home opens its iris.
 
 They share one address book with the [Personal Dialer](../PersonalDialer/) and work with these mods:
 
@@ -31,6 +32,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 |---|---|
 | Milky Way | Stargate Journey Milky Way gates |
 | SG-1 | the `milky_way_sg-1` and `milky_way_promo` variants |
+| SGC Computer | pick it with STYLE (any gate), or a variant with "computer" in its name. The SGC's dialing computer screen, see [below](#sgc-computer) |
 | Movie | the `milky_way_movie` variant: sand coloured stone, big amber chevrons |
 | Continuum | variants with "continuum" or "arctic" in their name: the gate found frozen in the Arctic in Stargate: Continuum, frosted blue-grey stone flecked with ice, an icy horizon |
 | Ark of Truth | variants named with the word "ark" or "truth" (e.g. `ark_of_truth`): an Ancient gate in aged gold, white-hot gold chevrons, a golden wormhole whose light shines out in rays around the ring |
@@ -52,6 +54,18 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 *The Gate Room's Carter Addon Pack style with a wormhole open, rendered from the test harness.*
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
+
+### SGC Computer
+
+The gate as the SGC's dialing computer shows it: teal lines on a dark screen, with corner brackets, a crosshair in the middle, the symbol track turning with the ring and chevrons that fill in as they lock. As each chevron is encoded, its symbol comes up big across the gate, then shrinks away into its numbered box beside it, where it stays until the gate closes. The wormhole is drawn as rings of light running out from the middle, and the iris as a line drawing of its blades.
+
+![The SGC Computer style](../imgs/GateRoomSGCComputer.png)
+
+*Top: chevron 2's symbol over the gate as it is encoded, and chevron 4's with the first four in their boxes. Bottom: the wormhole established, and an incoming wormhole against the closed iris. On a 4x3 monitor, rendered from the headless test harness.*
+
+The symbols are line figures drawn by the program, like constellations: each symbol always gets the same one, and the point of origin is a pyramid under a sun. They are not the mod's glyphs or the show's. Every gate type has them: numbers, SGCraft letters and JSG's symbol names each get a figure of their own.
+
+On a monitor four blocks high the boxes stand in one numbered column; on one three blocks high they are in two columns. Smaller screens (under 30 lines) list the chevrons as text, as the other styles do.
 
 ### Ori Supergate
 
@@ -82,7 +96,7 @@ With HTTP enabled in the CC: Tweaked config:
 wget run https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/StargateCommand/install.lua
 ```
 
-This downloads `gateroom.lua`, `hub.lua`, `dialer.lua` and the `sgc` folder into the current folder. Run it again to update; your address book is kept.
+This downloads `gateroom.lua`, `hub.lua`, `dialer.lua`, `idc.lua`, `gdo.lua` and the `sgc` folder into the current folder. Run it again to update; your address book is kept.
 
 To start one of them when the computer boots, add its name:
 
@@ -90,7 +104,9 @@ To start one of them when the computer boots, add its name:
 wget run https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/StargateCommand/install.lua gateroom
 ```
 
-Without HTTP, copy `gateroom.lua`, `hub.lua` and the whole `sgc` folder to the computer. The programs need `sgc` next to them.
+The same goes for `hub`, `dialer`, `gdo` (on a pocket computer) and `relay` (`gdo relay` at a gate).
+
+Without HTTP, copy `gateroom.lua`, `hub.lua`, `gdo.lua` and the whole `sgc` folder to the computer. The programs need `sgc` next to them.
 
 ## Gate Room
 
@@ -128,6 +144,7 @@ Settings at the top of `gateroom.lua`:
 - `klaxon`: speaker alarm on or off
 - `autoClose`: close an outgoing wormhole this many seconds after someone steps through (0 = never)
 - `irisCodes`: check iris codes from the gate that dialed in (on by default), `codesFile`: where the trusted codes are kept
+- `gdoRelay`: with a wireless or ender modem on the computer, pass codes from travellers' [GDOs](#gdo) through the open wormhole (on by default)
 - `logFile`, `logSize`: the gate log and how many entries it keeps
 
 ## Iris codes and the gate log
@@ -152,6 +169,52 @@ idc log                 print the gate log
 Codes are 1 to 16 letters, digits or dashes. They travel as gate messages (`IDC:1234`, answered by `IDC:ACCEPTED SG-1` or `IDC:REJECTED`), so both gates need a mod that sends messages: Stargate Journey's crystal interfaces, SGCraft and Chevron Seven do. Lantea and JSG gates don't, so their computers can't send or check codes.
 
 The Gate Room keeps a log in `gate_log.db`: incoming and outgoing wormholes with how long they stayed open, failed dials, travellers and codes, each with the in-game day and time. See it with `LOG` in the destination list, Ctrl+L, or `idc log`.
+
+## GDO
+
+In the show, a team coming home sends its code from the GDO on its wrist and the SGC opens the iris. The `gdo` program makes an advanced pocket computer into one, for a team that dialed home from a DHD, or with no address book entry to send the code for them.
+
+```
+gdo                 the GDO
+gdo send 600        send a code from the command line and print the answer
+gdo relay           pass GDO codes through the gate at this computer
+```
+
+![The GDO](../imgs/GDO.png)
+
+*The GDO on a pocket computer: code 600 typed in, sent through the wormhole, accepted with the SGC's iris open, and an unknown code rejected. Rendered from the headless test harness, with a simulated Gate Room at the other end.*
+
+A pocket computer can't reach through a wormhole. The GDO radios the computer at the gate you are standing by, and that computer sends the code through the open wormhole as a gate message: the same `IDC:600` the dialing computer sends. The Gate Room at the other end checks it against its trusted codes, opens the iris and answers. The answer comes back the same way, and the GDO shows it.
+
+What you need:
+
+- **The GDO**: an advanced pocket computer with a wireless or ender modem (craft the pocket computer with the modem). `install gdo` starts it whenever the pocket computer is switched on.
+- **The gate you dial home from**: a computer with the gate interface and a wireless or ender modem, running the Gate Room (it relays by itself, see `gdoRelay`) or `gdo relay`. On Stargate Journey that's a crystal or advanced crystal interface; a basic interface can't send messages. To use the Personal Dialer at that gate, run the relay next to it in a second tab: `bg gdo relay` on an advanced computer.
+- **At home**: the Gate Room, with your code trusted (`idc add 600 SG-1`) and `autoIris = true` so the iris is shut when you call.
+
+Using it:
+
+1. Dial home, then stand near the gate's computer: within the wireless modem's range (64 blocks; more high up). The bars at the top show how close the gate is, and the bottom line of the LCD names it and says whether its wormhole is open.
+2. Type your code on the keypad or the keyboard: up to 16 letters, digits or dashes.
+3. Press **SEND** (or Enter). The GDO remembers the last code it sent, so next time SEND alone does it. **CLR** (Delete) clears, Backspace takes back one character, Ctrl+T switches the GDO off.
+
+| LCD | |
+|---|---|
+| `SEARCHING`, `NO GATE` | no gate's computer heard; the line below says what's missing |
+| `ENTER CODE`, `MEM` | ready; `MEM` shows the code it remembers |
+| `AWAIT REPLY` | the code went through; waiting for the other side |
+| `IRIS OPEN` | accepted: the way is open |
+| `REJECTED` | not a trusted code: their iris stays shut |
+| `NOT SENT` | no wormhole, or that gate can't send codes; the line below says why |
+| `NO REPLY` | the other side didn't answer: no Gate Room there, or `irisCodes` is off |
+
+The GDO talks to the nearest gate with an open wormhole, so at a gate field with several gates, stand by the one you dialed from. It doesn't reach gates in another dimension, even with an ender modem: a code goes through the wormhole, not around it.
+
+Codes work wherever iris codes work: Stargate Journey crystal interfaces, SGCraft and Chevron Seven. LanteaCraft gates take codes only from LanteaCraft's own GDO item, and Lantea and JSG 1.20.1 gates can't send messages, so the GDO says the gate can't send codes. `gdo` also runs on an advanced computer; with a speaker attached, keys click and the answer chimes or buzzes. Pocket computers take one upgrade, so a pocket GDO has the modem and no speaker.
+
+For your own programs: relays listen on modem channel 2427. The messages are described at the top of `sgc/gdo.lua`, and `sgc.gdo`'s relay can be added to any program that has an `sgc.gate`.
+
+The GDO, `gdo relay` and the Gate Room's relay were tested in the headless test harness: a GDO sending through a relay and through a Gate Room, trusted and unknown codes, a basic interface, a GDO on another world, and the wormhole closing while the GDO waits. They haven't been tried in a game yet.
 
 ## Gate Network Hub
 
@@ -207,9 +270,11 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 | `sgc.lantea`, `sgc.lanteacraft`, `sgc.jsg` | the Lantea, LanteaCraft and JSG parts of `sgc.gate` |
 | `sgc.address` | parses, formats and compares the three address formats |
 | `sgc.book` | the shared address book |
+| `sgc.idc`, `sgc.gdo` | iris codes, and the GDO's radio messages and the relay at the gate |
 | `sgc.styles` | the gate looks and their palettes |
 | `sgc.pixels` | a pixel canvas drawn with teletext characters (2x3 pixels per character) |
 | `sgc.ring` | draws a gate on a canvas: ring, chevrons, symbols, event horizon, kawoosh, iris |
+| `sgc.glyphs` | a line figure for every gate symbol (the SGC Computer style) |
 | `sgc.ui` | buttons and touch areas |
 
 ```lua
