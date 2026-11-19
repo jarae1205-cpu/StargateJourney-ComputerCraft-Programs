@@ -362,6 +362,7 @@ local DEFAULT_CONFIG = {
   maxOpenSeconds = 0,      -- close an outgoing wormhole after this long (0 = off)
   irisOnIncoming = true,   -- close the iris when an incoming wormhole forms
   restoreIris = true,      -- put the iris back how it was after the wormhole closes
+  irisCodes = "",          -- trusted iris codes, e.g. "600=SG-1, 1234" (and /iris_codes.db)
   sgcStyle = false,        -- Milky Way + Basic Interface: open, encode, close
   stepDelay = 1,           -- seconds between ring dialing steps
   directEngage = false,    -- Advanced Crystal Interface: lock symbols instantly
@@ -691,6 +692,70 @@ local function irisAuto(formed)
   end
 end
 
+-- Iris codes (IDC), the same messages as the Gate Room and the GDO: a team coming
+-- home sends "IDC:600" through the wormhole; a trusted code opens the iris and is
+-- answered "IDC:ACCEPTED <name>", an unknown one "IDC:REJECTED". Codes are trusted
+-- on the Config page ("600=SG-1, 1234") or with the idc program (/iris_codes.db).
+local function cleanCode(c)
+  c = tostring(c or ""):gsub("%s", ""):upper()
+  if c == "" or #c > 16 or c:find("[^%w%-]") then return nil end
+  return c
+end
+
+-- the name a code is trusted under ("" if it has none), or nil if it isn't trusted
+local function trustedCode(code)
+  code = cleanCode(code)
+  if not code then return nil end
+  for item in tostring(config.irisCodes or ""):gmatch("[^,;]+") do
+    local c, name = item:match("^%s*([^=]-)%s*=%s*(.-)%s*$")
+    if not c then c, name = item, "" end
+    if cleanCode(c) == code then return name end
+  end
+  if fs.exists("/iris_codes.db") then
+    local f = fs.open("/iris_codes.db", "r")
+    local data = f and textutils.unserialize(f.readAll())
+    if f then f.close() end
+    for _, e in ipairs(type(data) == "table" and data or {}) do
+      if type(e) == "table" and cleanCode(e.code) == code then return tostring(e.name or "") end
+    end
+  end
+  return nil
+end
+
+-- "code", "600" | "accepted", "SG-1" | "rejected" | nil (not an iris code message)
+local function parseIdc(text)
+  local body = tostring(text or ""):match("^%s*[Ii][Dd][Cc]%s*[:%s]%s*(.-)%s*$")
+  if not body then return nil end
+  local word, rest = body:match("^(%S+)%s*(.-)$")
+  word = word and word:upper()
+  if word == "ACCEPTED" then return "accepted", rest ~= "" and rest or nil end
+  if word == "REJECTED" then return "rejected" end
+  local code = cleanCode(body)
+  if code then return "code", code end
+  return nil
+end
+
+local function onIrisCode(code)
+  local name = trustedCode(code)
+  if name == nil then
+    log("err", "Unknown iris code " .. code .. (state.irisClosed and ": the iris stays closed" or ""))
+    call("sendStargateMessage", "IDC:REJECTED")
+    return
+  end
+  local who = name ~= "" and name or ("code " .. code)
+  if state.irisName and (state.irisClosed or (state.irisPct or 0) > 0) then
+    -- an iris closed by hand (no automatic iris) closes again once the wormhole has gone
+    if irisMemory == nil then irisMemory = "closed" end
+    call("openIris")
+    -- back to how it was before the wormhole once it closes
+    irisShut = false
+    log("ok", "Iris code " .. code .. " accepted (" .. who .. "): opening the iris")
+  else
+    log("ok", "Iris code " .. code .. " accepted (" .. who .. ")")
+  end
+  call("sendStargateMessage", "IDC:ACCEPTED " .. who)
+end
+
 function Gate.afterClose()
   autoCloseAt, maxOpenAt, openedAt = nil, nil, nil
   state.remoteAddress = nil
@@ -779,7 +844,16 @@ function Gate.handleEvent(ev)
   elseif e == "iris_thud" then
     log("warn", tostring(ev[4] or "Something") .. " hit the iris")
   elseif e == "stargate_message_received" then
-    log("info", "Message: " .. tostring(ev[3]))
+    local kind, value = parseIdc(ev[3])
+    if kind == "code" and state.status == "open_in" then
+      onIrisCode(value)
+    elseif kind == "accepted" then
+      log("ok", "Our iris code was accepted" .. (value and (" as " .. value) or "") .. ": the way is open")
+    elseif kind == "rejected" then
+      log("err", "Our iris code was rejected: their iris stays closed")
+    elseif kind == nil then
+      log("info", "Message: " .. tostring(ev[3]))
+    end
   else
     return
   end
@@ -2070,6 +2144,7 @@ local CONFIG_ITEMS = {
   { key = "maxOpenSeconds", label = "Seconds to stay open (0=off)", short = "Max open s",     kind = "num", min = 0, max = 2280, step = 10, host = true },
   { key = "irisOnIncoming", label = "Close iris on incoming",       short = "Iris incoming",  kind = "bool", host = true },
   { key = "restoreIris",    label = "Return to previous iris",      short = "Restore iris",   kind = "bool", host = true },
+  { key = "irisCodes",      label = "Trusted iris codes",           short = "Iris codes",     kind = "text", host = true },
   { key = "sgcStyle",       label = "SGC 3-step chevrons",          short = "SGC 3-step",     kind = "bool", host = true },
   { key = "stepDelay",      label = "Ring dialing delay (s)",       short = "Ring delay",     kind = "num", min = 0, max = 3, step = 0.5, host = true },
   { key = "directEngage",   label = "Instant dial (Adv. Crystal)",  short = "Instant dial",   kind = "bool", host = true },

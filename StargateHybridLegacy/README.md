@@ -14,7 +14,7 @@ The layout borrows from the 1.12.2 era Stargate mods: an address book like a per
 - **Dialer page**: a searchable address book. Each entry shows the name, the address, a strip of glyph marks and a note such as the galaxy. A bar on the right is green when this gate can dial the address and red when a symbol is out of range. You can add, edit, delete and reorder entries.
 - **Gate page**: a ring display with live chevrons, the event horizon and the iris. It shows the status, target, local and remote address, open time, energy, iris state and the gate's last feedback. It has buttons to close the gate, toggle the iris and rescan.
 - **Log page**: chevrons, wormholes, travellers, iris hits and errors, with the in-game time.
-- **Config page**: Auto Close after someone steps through, a time limit for open wormholes, closing the iris on incoming wormholes and putting it back afterwards (see [the iris and the kawoosh](#the-iris-and-the-kawoosh)), the SGC 3-step chevron style, ring dialing speed, instant dialing, the gate style and the address access list.
+- **Config page**: Auto Close after someone steps through, a time limit for open wormholes, closing the iris on incoming wormholes and putting it back afterwards (see [the iris and the kawoosh](#the-iris-and-the-kawoosh)), the SGC 3-step chevron style, ring dialing speed, instant dialing, the gate style, the address access list and [trusted iris codes](#iris-codes).
 - **Monitor status board**: if a monitor is attached, it shows a large gate with the target and two touch buttons, **CLOSE** and **IRIS**.
 - **Pocket dialer**: run `sghl remote` on an Advanced Pocket Computer with a wireless or ender modem. It keeps its own address book and sends dial, close and iris requests to the dialing computer.
 
@@ -110,6 +110,15 @@ The password only stops casual use. Rednet traffic is not encrypted.
 
 Stargate Journey's kawoosh destroys an iris that is closed when the wormhole forms: a full iron iris is gone in one go. So **Close iris on incoming** closes the iris as soon as the incoming wormhole is open (it shuts in about three seconds, and the iris survives), not while the other gate is still dialing in. If the iris was already closed, it opens for the kawoosh and closes again afterwards.
 
+## Iris codes
+
+A team coming home can send an iris code through the wormhole, as the SGC's teams do with their GDO: from a [GDO pocket computer](../StargateCommand/#gdo), or from a [Personal Dialer](../PersonalDialer/) or [Gate Room](../StargateCommand/#iris-codes-and-the-gate-log) whose address book entry has a code. When a code comes in through an incoming wormhole, SGHL checks it:
+
+- A **trusted** code opens the iris, and SGHL answers "accepted" with the name the code is trusted under. The iris goes back to how it was before the call once the wormhole closes.
+- An **unknown** code is answered "rejected", and the iris stays as it is.
+
+Trust codes on the Config page under **Trusted iris codes**, separated by commas, each with an optional name: `600=SG-1, 1234=SG-3, 4711`. Codes trusted with the `idc` program (`/iris_codes.db`, shared with the Gate Room) count too. Answering needs a Crystal Interface. The Log page shows each code and the answer.
+
 ## Tested
 
 ![On a real gate](../imgs/StargateHybridLegacyInGame.png)
@@ -123,7 +132,7 @@ On Milky Way gates in that world:
 - **Incoming wormholes**: with **Close iris on incoming** on, the iris opened for the kawoosh, closed once the wormhole was open and went back to closed afterwards, with its durability untouched.
 - **Pocket dialer**: dialed and closed the gate through the dialing computer.
 
-Not tried on a real gate yet: the monitor status board, the other gate types, instant dialing and the address access list.
+Not tried on a real gate yet: the monitor status board, the other gate types, instant dialing and the address access list. Iris codes have only been run in a headless test harness, against a GDO sending trusted and unknown codes, codes from `/iris_codes.db`, and an iris that was closed before the call.
 
 ## Notes
 

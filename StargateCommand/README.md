@@ -190,7 +190,7 @@ What you need:
 
 - **The GDO**: an advanced pocket computer with a wireless or ender modem (craft the pocket computer with the modem). `install gdo` starts it whenever the pocket computer is switched on.
 - **The gate you dial home from**: a computer with the gate interface and a wireless or ender modem, running the Gate Room or the Personal Dialer (both relay by themselves, see `gdoRelay`), or `gdo relay`. On Stargate Journey that's a crystal or advanced crystal interface; a basic interface can't send messages. The Personal Dialer relays only when the `sgc` folder is next to it, as the Stargate Command installer leaves it.
-- **At home**: the Gate Room, with your code trusted (`idc add 600 SG-1`) and `autoIris = true` so the iris is shut when you call.
+- **At home**: the Gate Room, with your code trusted (`idc add 600 SG-1`) and `autoIris = true` so the iris is shut when you call. [Stargate Hybrid Legacy](../StargateHybridLegacy/#iris-codes) and [Stargate Network](../StargateNetwork/#iris-codes) check codes too: trust them in their settings, or with `idc`.
 
 Using it:
 

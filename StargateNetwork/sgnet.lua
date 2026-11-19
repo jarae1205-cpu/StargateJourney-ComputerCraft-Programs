@@ -264,6 +264,7 @@ local DEFAULT_CONFIG = {
     allowRemote = true,     -- let other computers with the key dial/close this gate
     autoIris = false,       -- close the iris on incoming wormholes ...
     trustNetwork = true,    -- ... but open it for gates from this network
+    irisCodes = "",         -- trusted iris codes, e.g. "600=SG-1, 1234" (and /iris_codes.db)
     fastDial = false,       -- Milky Way: skip ring rotation if the interface allows it
     showNetworkLog = true,  -- show what other gates are doing in the log
     address = nil,          -- override the address others should dial (nil = auto)
@@ -292,6 +293,7 @@ local function sanitizeConfig(c)
     c.network = c.network:gsub("[^%w_%-]", "")
     if c.network == "" then c.network = "default" end
     c.key = cleanString(c.key, 64) or ""
+    c.irisCodes = type(c.irisCodes) == "string" and c.irisCodes:sub(1, 400) or ""
 
     if type(c.address) == "string" then
         c.address = parseAddress(c.address)
@@ -870,6 +872,69 @@ local function onIncomingDialStart()
     end
 end
 
+-- Iris codes (IDC), the same messages as the Gate Room and the GDO: a team coming
+-- home sends "IDC:600" through the wormhole; a trusted code opens the iris and is
+-- answered "IDC:ACCEPTED <name>", an unknown one "IDC:REJECTED". Codes are trusted
+-- in the settings ("600=SG-1, 1234") or with the idc program (/iris_codes.db).
+local function cleanCode(c)
+    c = tostring(c or ""):gsub("%s", ""):upper()
+    if c == "" or #c > 16 or c:find("[^%w%-]") then return nil end
+    return c
+end
+
+-- the name a code is trusted under ("" if it has none), or nil if it isn't trusted
+local function trustedCode(code)
+    code = cleanCode(code)
+    if not code then return nil end
+    for item in tostring(cfg.irisCodes or ""):gmatch("[^,;]+") do
+        local c, name = item:match("^%s*([^=]-)%s*=%s*(.-)%s*$")
+        if not c then c, name = item, "" end
+        if cleanCode(c) == code then return name end
+    end
+    if fs.exists("/iris_codes.db") then
+        local f = fs.open("/iris_codes.db", "r")
+        local data = f and textutils.unserialize(f.readAll())
+        if f then f.close() end
+        for _, e in ipairs(type(data) == "table" and data or {}) do
+            if type(e) == "table" and cleanCode(e.code) == code then return tostring(e.name or "") end
+        end
+    end
+    return nil
+end
+
+-- "code", "600" | "accepted", "SG-1" | "rejected" | nil (not an iris code message)
+local function parseIdc(text)
+    local body = tostring(text or ""):match("^%s*[Ii][Dd][Cc]%s*[:%s]%s*(.-)%s*$")
+    if not body then return nil end
+    local word, rest = body:match("^(%S+)%s*(.-)$")
+    word = word and word:upper()
+    if word == "ACCEPTED" then return "accepted", rest ~= "" and rest or nil end
+    if word == "REJECTED" then return "rejected" end
+    local code = cleanCode(body)
+    if code then return "code", code end
+    return nil
+end
+
+local function onIrisCode(code)
+    local name = trustedCode(code)
+    if name == nil then
+        log("Unknown iris code " .. code .. (irisState() == "CLOSED" and ": the iris stays closed" or ""), colors.red)
+        call("sendStargateMessage", "IDC:REJECTED")
+        return
+    end
+    local who = name ~= "" and name or ("code " .. code)
+    if hasIris() and irisState() ~= "OPEN" then
+        -- an iris that was shut before the call closes again when the wormhole goes
+        if not state.irisAutoClosed then state.irisWasClosed = true end
+        state.irisAutoClosed = false
+        call("openIris")
+        log("Iris code " .. code .. " accepted (" .. who .. "): opening the iris", colors.lime)
+    else
+        log("Iris code " .. code .. " accepted (" .. who .. ")", colors.lime)
+    end
+    call("sendStargateMessage", "IDC:ACCEPTED " .. who)
+end
+
 local function onIncomingWormhole(addr)
     state.incomingDial = true
     state.inWormhole = true
@@ -913,7 +978,8 @@ local function onDisconnect(feedback, eventName)
         Dialer.target = nil
     end
 
-    if cfg.autoIris and hasIris() then
+    -- (an iris an iris code opened goes back too, even without auto-iris)
+    if (cfg.autoIris or state.irisWasClosed) and hasIris() then
         if state.irisWasClosed then
             if irisState() ~= "CLOSED" then
                 call("closeIris")
@@ -945,7 +1011,16 @@ local function handleGateEvent(ev)
     elseif name == "stargate_disconnected" or name == "stargate_reset" then
         onDisconnect(ev[3], name)
     elseif name == "stargate_message_received" then
-        log("Message: " .. (cleanString(ev[3], 60) or "?"), colors.yellow)
+        local kind, value = parseIdc(ev[3])
+        if kind == "code" and state.inWormhole and not state.outgoing then
+            onIrisCode(value)
+        elseif kind == "accepted" then
+            log("Our iris code was accepted" .. (value and (" as " .. value) or "") .. ": the way is open", colors.lime)
+        elseif kind == "rejected" then
+            log("Our iris code was rejected: their iris stays closed", colors.red)
+        elseif kind == nil then
+            log("Message: " .. (cleanString(ev[3], 60) or "?"), colors.yellow)
+        end
     elseif name == "stargate_reconstructing_entity" then
         local who = cleanString(ev[4], 30)
         if who then log(who .. " came through the gate", colors.lightGray) end
@@ -1563,6 +1638,8 @@ local function setupWizard()
         end
         if has("closeIris") then
             cfg.autoIris = askYesNo("Auto-iris (closes for unknown callers)?", cfg.autoIris)
+            local codes = ask("Trusted iris codes, e.g. 600=SG-1, 1234 (blank = none):", cfg.irisCodes)
+            cfg.irisCodes = codes:sub(1, 400)
         end
         if not has("getLocalAddress") then
             local current = cfg.address and table.concat(cfg.address, "-") or ""
