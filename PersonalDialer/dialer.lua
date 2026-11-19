@@ -267,6 +267,8 @@ local THEMES = {
     tollan    = { name = "Tollan",        header = colors.cyan,  title = colors.white,     address = colors.cyan,      lit = colors.lightBlue, master = colors.white,     button = colors.cyan },
     classic   = { name = "Classic",       header = colors.brown, title = colors.yellow,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.yellow },
     sg1       = { name = "SG-1",          header = colors.gray,  title = colors.red,       address = colors.orange,    lit = colors.red,       master = colors.orange,    button = colors.red },
+    -- the SGC's dialing computer screen: teal lines on black (the Gate Room's SGC Computer look)
+    sgc_computer = { name = "SGC Computer", header = colors.cyan, title = colors.cyan,     address = colors.cyan,      lit = colors.cyan,      master = colors.white,     button = colors.cyan },
     movie     = { name = "Movie",         header = colors.brown, title = colors.orange,    address = colors.yellow,    lit = colors.orange,    master = colors.yellow,    button = colors.orange },
     atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
@@ -283,7 +285,7 @@ local THEMES = {
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap", "network" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "sgc_computer", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap", "network" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -303,6 +305,7 @@ local VARIANT_THEMES = {
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
+    { "computer", "sgc_computer" },
     { "%f[%a]network%f[%A]", "network" },
 }
 
@@ -1854,6 +1857,8 @@ local RING_COLORS = {
     network  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
+    -- black stone with teal edges and seams: the ring as a line drawing
+    sgc_computer = { colors.black, colors.cyan, colors.black, colors.gray },
 }
 local atan2 = math.atan2 or math.atan
 
@@ -1976,6 +1981,7 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                         local pos = POSITION_OF_SLOT[slot]
                         local off, housing = colors.brown, colors.gray
                         if cartoon then off, housing = colors.gray, colors.black end
+                        if themeId == "sgc_computer" then off, housing = colors.black, colors.cyan end
                         c = (diff <= hw * 0.6 and f > 0.12 and f < 0.86) and (on[pos] or off) or housing
                     end
                 end

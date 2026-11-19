@@ -30,7 +30,7 @@
  - Address book with live search: add, edit, remove and reorder gates
  - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates, LanteaCraft and Just Stargate Mod gates
  - Chevron progress bar, gate state, incoming caller lookup and a gate picture
- - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid, Stargate Network...)
+ - Auto-close after you step through, iris control, colour themes (SG-1, SGC Computer, Movie, Atlantis, Infinity, Legacy Hybrid, Stargate Network...)
  - Runs on the computer screen or an advanced monitor
 
 ![Personal Dialer image](./imgs/PersonalDialer.png)
