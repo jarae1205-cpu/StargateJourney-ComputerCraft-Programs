@@ -189,7 +189,7 @@ A pocket computer can't reach through a wormhole. The GDO radios the computer at
 What you need:
 
 - **The GDO**: an advanced pocket computer with a wireless or ender modem (craft the pocket computer with the modem). `install gdo` starts it whenever the pocket computer is switched on.
-- **The gate you dial home from**: a computer with the gate interface and a wireless or ender modem, running the Gate Room (it relays by itself, see `gdoRelay`) or `gdo relay`. On Stargate Journey that's a crystal or advanced crystal interface; a basic interface can't send messages. To use the Personal Dialer at that gate, run the relay next to it in a second tab: `bg gdo relay` on an advanced computer.
+- **The gate you dial home from**: a computer with the gate interface and a wireless or ender modem, running the Gate Room or the Personal Dialer (both relay by themselves, see `gdoRelay`), or `gdo relay`. On Stargate Journey that's a crystal or advanced crystal interface; a basic interface can't send messages. The Personal Dialer relays only when the `sgc` folder is next to it, as the Stargate Command installer leaves it.
 - **At home**: the Gate Room, with your code trusted (`idc add 600 SG-1`) and `autoIris = true` so the iris is shut when you call.
 
 Using it:
@@ -214,7 +214,7 @@ Codes work wherever iris codes work: Stargate Journey crystal interfaces, SGCraf
 
 For your own programs: relays listen on modem channel 2427. The messages are described at the top of `sgc/gdo.lua`, and `sgc.gdo`'s relay can be added to any program that has an `sgc.gate`.
 
-The GDO, `gdo relay` and the Gate Room's relay were tested in the headless test harness: a GDO sending through a relay and through a Gate Room, trusted and unknown codes, a basic interface, a GDO on another world, and the wormhole closing while the GDO waits. They haven't been tried in a game yet.
+The GDO, `gdo relay` and the Gate Room's and Personal Dialer's relays were tested in the headless test harness: a GDO sending through `gdo relay`, a Gate Room and a Personal Dialer, trusted and unknown codes, a basic interface, a GDO on another world, the wormhole closing while the GDO waits, and a relay computer with no label (the GDO names its gate by the gate's address). They haven't been tried in a game yet.
 
 ## Gate Network Hub
 

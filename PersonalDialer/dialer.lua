@@ -45,12 +45,21 @@ local CONFIG = {
 
     -- text scale used in monitor mode
     monitorScale = 0.5,
+
+    -- with a wireless or ender modem on the computer, pass codes from travellers'
+    -- GDOs (the gdo program on a pocket computer) through the open wormhole.
+    -- Needs the sgc folder next to the dialer (the Stargate Command installer puts it there)
+    gdoRelay = true,
 }
 --
 -- END OF CONFIGURATION
 --
 
 local args = { ... }
+
+-- the GDO relay lives in the sgc library; without it the dialer simply has no relay
+local hasGdoLib, GDO = pcall(require, "sgc.gdo")
+if not hasGdoLib then GDO = nil end
 
 ---------------------------------------------------------------------------
 -- Small helpers
@@ -747,6 +756,33 @@ local message = { text = "", color = colors.lightGray }
 local function setMessage(text, color)
     message.text = text or ""
     message.color = color or colors.lightGray
+end
+
+-- the gate as the GDO relay (sgc.gdo) sees it
+local function relayGate()
+    if not iface then return nil end
+    return {
+        state = gate.state, outgoing = gate.outgoing, connected = gate.connected, localAddress = gate.localAddress,
+        canSendMessages = function()
+            if iface.lanteacraft then return false, "LanteaCraft gates take codes from LanteaCraft's own GDO" end
+            if type(iface.sendStargateMessage) == "function" then return true end
+            if ifaceType ~= "stargate" then return false, "Codes need a crystal interface" end
+            return false, "This gate can't send messages"
+        end,
+        sendMessage = function(_, text)
+            if type(iface.sendStargateMessage) ~= "function" then return false, "This gate can't send messages" end
+            local ok, r = pcall(iface.sendStargateMessage, text)
+            if not ok then return false, tostring(r) end
+            if r == false then return false, "The message did not go through" end
+            return true
+        end,
+    }
+end
+
+local relay = nil
+local function startRelay()
+    if relay or not (GDO and CONFIG.gdoRelay) then return end
+    relay = GDO.newRelay(relayGate)
 end
 
 local function detectGate()
@@ -2352,9 +2388,11 @@ local function gateEvent(e)
         local reply, who = text:match("^%s*[Ii][Dd][Cc]%s*[:%s]%s*(%a+)%s*(.-)%s*$")
         reply = reply and reply:upper()
         if reply == "ACCEPTED" then
-            setMessage("Iris code accepted" .. (who ~= "" and (" as " .. who) or "") .. " - the way is open", colors.lime)
+            local forGdo = relay and relay:answer("accepted", who ~= "" and who or nil)
+            setMessage((forGdo and "GDO code accepted" or "Iris code accepted") .. (who ~= "" and (" as " .. who) or "") .. " - the way is open", colors.lime)
         elseif reply == "REJECTED" then
-            setMessage("Iris code rejected - their iris stays closed", colors.red)
+            local forGdo = relay and relay:answer("rejected")
+            setMessage((forGdo and "GDO code rejected" or "Iris code rejected") .. " - their iris stays closed", colors.red)
         elseif not text:match("^%s*[Ii][Dd][Cc]") then
             setMessage("Message: " .. text, colors.yellow)
         end
@@ -2370,6 +2408,7 @@ local function gateEvent(e)
         if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
     elseif name == "stargate_disconnected" or name == "stargate_reset" then
         disarmAutoClose()
+        if relay then relay:closed() end
         local code, desc = e[o], e[o + 1]
         gate.outgoing, gate.remote, gate.incomingChevrons = false, nil, false
         -- keep the dialer's own result message if the reset belongs to that dial
@@ -2527,6 +2566,7 @@ local INPUT_EVENTS = {
     peripheral = true, peripheral_detach = true,
 }
 local inputQueue = {}
+local radioQueue = {}
 
 local function listenerTask()
     while true do
@@ -2537,6 +2577,9 @@ local function listenerTask()
         elseif INPUT_EVENTS[e[1]] then
             inputQueue[#inputQueue + 1] = e
             os.queueEvent("dialer_input")
+        elseif e[1] == "modem_message" then
+            radioQueue[#radioQueue + 1] = e
+            os.queueEvent("dialer_gate_event")
         end
     end
 end
@@ -2593,6 +2636,7 @@ local function uiTask()
             -- handled below, from the queue
         elseif name == "peripheral" then
             if not iface then attachInterface() end
+            if not relay and peripheral.getType(e[2]) == "modem" then startRelay() end
         elseif name == "peripheral_detach" then
             if e[2] == ifaceName then
                 interruptDial()
@@ -2600,6 +2644,7 @@ local function uiTask()
                 gate.state = "OFFLINE"
                 setMessage("Stargate interface disconnected", colors.red)
             end
+            if relay and relay:detached(e[2]) then relay = nil end
         elseif name == "key" or name == "key_up" then
             if name == "key" then held[e[2]] = true else held[e[2]] = nil end
             if name == "key" then
@@ -2628,6 +2673,21 @@ local function uiTask()
             for _, ge in ipairs(pending) do gateEvent(ge) end
             redraw = true
         end
+        -- codes from travellers' GDOs, to send through the wormhole
+        if #radioQueue > 0 then
+            local pending = radioQueue
+            radioQueue = {}
+            for _, re in ipairs(pending) do
+                local r = relay and relay:event(re)
+                if r and r.kind == "sent" then
+                    setMessage("A traveller's GDO sent code " .. r.code .. " through the gate", colors.lightBlue)
+                    redraw = true
+                elseif r then
+                    setMessage("A traveller's GDO code " .. tostring(r.code) .. " was not sent: " .. r.why, colors.orange)
+                    redraw = true
+                end
+            end
+        end
 
         if running and redraw then draw() end
     end
@@ -2639,6 +2699,7 @@ end
 
 loadBook()
 attachInterface()
+startRelay()
 refilter()
 if loadNotice then
     setMessage(loadNotice, colors.yellow)
@@ -2650,6 +2711,7 @@ end
 
 local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
+if relay then relay:close() end
 term.redirect(native)
 if monitor then
     monitor.setBackgroundColor(colors.black)
