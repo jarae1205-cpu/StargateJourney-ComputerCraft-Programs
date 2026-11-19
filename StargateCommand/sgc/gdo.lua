@@ -20,6 +20,7 @@
 --   relay -> GDO     { type = "answer", result = "accepted" | "rejected", name = "SG-1" }
 --
 
+local A = require("sgc.address")
 local IDC = require("sgc.idc")
 
 local M = {}
@@ -96,7 +97,9 @@ function Relay:status()
                  state = "OFFLINE", connected = false, outgoing = false, canSend = false, why = "No stargate interface" }
     end
     if not label then
-        label = g.localAddress and ("Gate " .. tostring(g.localAddress)) or ("Gate #" .. self.id)
+        -- the gate's own address names it (a computer label is nicer: label it)
+        local addr = g.localAddress and A.format(g.localAddress)
+        label = (addr and addr ~= "") and ("Gate " .. addr) or ("Gate #" .. self.id)
     end
     local canSend, why = g:canSendMessages()
     return {
