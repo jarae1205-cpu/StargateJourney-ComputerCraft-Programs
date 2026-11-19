@@ -9,10 +9,29 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 - **Just Stargate Mod** (1.20.1): the gate's base block. Addresses are symbol names, typed with commas: `Crater, Virgo, Bootes, Centaurus, Libra, Serpens Caput`. Tested in a live game with JSG 5.1.2.0.
 - **[Chevron Seven](../ChevronSeven/)** (1.20.1): any block of the gate ring. Its gate behaves like a Stargate Journey gate with a crystal interface, numbers and all.
 - **LanteaCraft** 0.2.5+ (NeoForge 1.21.1): the gate's base block. Addresses are typed exactly as the gate shows them, such as `S9X-EGA`: `-` and `+` are glyphs. Tested in a live game.
+- **LanteaCraft for Minecraft 1.7.10** (the 2014–2015 releases), with **ComputerCraft 1.75**: LanteaCraft's ComputerCraft Adapter placed against the gate's base block. Addresses are 7 or 9 glyphs, typed as the gate shows them, such as `K3-+QPAAA`. See [LanteaCraft on 1.7.10](#lanteacraft-on-1710).
 
 ![Personal Dialer screens](../imgs/PersonalDialer.png)
 
 *Top: dialing with the Milky Way theme, and an open wormhole with the Legacy Hybrid theme. Bottom: adding an address, and the gate info panel. These screens were rendered from a headless CC: Tweaked test harness, not captured in-game.*
+
+## LanteaCraft on 1.7.10
+
+ComputerCraft 1.75 is the last ComputerCraft for Minecraft 1.7.10, and the dialer runs on it as well as on CC: Tweaked. The Gate Room and the Network Hub need CC: Tweaked, so on 1.7.10 the Personal Dialer is the ComputerCraft program to use; with OpenComputers, use [gatedial](../OpenComputers/).
+
+- **Connect the gate**: craft LanteaCraft's **ComputerCraft Adapter** (obsidian around a control crystal, with redstone under it) and place it against the gate's base block, then put the computer next to the adapter (or reach it with a wired modem). The adapter must touch no other LanteaCraft block; against the DHD (the Stargate Controller) it gives a `stargate_controller`, which can't dial.
+- **Dialing**: one call dials the whole address, about 2.5 seconds a chevron. The gate only says whether it is busy and whether it is dialing, so the dialer counts the chevrons and learns the direction from the gate's events.
+- **No gate there**: LanteaCraft accepts any well-formed address, dials every chevron, and only then gives up. The dialer says "No gate answered at that address" (there was no gate, or it was busy).
+- **Incoming wormholes**: the gate sends the caller's address one glyph per chevron, and the dialer puts it together, so a caller in your book is named.
+- **Closing** works from either end. A wormhole closes by itself after 5 minutes.
+- **No iris and no iris codes**: a computer can't move a LanteaCraft 1.7.10 iris or send anything through the wormhole.
+- **The gate picture** is drawn in whole character blocks on ComputerCraft 1.75, which lacks the small block characters CC: Tweaked uses. It is coarser but shows the same things.
+
+![Personal Dialer on a simulated LanteaCraft 1.7.10 gate](../imgs/LanteaCraft17Dialer.png)
+
+*Top, CC: Tweaked: dialing a nine-glyph address, and an incoming wormhole with the caller named. Bottom, ComputerCraft 1.75 rules: the open wormhole in the coarser gate picture, and a dial to an address with no gate. These screens were rendered from a headless test harness with a simulated gate, not captured in-game.*
+
+Tested only in that harness, against a gate simulated from the source of LanteaCraft's `1.7.10-legacy-patches` branch (its connection states and timings, and the ComputerCraft Adapter's methods, errors and events). The ComputerCraft 1.75 run used Lua 5.1 without `peripheral.getName` or the teletext characters. Neither has been tried in a game.
 
 ## Features
 
@@ -24,7 +43,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
   - **Milky Way:** rotates the ring, alternating direction like the show, then opens and closes each chevron. Fast mode engages symbols directly when the interface supports it.
   - **Pegasus, Universe, Tollan and Classic:** engages symbols directly.
   - **SGCraft:** dials letter addresses like `WLDQ-DQB-MT` (7 or 9 symbols); the gate does the chevron sequence itself.
-  - **LanteaCraft:** one call dials the whole address; the bar follows the gate as it locks each chevron. Only the gate that dialed can close the wormhole, and the dialer shows LanteaCraft's reason if you try from the other side.
+  - **LanteaCraft:** one call dials the whole address; the bar follows the gate as it locks each chevron. Only the gate that dialed can close the wormhole, and the dialer shows LanteaCraft's reason if you try from the other side. On 1.7.10, either side can close it.
 - **Chevron bar**: shows the address being dialed and which chevrons are locked, plus the gate state (IDLE, DIALING, OPEN or INCOMING).
 - **Auto-close**: closes your outgoing wormhole a few seconds after someone steps through, or after 30 s if nobody uses it. The countdown is shown on the OPEN badge.
 - **Incoming wormholes**: shows the caller by name if the address is in your book. The *Add* dialog is pre-filled with the caller's address.
@@ -42,6 +61,7 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 - Minecraft 1.20.1, Stargate Journey 0.6.x, CC: Tweaked
 - A basic, crystal or advanced crystal interface next to the computer or on a wired modem network. The local address in the title bar needs an advanced crystal interface.
 - Or: SGCraft (original or 2.x) with its ComputerCraft stargate interface, a Lantea: Stargates controller with a Power Coupler Kit, a JSG gate base, or a Chevron Seven gate.
+- Or, on Minecraft 1.7.10: ComputerCraft 1.75 and a LanteaCraft gate with LanteaCraft's ComputerCraft Adapter.
 - An advanced computer is recommended for mouse support and colour. Keyboard controls also work on a basic computer.
 
 ## Installation

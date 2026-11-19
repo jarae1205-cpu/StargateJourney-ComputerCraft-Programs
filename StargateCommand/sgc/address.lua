@@ -5,6 +5,7 @@
 --            (6 to 8 symbols, 1-38; the point of origin 0 is added when dialing)
 --   letters  SGCraft: a string of 7 or 9 letters/digits, e.g. "WLDQDQBMT"
 --            LanteaCraft: 7 to 9 glyphs, where "-" and "+" are glyphs too, e.g. "K3-+QPA"
+--            (LanteaCraft for 1.7.10: 7 or 9 of the same glyphs)
 --            (SGCraft and LanteaCraft never share a world: plainLetters is set when a
 --            LanteaCraft gate is found, and then letters are kept exactly as typed)
 --   names    Just Stargate Mod: symbol names, e.g. { "Crater", "Virgo", "Bootes", ... }
@@ -181,7 +182,7 @@ function A.fromStored(v)
 end
 
 -- which mods dial which address format
-A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", lanteacraft = "letters", jsg = "names", jsg112 = "names" }
+A.MOD_KIND = { sgjourney = "numbers", lantea = "numbers", sgcraft = "letters", lanteacraft = "letters", lanteacraft17 = "letters", jsg = "names", jsg112 = "names" }
 A.KIND_LABEL = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft / LanteaCraft", names = "a Just Stargate Mod" }
 
 -- true if a gate of that mod can dial the address; otherwise false and a message

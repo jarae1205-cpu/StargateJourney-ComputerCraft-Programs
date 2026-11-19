@@ -28,7 +28,8 @@
 
 ## [Personal Dialer](./PersonalDialer/)
  - Address book with live search: add, edit, remove and reorder gates
- - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates, LanteaCraft and Just Stargate Mod gates
+ - Dials every gate type (Milky Way ring rotation or direct symbol engaging), plus SGCraft (original and 2.3), Lantea: Stargates, LanteaCraft (1.21.1, and the 1.7.10 releases) and Just Stargate Mod gates
+ - Also runs on ComputerCraft 1.75, the last ComputerCraft for Minecraft 1.7.10
  - Chevron progress bar, gate state, incoming caller lookup and a gate picture
  - Auto-close after you step through, iris control, colour themes (SG-1, Movie, Atlantis, Infinity, Legacy Hybrid, Stargate Network...)
  - Runs on the computer screen or an advanced monitor
@@ -48,7 +49,7 @@
 ![Gate Room image](./imgs/GateRoom.png)
 
 ## [gatedial for OpenComputers](./OpenComputers/)
- - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x), Just Stargate Mod for 1.12.2 and LanteaCraft
+ - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x), Just Stargate Mod for 1.12.2, and LanteaCraft (1.21.1, and the 1.7.10 releases)
  - A gate room console on tier 2 and 3 screens: address book, big Dial, Close Gate and Iris buttons, switches for the automatic iris and the alarm, a GDO panel for iris codes, and the gate with a box for each chevron
  - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
@@ -143,6 +144,7 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/) and [JSG add-on](./JSGInfinityGate/), the [SGCraft add-on](./SGCraftInfinityGate/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
 | **Lantea: Stargates** | 1.20.1 (Forge) and 1.21.1 (NeoForge) | the ComputerCraft programs |
 | **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
+| **LanteaCraft** (its 2014–2015 releases) | 1.7.10 (Forge) | the [Personal Dialer](./PersonalDialer/#lanteacraft-on-1710) on ComputerCraft 1.75, and [gatedial](./OpenComputers/#lanteacraft-on-1710) on OpenComputers; tried only against a gate simulated from LanteaCraft's source |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
 
 ## [Window drawer test](./WIndow%20drawer%20test.lua)

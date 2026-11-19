@@ -118,6 +118,19 @@ local function isOriginName(s)
     return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17"
 end
 
+-- ComputerCraft 1.75 (the last for Minecraft 1.7.10) has no peripheral.getName and keeps
+-- table.pack/unpack as Lua 5.1 does
+local function peripheralName(p, ptype)
+    if peripheral.getName then return peripheral.getName(p) end
+    for _, name in ipairs(peripheral.getNames()) do
+        if peripheral.getType(name) == ptype then return name end
+    end
+end
+local pack = table.pack or function(...) return { n = select("#", ...), ... } end
+local unpack = table.unpack or unpack
+-- ComputerCraft 1.74 and 1.75 lack the teletext characters (128-159) the gate picture is drawn with
+local TELETEXT = not (_CC_VERSION and not _HOST)
+
 local function isNames(address)
     return type(address) == "table" and type(address[1]) == "string"
 end
@@ -674,6 +687,53 @@ local function lanteacraftInterface(p)
     return w
 end
 
+-- LanteaCraft for Minecraft 1.7.10: LanteaCraft's ComputerCraft Adapter placed against the gate's
+-- base block. dial() dials the whole address (7 or 9 glyphs); the gate only says whether it is busy
+-- and whether it is dialing, so the direction, the chevrons and the other gate's address come
+-- from its events, which carry no peripheral name.
+local LC17_EVENTS = { sgOutgoing = true, sgIncoming = true, sgChevronEncode = true, sgWormholeOpening = true,
+    sgWormholeStable = true, sgWormholeClosing = true, sgIdle = true }
+local LC17_ERRORS = {
+    ["Stargate addresses must be 7 or 9 characters"] = "LanteaCraft addresses have 7 or 9 glyphs",
+    ["Stargate cannot connect to itself"] = "A gate can't dial itself",
+    ["Stargate cannot dial now"] = "The gate can't dial that address",
+    ["Stargate cannot be closed from this end"] = "This gate can't close the wormhole from this end",
+}
+local function lanteacraft17Interface(p)
+    local w = { lanteacraft17 = true, kindName = "LanteaCraft (1.7.10)", energyUnit = "", raw = p, chevrons = 0 }
+    -- true while the gate dials or is open, nil if it can't be read
+    function w.busy()
+        local ok, b = pcall(p.isConnected)
+        if ok and type(b) == "boolean" then return b end
+        return nil
+    end
+    function w.dialing()
+        local ok, d = pcall(p.isDialing)
+        return ok and d == true
+    end
+    function w.getStargateType() return "lanteacraft:stargate" end
+    function w.getChevronsEngaged()
+        if not w.busy() then return 0 end
+        if not w.dialing() and w.remote then return #w.remote end
+        return w.chevrons
+    end
+    function w.isStargateConnected() return w.busy() == true and not w.dialing() end
+    function w.isStargateDialingOut() return w.outgoing end
+    function w.disconnectStargate()
+        if not w.busy() then return true end
+        return p.disconnect()
+    end
+    function w.getLocalAddress() return p.getAddress() end
+    function w.getConnectedAddress() return w.remote end
+    return w
+end
+
+local function lc17Error(err)
+    local msg = tostring(err):gsub("^.-:%d+: ", ""):gsub("%.$", "")
+    if msg == "" or msg == "nil" then return "The gate refused" end
+    return LC17_ERRORS[msg] or msg
+end
+
 local function wrapInterface(name, t)
     local p = peripheral.wrap(name)
     if t == "stargate" then
@@ -684,6 +744,10 @@ local function wrapInterface(name, t)
         end
         if p.getChevronsLocked then return lanteaInterface(p), name, t end
         if p.getGateStatus then return jsgInterface(p), name, t end
+        if p.isDialing and p.isComplete and p.getInterfaceVersion then
+            plainLetters = true
+            return lanteacraft17Interface(p), name, t
+        end
         return sgcraftInterface(p), name, t
     end
     return p, name, t
@@ -698,7 +762,7 @@ local function findInterface()
     end
     for _, t in ipairs({ "advanced_crystal_interface", "crystal_interface", "basic_interface", "chevron7_stargate", "stargate" }) do
         local p = peripheral.find(t)
-        if p then return wrapInterface(peripheral.getName(p), t) end
+        if p then return wrapInterface(peripheralName(p, t), t) end
     end
 end
 
@@ -709,8 +773,8 @@ end
 -- calls an interface method, returns nil if it does not exist or fails
 local function call(method, ...)
     if not has(method) then return nil end
-    local result = table.pack(pcall(iface[method], ...))
-    if result[1] then return table.unpack(result, 2, result.n) end
+    local result = pack(pcall(iface[method], ...))
+    if result[1] then return unpack(result, 2, result.n) end
     return nil
 end
 
@@ -789,7 +853,7 @@ local function refreshGate()
         gate.state = gate.outgoing and "OPEN" or "INCOMING"
     elseif dial.active then
         gate.state = "DIALING"
-    elseif gate.chevrons > 0 then
+    elseif gate.chevrons > 0 or (iface.lanteacraft17 and iface.dialing()) then
         local incoming = gate.incomingChevrons
         if dialingOut ~= nil then incoming = not dialingOut end
         gate.state = incoming and "INCOMING" or "DIALING"
@@ -1037,16 +1101,53 @@ local function runDialLanteaCraft()
     dialSuccess()
 end
 
+local function runDialLanteaCraft17()
+    local address = dial.address
+    if #address ~= 7 and #address ~= 9 then fail("LanteaCraft (1.7.10) addresses have 7 or 9 glyphs") end
+    local here = gate.localAddress
+    if type(here) == "string" and (address == here or address == here:sub(1, 7)) then fail("A gate can't dial itself") end
+    local busy = iface.busy()
+    if busy == nil then fail("Lost the gate") end
+    if busy then fail("The gate is busy") end
+    local okc, complete = pcall(iface.raw.isComplete)
+    if okc and complete == false then fail("The gate isn't complete") end
+    iface.phase, iface.outgoing, iface.remote, iface.chevrons, iface.glyphs = "outgoing", true, address, 0, nil
+    gate.remote = address
+    redrawLater()
+    local ok, err = pcall(iface.raw.dial, address)
+    if not ok then fail(lc17Error(err)) end
+    -- the gate dials by itself; its sgChevronEncode events count the chevrons
+    local started, shown = os.clock(), -1
+    local connected = waitUntil(function()
+        local b = iface.busy()
+        if b == nil then fail("Lost the gate") end
+        if not b then
+            -- every chevron dialed and nothing answered: no gate there, or it is busy
+            if os.clock() - started > 1 then fail("No gate answered at that address") end
+            return false
+        end
+        if iface.chevrons ~= shown then
+            shown = iface.chevrons
+            redrawLater()
+        end
+        return not iface.dialing()
+    end, CONFIG.stepTimeout + #address * 4)
+    if dial.abort then return end
+    if not connected then fail("No connection was established") end
+    dialSuccess()
+end
+
 local ADDRESS_KIND_TEXT = { numbers = "a Stargate Journey / Lantea", letters = "an SGCraft / LanteaCraft", names = "a JSG" }
 
 local function runDial()
     local kind = type(dial.address) == "string" and "letters" or isNames(dial.address) and "names" or "numbers"
-    local need = (iface.sgcraft or iface.lanteacraft) and "letters" or iface.jsg and "names" or "numbers"
+    local need = (iface.sgcraft or iface.lanteacraft or iface.lanteacraft17) and "letters" or iface.jsg and "names" or "numbers"
     if kind ~= need then
         fail("That is " .. ADDRESS_KIND_TEXT[kind] .. " address, this gate needs " .. ADDRESS_KIND_TEXT[need] .. " one")
     end
     if iface.sgcraft then return runDialSGCraft() end
     if iface.lanteacraft then return runDialLanteaCraft() end
+    if iface.lanteacraft17 then return runDialLanteaCraft17() end
     if iface.lantea then return runDialLantea() end
     if iface.jsg then return runDialJSG() end
     local address = stripOrigin(dial.address)
@@ -1173,7 +1274,7 @@ if args[1] == "monitor" then
     monitor = peripheral.find("monitor")
     if not monitor then error("No monitor attached", 0) end
     if not monitor.isColor() then error("Monitor mode needs an advanced monitor", 0) end
-    monitorName = peripheral.getName(monitor)
+    monitorName = peripheralName(monitor, "monitor")
     monitor.setTextScale(CONFIG.monitorScale)
 end
 local target = monitor or native
@@ -1963,7 +2064,7 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     second = c
                 end
             end
-            if not second then
+            if not second or not TELETEXT then
                 text[col], fg[col], bg[col] = " ", HEXDIGIT[first], HEXDIGIT[first]
             else
                 local back, fore = first, second
@@ -2311,6 +2412,9 @@ local GATE_EVENTS = {
     stargate_event_horizon_traveler = true, stargate_iris_state_changed = true,
     -- LanteaCraft
     stargate_event = true, stargate_idc_received = true,
+    -- LanteaCraft for 1.7.10
+    sgOutgoing = true, sgIncoming = true, sgChevronEncode = true, sgWormholeOpening = true,
+    sgWormholeStable = true, sgWormholeClosing = true, sgIdle = true,
 }
 
 local function interruptDial()
@@ -2319,8 +2423,66 @@ local function interruptDial()
     end
 end
 
+-- LanteaCraft for 1.7.10: the events that tell the direction, the chevrons and the caller
+local function lc17Event(name, v)
+    if name == "sgOutgoing" then
+        -- sent again as every chevron starts
+        if iface.phase ~= "outgoing" then iface.chevrons, iface.glyphs = 0, nil end
+        iface.phase, iface.outgoing = "outgoing", true
+        iface.remote = toAddress(v) or iface.remote
+        gate.outgoing, gate.incomingChevrons, gate.remote = true, false, iface.remote
+    elseif name == "sgIncoming" then
+        -- one glyph of the caller's address with each chevron
+        if iface.phase ~= "incoming" then
+            iface.glyphs, iface.chevrons, iface.remote = "", 0, nil
+            gate.outgoing, gate.incomingChevrons, gate.remote = false, true, nil
+            interruptDial()
+            setMessage("Incoming wormhole", colors.red)
+        end
+        iface.phase, iface.outgoing = "incoming", false
+        if type(v) == "string" and #v == 1 then iface.glyphs = iface.glyphs .. v:upper() end
+    elseif name == "sgChevronEncode" then
+        iface.chevrons = tonumber(v) or iface.chevrons
+    elseif name == "sgWormholeOpening" then
+        if iface.phase == "incoming" then
+            local caller = iface.glyphs
+            if not caller or (#caller ~= 7 and #caller ~= 9) then caller = nil end
+            iface.remote = caller
+            gate.outgoing, gate.remote = false, caller
+            if caller then gate.lastIncoming = caller end
+            local who = describeRemote(caller)
+            setMessage("Incoming wormhole" .. (who and (" from " .. who) or ""), colors.red)
+        else
+            iface.outgoing = true
+            gate.outgoing = true
+            gate.remote = iface.remote or gate.remote
+            local who = (dial.entry and dial.active and dial.entry.name) or describeRemote(gate.remote)
+            setMessage("Wormhole open" .. (who and (" to " .. who) or ""), colors.lightBlue)
+            if db.settings.autoClose then armAutoClose(CONFIG.autoCloseIdle) end
+        end
+    elseif name == "sgWormholeClosing" then
+        disarmAutoClose()
+    elseif name == "sgIdle" then
+        local was = iface.phase
+        iface.phase, iface.outgoing, iface.remote, iface.glyphs, iface.chevrons = nil, nil, nil, nil, 0
+        disarmAutoClose()
+        gate.outgoing, gate.remote, gate.incomingChevrons = false, nil, false
+        if was and not dial.active and os.clock() - dial.endedAt > 2 and os.clock() - autoClose.closedAt > 2 then
+            setMessage("Gate closed", colors.lightGray)
+        end
+    end
+end
+
 local function gateEvent(e)
     local name = e[1]
+    -- LanteaCraft 1.7.10 sends no peripheral name, and its first argument can be an address
+    if LC17_EVENTS[name] then
+        if iface and iface.lanteacraft17 then
+            lc17Event(name, e[2])
+            refreshGate()
+        end
+        return
+    end
     -- newer Stargate Journey versions send the peripheral name first
     local o = 2
     if type(e[2]) == "string" then
@@ -2530,7 +2692,7 @@ local inputQueue = {}
 
 local function listenerTask()
     while true do
-        local e = table.pack(os.pullEventRaw())
+        local e = pack(os.pullEventRaw())
         if GATE_EVENTS[e[1]] then
             gateEventQueue[#gateEventQueue + 1] = e
             os.queueEvent("dialer_gate_event")
@@ -2559,7 +2721,7 @@ local function uiTask()
         if #inputQueue > 0 then
             e = table.remove(inputQueue, 1)
         else
-            e = table.pack(os.pullEventRaw())
+            e = pack(os.pullEventRaw())
             -- input comes through the queue, in order
             if INPUT_EVENTS[e[1]] then e = { n = 1, "dialer_input" } end
         end
