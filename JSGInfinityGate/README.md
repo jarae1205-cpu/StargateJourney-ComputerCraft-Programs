@@ -160,7 +160,7 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - While dialling, the screen's gate lit a chevron for each symbol, and the dial button glowed once the gate opened.
 - Both open gates showed the white horizon with the blue swirl, and the closed iris the pale blue spiral.
 - JSG's DHD, the Infinity DHD and the orange DHD drew side by side, each in its own look.
-- In a player's own game, 1.4.0's DHD keys lit up when pressed.
+- In a player's own game, 1.4.0's DHD keys lit up when pressed, and the dial button opened the wormhole with the blue swirl.
 
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
