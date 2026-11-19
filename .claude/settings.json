@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -q -o /home/user/work/gradle-4.10.3-bin.zip -d /home/user/work)",
+      "Bash(JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /home/user/work/gradle-4.10.3/bin/gradle --no-daemon --gradle-user-home /home/user/work/gradle-home -p /home/user/work/lc17 setupDevWorkspace build)"
+    ]
+  }
+}
