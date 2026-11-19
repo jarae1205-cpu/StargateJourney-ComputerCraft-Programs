@@ -32,6 +32,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 |---|---|
 | Milky Way | Stargate Journey Milky Way gates |
 | SG-1 | the `milky_way_sg-1` and `milky_way_promo` variants |
+| SGC Computer | pick it with STYLE (any gate), or a variant with "computer" in its name. The SGC's dialing computer screen, see [below](#sgc-computer) |
 | Movie | the `milky_way_movie` variant: sand coloured stone, big amber chevrons |
 | Continuum | variants with "continuum" or "arctic" in their name: the gate found frozen in the Arctic in Stargate: Continuum, frosted blue-grey stone flecked with ice, an icy horizon |
 | Ark of Truth | variants named with the word "ark" or "truth" (e.g. `ark_of_truth`): an Ancient gate in aged gold, white-hot gold chevrons, a golden wormhole whose light shines out in rays around the ring |
@@ -53,6 +54,18 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 *The Gate Room's Carter Addon Pack style with a wormhole open, rendered from the test harness.*
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
+
+### SGC Computer
+
+The gate as the SGC's dialing computer shows it: teal lines on a dark screen, with corner brackets, a crosshair in the middle, the symbol track turning with the ring and chevrons that fill in as they lock. As each chevron is encoded, its symbol comes up big across the gate, then shrinks away into its numbered box beside it, where it stays until the gate closes. The wormhole is drawn as rings of light running out from the middle, and the iris as a line drawing of its blades.
+
+![The SGC Computer style](../imgs/GateRoomSGCComputer.png)
+
+*Top: chevron 2's symbol over the gate as it is encoded, and chevron 4's with the first four in their boxes. Bottom: the wormhole established, and an incoming wormhole against the closed iris. On a 4x3 monitor, rendered from the headless test harness.*
+
+The symbols are line figures drawn by the program, like constellations: each symbol always gets the same one, and the point of origin is a pyramid under a sun. They are not the mod's glyphs or the show's. Every gate type has them: numbers, SGCraft letters and JSG's symbol names each get a figure of their own.
+
+On a monitor four blocks high the boxes stand in one numbered column; on one three blocks high they are in two columns. Smaller screens (under 30 lines) list the chevrons as text, as the other styles do.
 
 ### Ori Supergate
 
@@ -261,6 +274,7 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 | `sgc.styles` | the gate looks and their palettes |
 | `sgc.pixels` | a pixel canvas drawn with teletext characters (2x3 pixels per character) |
 | `sgc.ring` | draws a gate on a canvas: ring, chevrons, symbols, event horizon, kawoosh, iris |
+| `sgc.glyphs` | a line figure for every gate symbol (the SGC Computer style) |
 | `sgc.ui` | buttons and touch areas |
 
 ```lua

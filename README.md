@@ -37,6 +37,7 @@
 
 ## [Stargate Command: Gate Room, Network Hub and GDO](./StargateCommand/)
  - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack, Chevron Seven's Stargate Network gate): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
+ - **SGC Computer** style for the Gate Room: the gate in teal lines like the SGC's dialing computer screen, each symbol shown big over the gate as it is encoded, then filed in its numbered box
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - **GDO**: a pocket computer that sends your iris code through the wormhole from the far gate, like the team's GDO in the show; the Gate Room at home opens its iris for a trusted code
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)

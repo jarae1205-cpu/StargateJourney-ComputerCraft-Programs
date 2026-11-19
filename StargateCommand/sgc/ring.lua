@@ -223,10 +223,76 @@ function Ring:segmentZones(style)
     return zone
 end
 
+-- zones of the SGC dialing computer's picture of the gate: lines on a dark screen
+local Z_LINE, Z_DIM, Z_WTRACK, Z_GRID = 50, 51, 52, 53
+
+-- chevron zone (10 + k housing, 20 + k light, 30 + k core) of a pixel, or nil
+local function chevronZone(d, a, r0, r1, hwIn, hwOut, vShape)
+    if d < r0 or d > r1 then return nil end
+    local slot = floor(a / 40 + 0.5) % 9
+    local diff = abs(a - slot * 40)
+    if diff > 180 then diff = 360 - diff end
+    local f = (d - r0) / (r1 - r0)
+    local hw = hwIn + (hwOut - hwIn) * f
+    if diff > hw then return nil end
+    local k = POSITION_OF_ANGLE[slot]
+    if vShape then
+        local light = diff <= hw * 0.62 and f > 0.12 and f < 0.86
+        local core = diff <= hw * 0.22 and f > 0.2 and f < 0.8
+        return core and (30 + k) or light and (20 + k) or (10 + k)
+    end
+    return (diff <= hw * 0.45 and f > 0.2 and f < 0.8) and (30 + k) or (20 + k)
+end
+
+function Ring:wireZones(style)
+    local zone = {}
+    local R, w = self.R, self.canvas.w
+    local ring = style.ring
+    local trackR, rimR, horizonR = ring.track, ring.rim, ring.horizon
+    local px = 1 / R
+    local cw = style.chevronWidth
+    for j = 1, #self.pi do
+        local d, a = self.prn[j], self.pang[j]
+        local z = Z_NONE
+        if d <= horizonR - 1.2 * px then
+            z = Z_HORIZON
+            -- a crosshair and a circle at half the radius, like a sighting screen
+            local p = self.pi[j]
+            local x, y = (p - 1) % w + 1, floor((p - 1) / w) + 1
+            local dx, dy = (x - 0.5) - self.cx, (y - 0.5) - self.cy
+            if (abs(dx) < 0.5 or abs(dy) < 0.5) and d > 0.06 then z = Z_GRID end
+            if abs(d - horizonR * 0.5) < 0.6 * px then z = Z_GRID end
+        elseif d <= horizonR then
+            z = Z_LINE
+        elseif d > rimR - 1.0 * px and d <= rimR then
+            z = Z_LINE
+        elseif d > rimR and d < trackR - 1.0 * px then
+            z = Z_WTRACK
+        elseif d >= trackR - 1.0 * px and d <= trackR then
+            z = Z_LINE
+        elseif d > 1 - 1.2 * px and d <= 1 then
+            z = Z_LINE
+        elseif d > 0.95 - 0.8 * px and d <= 0.95 then
+            z = Z_DIM
+        elseif d > trackR and d <= 1 then
+            -- short ticks across the stone between the chevrons
+            local seam = (a + 20) % 40
+            if rad(math.min(seam, 40 - seam)) * d * R < 0.55 then z = Z_DIM end
+        end
+        z = chevronZone(d, a, trackR - 0.05, 1.06, 2.2 * cw, 7.5 * cw, true) or z
+        zone[j] = z
+    end
+    return zone
+end
+
 -- per pixel zone for a style (cached)
 function Ring:zonesFor(style)
     local cached = self.zones[style.id]
     if cached then return cached end
+    if style.shape == "wire" then
+        self.zones[style.id] = self:wireZones(style)
+        return self.zones[style.id]
+    end
     if style.shape == "segments" then
         self.zones[style.id] = self:segmentZones(style)
         return self.zones[style.id]
@@ -318,7 +384,98 @@ local function swirlColor(v)
     return IDX[colors.white]
 end
 
+-- the gate as the SGC's dialing computer draws it: circles and ticks, the symbol
+-- track turning with the ring, chevrons that fill in as they lock, rippling lines
+-- for the wormhole and a line drawing of the iris
+function Ring:drawWire(style, view)
+    local zone = self:zonesFor(style)
+    local px = self.canvas.px
+    local pi, prn, pang = self.pi, self.prn, self.pang
+    local t = view.t or 0
+    local symbols = view.symbols or 39
+    local segW = 360 / symbols
+    local rot = view.rotation or 0
+    local glyphs = view.glyphs or {}
+    local ring = style.ring
+    local horizonR, trackR, rimR = ring.horizon, ring.track, ring.rim
+    local R = self.R
+    local total, lit = view.total or 7, view.lit or 0
+    local chevOn = {}
+    for i = 1, math.min(lit, total) do chevOn[Ring.position(i, total)] = true end
+
+    local BLACK, LINE, DIM = IDX[colors.black], IDX[colors.lightGray], IDX[colors.gray]
+    local OFF, ON, CORE = IDX[colors.magenta], IDX[colors.orange], IDX[colors.yellow]
+    local LITGLYPH = IDX[colors.orange]
+    local IRIS_LINE, IRIS_FILL = IDX[colors.purple], IDX[colors.green]
+    local WHITE, LIGHT, MID, DEEP = IDX[colors.white], IDX[colors.lightBlue], IDX[colors.cyan], IDX[colors.blue]
+
+    local mode, age = nil, 0
+    if view.openedAt then
+        age = t - view.openedAt
+        mode = age < 1.6 and "kawoosh" or "open"
+    elseif view.closingAt and t - view.closingAt < 0.8 then
+        mode, age = "closing", t - view.closingAt
+    end
+    local irisAperture = view.iris and (1 - view.iris / 100) * horizonR or nil
+    local chase = view.chase and floor(((view.chase - rot) % 360) / segW + 0.5) % symbols
+    local bandIn, bandOut = rimR + (trackR - rimR) * 0.3, trackR - (trackR - rimR) * 0.3
+
+    for j = 1, #pi do
+        local z = zone[j]
+        local c = BLACK
+        if z == Z_LINE then
+            c = LINE
+        elseif z == Z_DIM then
+            c = DIM
+        elseif z == Z_WTRACK then
+            local d = prn[j]
+            local s = ((pang[j] - rot) % 360) / segW + 0.5
+            local seg = floor(s)
+            local f = s - seg
+            seg = seg % symbols
+            -- one colour per cell besides black keeps the teletext characters clean:
+            -- dim spokes between the symbols, a bright mark on a lit symbol
+            local edge = 0.5 / (d * R * rad(segW))
+            if glyphs[seg] or chase == seg then
+                if d > bandIn and d < bandOut and f > 0.3 and f < 0.7 then c = LITGLYPH end
+            elseif f < edge or f > 1 - edge then
+                c = DIM
+            end
+        elseif z == Z_HORIZON or z == Z_GRID then
+            local d = prn[j]
+            local h = d / horizonR
+            if irisAperture and d >= irisAperture then
+                -- the blades as lines on a dark disc
+                local q = pang[j] / 360 * 20 + h * 2.4
+                c = (q - floor(q) < 0.12) and IRIS_LINE or IRIS_FILL
+            elseif mode == "kawoosh" and age < 0.55 then
+                local burst = age / 0.55 * 1.2
+                if h < burst * 0.55 then c = WHITE elseif h < burst * 0.85 then c = LIGHT elseif h < burst then c = MID end
+            elseif mode and not (mode == "closing" and h > 1 - age / 0.8) then
+                -- rings of light running out from the middle
+                local q = h * 5 - t * 0.9 + 0.15 * sin(rad(pang[j]) * 3 + t)
+                local f = q - floor(q)
+                if h < 0.07 then c = WHITE
+                elseif f < 0.16 then c = LIGHT
+                elseif f < 0.3 then c = MID
+                else c = DEEP end
+                if mode == "kawoosh" and h < 1 - (age - 0.55) / 1.05 * 0.6 and f >= 0.3 then c = MID end
+            elseif z == Z_GRID then
+                c = DIM
+            end
+        elseif z >= 10 and z < 40 then
+            local k, kind = z % 10, floor(z / 10)
+            local on = chevOn[k]
+            if kind == 1 then c = on and ON or DIM
+            elseif kind == 2 then c = on and ON or BLACK
+            else c = on and CORE or OFF end
+        end
+        px[pi[j]] = c
+    end
+end
+
 function Ring:draw(style, view)
+    if style.shape == "wire" then return self:drawWire(style, view) end
     local zone = self:zonesFor(style)
     local px = self.canvas.px
     local pi, prn, pang = self.pi, self.prn, self.pang
