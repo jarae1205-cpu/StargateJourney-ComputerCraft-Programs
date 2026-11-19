@@ -160,7 +160,7 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - While dialling, the screen's gate lit a chevron for each symbol, and the dial button glowed once the gate opened.
 - Both open gates showed the white horizon with the blue swirl, and the closed iris the pale blue spiral.
 - JSG's DHD, the Infinity DHD and the orange DHD drew side by side, each in its own look.
-- In a player's own game, 1.4.0's Infinity DHD keys lit up when pressed, and the dial button opened the wormhole with the blue swirl. The orange DHD's keys worked too.
+- In a player's own game, 1.4.0's Infinity DHD keys lit up when pressed, and the dial button opened the wormhole with the blue swirl. The orange DHD's keys worked too, and the screen's crystal lamp lit with a control crystal in.
 
 **On a dedicated server, with 1.0.0** (Forge 47.4.29, JSG 5.1.2.0, CC: Tweaked 1.120.2, with Stargate Journey 0.6.54, Chevron Seven and the Stargate Command Addon in the same world):
 - Everything loaded together without errors from these mods.
@@ -170,7 +170,6 @@ In Minecraft 1.20.1 with Forge 47.4.29 and JSG 5.1.2.0, in the development serve
 - Breaking a base dropped an Infinity base that kept the gate's 17.8 million FE and its upgrade slots.
 
 **Not tested yet:**
-- The screen's crystal lamp. The test put the crystal in by editing the DHD's data, which doesn't reach the client, so the lamp stayed dark. Whether it lights when a crystal is put in by hand hasn't been tried.
 - Crafting the blocks in survival.
 - Placing the blocks by hand.
 - Closing the iris from a DHD, a remote or a computer. The test closed it by setting the gate's data.
