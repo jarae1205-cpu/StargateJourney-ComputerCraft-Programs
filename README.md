@@ -49,10 +49,13 @@
 
 ## [gatedial for OpenComputers](./OpenComputers/)
  - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x), Just Stargate Mod for 1.12.2 and LanteaCraft
+ - A gate room console on tier 2 and 3 screens: address book, big Dial, Close Gate and Iris buttons, switches for the automatic iris and the alarm, a GDO panel for iris codes, and the gate with a box for each chevron
  - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
  - Shares its address book, iris codes and gate log files with the ComputerCraft programs
  - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
+
+![The gatedial console on a tier 3 screen](./imgs/OpenComputersConsole.png)
 
 ![gatedial in a Minecraft 1.12.2 world](./imgs/OpenComputersInGame.jpg)
 

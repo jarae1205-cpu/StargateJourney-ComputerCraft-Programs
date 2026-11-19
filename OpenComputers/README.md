@@ -8,7 +8,17 @@ A stargate dialing computer for **OpenComputers** (OpenOS), for the gate mods th
 
 It is the OpenComputers version of the [Personal Dialer](../PersonalDialer/) and the [Gate Room](../StargateCommand/). It keeps the same address book, trusted iris codes and gate log, so a book written on one computer works on the other. It does not need the Auspex Gate Systems programs.
 
-![gatedial on OpenComputers](../imgs/OpenComputers.png)
+On a tier 2 or tier 3 screen, gatedial 2.0 opens on the **console**: a control screen with panels, made for a gate room. It has the address book, the selected address with big Dial, Close Gate and Iris buttons, switches, the GDO (iris codes in and out) and the gate with a box for each chevron.
+
+![The gatedial console on a tier 3 screen](../imgs/OpenComputersConsole.png)
+
+![The console while dialing, with the iris shut on an unknown code, and on a tier 2 screen](../imgs/OpenComputersConsoleStates.png)
+
+*The console on a JSG 1.12.2 Milky Way gate. Top: a tier 3 screen (160x50) with the wormhole open to Abydos and the iris code sent. Bottom, left to right: dialing Abydos; another gate dialed in, the automatic iris closed, and code 9999 was rejected; a tier 2 screen (80x25) dialing Chulak. These screens were rendered from a headless OpenOS test harness with a simulated gate, not captured in-game.*
+
+The gatedial 1.0 screen is still there: set `screen = "classic"` (see [Settings](#settings)).
+
+![gatedial's classic screen](../imgs/OpenComputers.png)
 
 *Left: dialing Abydos on an SGCraft gate, with a tier 3 screen and graphics card (160x50). Right: a JSG 1.12.2 gate on a tier 2 screen (80x25), with the wormhole open and the iris code sent, then a player coming through an incoming wormhole. These screens were rendered from a headless OpenOS test harness with simulated gates, not captured in-game.*
 
@@ -47,7 +57,20 @@ Then run `gatedial`. Run `components` in the shell if the gate is not found.
 
 ## Screen
 
-A tier 2 screen and graphics card is enough. With tier 3 (160x50), gatedial also draws the gate beside the address book: its chevrons light as they lock, the wormhole forms in the ring and the iris closes over it. On a smaller screen the picture is left out and the list gets the room.
+A tier 2 screen and graphics card is enough. gatedial uses the largest resolution the graphics card and screen allow.
+
+**The console** (tier 2 or tier 3):
+
+- **Header**: the logo, the gate's type and local address, and badges for the gate status (idle, dialing, wormhole open, incoming; it flashes while another gate dials in), the iris and the gate's energy. On tier 3 it also names the gate on the other side.
+- **Address book**: tap an address to select it, tap it again to dial. `IDC` marks addresses with an iris code to send. New, Edit, Delete and Log buttons sit under the list.
+- **Selected**: the name, address and iris code of the selected address, then the big buttons: **Dial** (Abort while dialing), **Close Gate**, and **Open Iris** or **Close Iris**.
+- **Switches**: automatic iris, iris code check and alarm, which you turn on and off by tapping them. The console remembers them.
+- **GDO**: the last iris code that came in and whether it was accepted, the last code you sent and the answer, and how many codes are trusted.
+- **The gate** (tier 3): the gate picture, with its chevrons lighting as they lock, the wormhole and the iris. Beside it is a box for each chevron with its symbol, and under it the wormhole's time and a bar of locked chevrons. On tier 2 the chevrons are a list.
+
+Tapping the iris badge in the header opens or closes the iris too. The gate log opens over the address book; Back returns to it.
+
+**The classic screen** (`screen = "classic"`, and on a tier 1 screen): the address book as a list, with the chevrons and the gate state under it. With tier 3 it also draws the gate beside the list.
 
 ## Keys
 
@@ -57,13 +80,14 @@ A tier 2 screen and graphics card is enough. With tier 3 (160x50), gatedial also
 | Enter | dial it |
 | X | close the wormhole, or stop dialing |
 | I | open or close the iris |
+| A | automatic iris on or off |
 | N / E / D | new address, edit, delete |
 | L | the gate log |
 | Q | quit |
 
-X and I also work while the gate log is open.
+X, I and A also work while the gate log is open.
 
-On a touch screen, tap an address to pick it and tap it again to dial. The buttons along the bottom do the same as the keys.
+On a touch screen, tap an address to pick it and tap it again to dial. The buttons do the same as the keys. New and Edit ask their questions on the computer's keyboard.
 
 New and edit ask for a name, an address and the iris code to send when you dial it. When you edit, each question shows the current value in [brackets]: press Enter to keep it, or type `-` to clear it. Addresses are typed the way the gate shows them: SGCraft letters such as `WLDQ-DQB-MT`, or JSG symbol names separated by commas such as `Aquila, Cetus, Gemini, Leo, Scorpius, Orion`. An entry with the wrong kind of address for the gate is shown but not dialed.
 
@@ -77,7 +101,7 @@ Iris codes work the same as in the [Gate Room](../StargateCommand/README.md#iris
 
 With SGCraft the codes go as gate messages, the same as from the ComputerCraft programs. JSG 1.12.2 has its own iris code system (the GDO), so gatedial uses that: the code arrives as JSG's `received_code` signal and the answer goes to the traveller's GDO.
 
-Set `autoIris = true` at the top of `gatedial.lua` to close the iris whenever another gate dials in.
+Turn on **Automatic iris** on the console (or press A) to close the iris whenever another gate dials in. The GDO panel shows the last code in each direction.
 
 ## Shared files
 
@@ -93,13 +117,19 @@ These are the same files the ComputerCraft programs keep at the root of a comput
 
 At the top of `gatedial.lua`:
 
+- `screen`: `"console"` (the default) or `"classic"` for the gatedial 1.0 screen
+- `logo`: the big letters at the top of the console, `"SGC"` by default. Letters, digits, `-` and spaces; a name too long for the big letters is written in plain text
 - `irisCodes`: check iris codes from the gate that dialed in (on by default)
 - `autoIris`: close the iris when another gate dials in (off by default)
 - `alarm`: beep while another gate is dialing in
 - `gatePicture`: draw the gate on a tier 3 screen
 - `pollInterval`: seconds between gate checks
 
+`irisCodes`, `autoIris` and `alarm` are where the console's switches start. Once you flip a switch on the console (or press A), gatedial keeps that choice in the address book's settings, and it wins over the value here.
+
 ## Tested
+
+**The console (gatedial 2.0)** has only been tried in a headless OpenOS test harness, with a simulated JSG 1.12.2 gate, on tier 3 (160x50) and tier 2 (80x25) screens: dialing, closing, an incoming wormhole with the automatic iris, iris codes accepted and rejected, the switches, the buttons by touch, adding an address and the gate log. It has not been tried in a game yet. The gate code underneath is the same as in gatedial 1.0, which was tested in the games below; if the console misbehaves, `screen = "classic"` brings back the 1.0 screen.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 
