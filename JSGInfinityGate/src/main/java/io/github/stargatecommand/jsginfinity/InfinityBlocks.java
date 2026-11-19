@@ -36,9 +36,16 @@ public final class InfinityBlocks {
     }
 
     /**
-     * JSG's Milky Way DHD as it is, block entity and all, under its own name: the Infinity DHD
-     * and the orange DHD. The add-on's DHD renderer draws each in its own colours.
+     * JSG's Milky Way DHD as it is, block entity and all, under its own name: the orange DHD, which
+     * the add-on's DHD renderer draws in its own colours with JSG's model and keys.
      */
     public static class Dhd extends DHDMilkyWayBlock {
+    }
+
+    /**
+     * The Infinity DHD: JSG's Milky Way DHD too, drawn as a console with a screen, its keys on the
+     * screen. A class of its own because JSG looks up where a DHD's keys are by its block's class.
+     */
+    public static class ScreenDhd extends Dhd {
     }
 }

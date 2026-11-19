@@ -120,8 +120,8 @@ A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continu
 ### [Infinity Stargate for JSG](./JSGInfinityGate/)
 An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity*, built from its own base, ring and chevron blocks in JSG's pattern:
  - JSG's own Milky Way gate underneath, so it has Milky Way addresses and is meant to take the DHD, upgrades, the iris and computers like one (see [what was tested](./JSGInfinityGate/README.md#tested))
- - Drawn with JSG's models, in the cartoon's colours: pale stone with ink outlines, lime-yellow chevrons, a pale wormhole with the cartoon's turning whirlpool, and a spiral iris
- - An Infinity DHD to go with it: JSG's Milky Way DHD in the same colours, which links to Infinity gates and JSG's Milky Way gates alike
+ - Drawn with JSG's models, in the cartoon's colours: blue-grey metal with ink outlines and dark chevrons that glow pale cyan, a white wormhole with Carter's Addon Pack's turning blue swirl, and a spiral iris
+ - An Infinity DHD to go with it: a console with a tilted screen, its symbols glowing on the glass, which is JSG's Milky Way DHD underneath and links to Infinity gates and JSG's Milky Way gates alike
  - An orange DHD in the style of Carter's Addon Pack, also JSG's Milky Way DHD underneath
  - Commands for operators: `/jsginfinity build` lays out a whole gate, `/jsginfinity platform` builds it on Carter's stone pyramid with the orange DHD, and `/jsginfinity room` builds the *Stargate Infinity* gate room around it
 

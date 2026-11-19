@@ -36,7 +36,7 @@ public class JSGInfinity {
     public static final RegistryObject<Block> BASE_BLOCK = BLOCKS.register("infinity_stargate_base_block", InfinityBlocks.Base::new);
     public static final RegistryObject<Block> RING_BLOCK = BLOCKS.register("infinity_stargate_ring_block", InfinityBlocks.Ring::new);
     public static final RegistryObject<Block> CHEVRON_BLOCK = BLOCKS.register("infinity_stargate_chevron_block", InfinityBlocks.Chevron::new);
-    public static final RegistryObject<Block> DHD_BLOCK = BLOCKS.register("infinity_dhd", InfinityBlocks.Dhd::new);
+    public static final RegistryObject<Block> DHD_BLOCK = BLOCKS.register("infinity_dhd", InfinityBlocks.ScreenDhd::new);
     public static final RegistryObject<Block> ORANGE_DHD_BLOCK = BLOCKS.register("orange_dhd", InfinityBlocks.Dhd::new);
 
     public static final RegistryObject<Item> BASE_ITEM = ITEMS.register("infinity_stargate_base_block",
