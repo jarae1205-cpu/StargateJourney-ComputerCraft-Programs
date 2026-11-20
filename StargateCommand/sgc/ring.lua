@@ -377,6 +377,29 @@ local function horizonSwirl(h, a, t)
     return 0.24 + 0.46 * (1 - h) ^ 1.4 + 0.17 * sin(h * 15 - t * 3 + bend)
 end
 
+-- LanteaCraft's horizon: deep blue, flecked with points of light that drift outwards
+-- in rings and twinkle. Worked out from the pixel's angle and radius, so it needs no state.
+local function sparkleColor(h, a, t)
+    local ring = h * 15 - t * 0.8
+    local band = math.floor(ring)
+    -- more cells towards the rim, so the specks are as dense there as in the middle
+    local cells = 24 + math.floor(h * 60)
+    local cell = math.floor(a / 360 * cells)
+    local n = (cell * 7919 + band * 104729 + (cell * band) % 131) % 997
+    local into = ring - band
+    -- a speck of light sits in the middle of its band and twinkles
+    if n < 300 and into > 0.38 and into < 0.62 then
+        local tw = (n * 0.173 + t * 1.7) % 1
+        if tw < 0.6 then
+            if n < 70 then return IDX[colors.white] end
+            return IDX[colors.lightBlue]
+        end
+    end
+    -- a faint haze, thicker towards the rim
+    if h > 0.4 and (n * 7 + cell) % 9 == 0 then return IDX[colors.cyan] end
+    return IDX[colors.blue]
+end
+
 local function swirlColor(v)
     if v < 0.36 then return IDX[colors.blue] end
     if v < 0.56 then return IDX[colors.cyan] end
@@ -586,6 +609,9 @@ function Ring:draw(style, view)
                     else c = BG and BG[j] or BLACK end
                 elseif mode == "closing" and h > 1 - age / 0.8 then
                     c = BG and BG[j] or BLACK
+                elseif style.horizon == "sparkle" then
+                    c = sparkleColor(h, a, t)
+                    if mode == "kawoosh" and h < 1 - (age - 0.55) / 1.05 then c = IDX[colors.cyan] end
                 elseif style.horizon == "spiral" then
                     -- a cartoon whirlpool: ink lines curling into the middle
                     local q = a / 360 * 16 + h * 2.2 - t * 0.25
