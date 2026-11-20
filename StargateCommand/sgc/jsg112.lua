@@ -149,7 +149,10 @@ function M.poll(g)
         g.connected = false
         if st == "idle" then
             g.state = "IDLE"
-            g.remote, g.engaged, g.openedAt, g.incomingChevrons = nil, {}, nil, false
+            g.openedAt, g.incomingChevrons = nil, false
+            -- the gate reads idle for a moment between its last chevron and opening:
+            -- our own dial keeps the address it is dialing
+            if not g.dialing then g.remote, g.engaged = nil, {} end
         elseif st == "incoming" then
             g.state, g.outgoing, g.incomingChevrons = "INCOMING", false, true
         elseif st:find("dialing", 1, true) then
@@ -163,7 +166,9 @@ function M.poll(g)
         local list = M.dialedList(g:call("dialedAddress"))
         g.engaged = list
         if not g.connected then g.chevrons = #list end
-    else
+        -- an open outgoing wormhole leads to the address we dialed
+        if g.connected and g.outgoing and not g.remote and #list > 0 then g.remote = A.strip(list) end
+    elseif not g.dialing then
         g.chevrons = 0
     end
     if g.hasIris then
@@ -197,7 +202,10 @@ function M.event(g, name, e, o)
         local initiating = e[p] == true
         g.outgoing = initiating
         g.connected, g.openedAt = true, now()
-        if initiating and g.engaged and #g.engaged > 0 then g.remote = A.strip(g.engaged) end
+        if initiating and not g.remote then
+            local list = (g.engaged and #g.engaged > 0) and g.engaged or M.dialedList(g:call("dialedAddress"))
+            if #list > 0 then g.remote = A.strip(list) end
+        end
         return { type = initiating and "outgoing" or "incoming", address = initiating and g.remote or nil }
     elseif name == "stargate_close" then
         if g.connected then g.closingAt = now() end
