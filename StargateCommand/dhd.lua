@@ -546,7 +546,7 @@ local function followGate()
             if not same or count > #seq then
                 seq = {}
                 for i = 1, count do
-                    if eng[i] ~= keyset.origin then seq[#seq + 1] = { symbol = eng[i], state = "locked" } end
+                    if not D.isOrigin(keyset, eng[i]) then seq[#seq + 1] = { symbol = eng[i], state = "locked" } end
                 end
             end
         end
@@ -591,7 +591,7 @@ local function status()
         return "DIALING", colors.orange, colors.black
     end
     if st == "IDLE" and #seq > 0 then
-        if keyset.lengths[#seq] then return "READY - PRESS THE DOME", colors.orange, colors.black end
+        if keyset.lengths[#seq] then return "ADDRESS READY", colors.orange, colors.black end
         return "ADDRESS " .. #seq .. " OF " .. keyset.max, colors.gray, colors.white
     end
     local t = STATE_TEXT[st] or STATE_TEXT.IDLE

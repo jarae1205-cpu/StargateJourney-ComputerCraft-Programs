@@ -28,7 +28,9 @@ local D = {}
 
 local floor = math.floor
 
--- Just Stargate Mod's Milky Way symbols (the point of origin is the dome)
+-- Just Stargate Mod's symbol names, as JSG 5.1.2.0 spells them (its SymbolMilkyWayEnum,
+-- SymbolPegasusEnum and SymbolUniverseEnum). JSG looks names up without regard to case.
+-- The points of origin (Point of Origin, Subido, Glyph 17) are the dome, not keys.
 D.JSG_MILKY_WAY = {
     "Andromeda", "Aquarius", "Aries", "Auriga", "Bootes", "Cancer", "Canis Minor", "Capricornus",
     "Centaurus", "Cetus", "Corona Australis", "Crater", "Equuleus", "Eridanus", "Gemini", "Hydra",
@@ -36,13 +38,24 @@ D.JSG_MILKY_WAY = {
     "Perseus", "Pisces", "Piscis Austrinus", "Sagittarius", "Scorpius", "Sculptor", "Scutum",
     "Serpens Caput", "Sextans", "Taurus", "Triangulum", "Virgo",
 }
+-- JSG also has two placeholder symbols, Unknow1 and Unknow2, that addresses can't use
+D.JSG_PEGASUS = {
+    "Aaxel", "Abrin", "Acjesis", "Aldeni", "Alura", "Amiwill", "Arami", "Avoniv", "Baselai",
+    "Bydo", "Ca Po", "Danami", "Dawnre", "Ecrumig", "Elenami", "Gilltin", "Hacemill", "Hamlinto",
+    "Illume", "Laylox", "Lenchan", "Olavii", "Once El", "Poco Re", "Ramnon", "Recktic", "Robandus",
+    "Roehi", "Salma", "Sandovi", "Setas", "Sibbron", "Tahnan", "Zamilloz", "Zeo",
+}
+-- Universe symbols are "Glyph 1" to "Glyph 36" (JSG also takes "G1" to "G36" when dialing)
+D.JSG_ORIGIN = { milky_way = "Point of Origin", pegasus = "Subido", universe = "Glyph 17", tollan = "Point of Origin" }
 
 D.SGCRAFT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 D.LANTEACRAFT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+"
 
--- a short label for a key: "26", "K", "Crat", "LeoM"
+-- a short label for a key: "26", "K", "Crat", "LeoM", "G5"
 function D.label(symbol)
     if type(symbol) ~= "string" or #symbol <= 3 then return tostring(symbol) end
+    local glyph = symbol:match("^[Gg]lyph%s+(%d+)$")
+    if glyph then return "G" .. glyph end
     local first, second = symbol:match("^(%S+)%s+(%S+)")
     if first then return first:sub(1, 3) .. second:sub(1, 1):upper() end
     return symbol:sub(1, 4)
@@ -98,11 +111,12 @@ function D.keys(g)
         k.symbols, k.kind = letters(D.LANTEACRAFT), "letters"
         k.lengths, k.max = { [7] = true, [8] = true, [9] = true }, 9
     elseif mod == "jsg" or mod == "jsg112" then
-        k.kind, k.origin, k.lengths = "names", g.originSymbol, { [6] = true, [7] = true, [8] = true }
+        k.kind, k.lengths = "names", { [6] = true, [7] = true, [8] = true }
+        k.origin = D.JSG_ORIGIN[g.typeId] or g.originSymbol
         if g.typeId == "universe" then
-            for i = 1, 36 do if i ~= 17 then k.symbols[#k.symbols + 1] = "G" .. i end end
+            for i = 1, 36 do if i ~= 17 then k.symbols[#k.symbols + 1] = "Glyph " .. i end end
         elseif g.typeId == "pegasus" then
-            k.why = "This DHD has no keys for JSG's Pegasus gates yet"
+            for i, s in ipairs(D.JSG_PEGASUS) do k.symbols[i] = s end
         else
             for i, s in ipairs(D.JSG_MILKY_WAY) do k.symbols[i] = s end
         end
@@ -140,6 +154,14 @@ function D.match(k, text)
         end
     end
     return found
+end
+
+-- true if the symbol is a point of origin (0, "Point of Origin", "Subido", "Glyph 17", ...)
+function D.isOrigin(k, symbol)
+    if symbol == nil then return false end
+    if symbol == k.origin or symbol == 0 then return true end
+    if type(symbol) ~= "string" then return false end
+    return A.isOriginName(symbol) or (type(k.origin) == "string" and symbol:lower() == k.origin:lower())
 end
 
 -- true if the symbol is one of the keys

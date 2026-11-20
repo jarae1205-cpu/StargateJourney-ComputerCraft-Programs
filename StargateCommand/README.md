@@ -257,7 +257,7 @@ The DHD from the show: two rings of symbol keys around a big dome. Press the sym
 - When the wormhole is open the dome is lit, and pressing it closes the wormhole.
 - **CLEAR** stops dialing and lets the gate drop its chevrons. **IRIS** opens or closes the iris.
 
-The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe gate (the point of origin is the dome), the 36 letters and digits of SGCraft, LanteaCraft's 38 glyphs, or JSG's constellation names. Each key has its number, letter or a short name ("Crat" for Crater, "LeoM" for Leo Minor) and a line figure from `sgc.glyphs`. The figures are made up by the program, as in the Gate Room's SGC Computer look; they aren't the mod's glyphs, so go by the numbers and names.
+The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe gate (the point of origin is the dome), the 36 letters and digits of SGCraft, LanteaCraft's 38 glyphs, or JSG's symbol names. Each key has its number, letter or a short name ("Crat" for Crater, "LeoM" for Leo Minor, "CaP" for Ca Po, "G5" for Glyph 5) and a line figure from `sgc.glyphs`. The figures are made up by the program, as in the Gate Room's SGC Computer look; they aren't the mod's glyphs, so go by the numbers and names.
 
 The panel beside the DHD shows the gate, what it's doing, the address so far one chevron per line, and the address book's name for it ("To Abydos"). An incoming wormhole lights the caller's symbols, names the caller and locks the keys. If someone dials at the gate's own DHD block, or from another computer, the keys light up with it, and you can carry on from the screen.
 
@@ -284,11 +284,12 @@ Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the 
 
 What it can't do:
 
-- JSG's Pegasus gates: the DHD has no key names for them yet. Use the Gate Room or the Personal Dialer.
 - Lantea's Pegasus gates, and Stargate Journey's Pegasus, Universe, Tollan and Classic gates on a basic interface, can't be dialed by any computer program. The DHD says so.
 - A locked chevron can't be taken back on its own, as with a real DHD. CLEAR drops them all.
 
-The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Lantea, SGCraft and JSG gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 80x39. The JSG key names are the constellation names from the show. They haven't been checked against a JSG gate, and neither has Universe's `G1` to `G36`. If JSG refuses a name, the DHD shows JSG's reason.
+The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Lantea and SGCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
+
+The JSG key names are copied from JSG 5.1.2.0's own symbol lists, and checked against them letter for letter. On Milky Way gates they are the 37 constellations, on Pegasus gates the 35 Pegasus names, and on Universe gates `Glyph 1` to `Glyph 36`. JSG's computer methods look names up without regard to case, and they report Universe symbols by those names, which is why the keys use them. The points of origin, Point of Origin, Subido and Glyph 17, are the dome.
 
 ## Addresses
 
