@@ -29,7 +29,9 @@ public enum GateLook
 	WRAITH("wraith", 0.86F, 0.36F, 1.00F, 0.56F, 0.70F, 0.52F, 0.86F, 0.44F, 0.38F, 0.52F, 0.16F, 0.10F, 0.22F, 1, 1, 1),
 	CRIMSON("crimson", 1.00F, 0.24F, 0.18F, 0.56F, 0.22F, 0.08F, 0.08F, 0.52F, 0.36F, 0.36F, 0.22F, 0.10F, 0.10F, 1, 1, 1),
 	/** The Stargate Network gate's own look: dark steel-blue, blue chevrons, pale letters. */
-	NETWORK("network", 0.32F, 0.70F, 1.00F, 0.50F, 0.80F, 0.88F, 1.00F, 0.66F, 0.68F, 0.71F, 0.30F, 0.31F, 0.34F, 1, 1, 1);
+	NETWORK("network", 0.32F, 0.70F, 1.00F, 0.50F, 0.80F, 0.88F, 1.00F, 0.66F, 0.68F, 0.71F, 0.30F, 0.31F, 0.34F, 1, 1, 1),
+	/** LanteaCraft's gate (Minecraft 1.7.10): charcoal, small amber triangle chevrons, a navy wormhole flecked with white. */
+	LANTEACRAFT("lanteacraft", 1.00F, 0.78F, 0.12F, 0.34F, 0.50F, 0.51F, 0.54F, 0.46F, 0.47F, 0.50F, 0.16F, 0.16F, 0.18F, 1, 1, 1);
 
 	public final String id;
 	public final float chevronR, chevronG, chevronB;
@@ -70,6 +72,12 @@ public enum GateLook
 	public ResourceLocation horizonTexture()
 	{
 		return Chevron7.id("textures/entity/event_horizon" + suffix() + ".png");
+	}
+
+	/** The chevron lights: a V for most looks, LanteaCraft's small triangle for its own. */
+	public ResourceLocation chevronTexture()
+	{
+		return Chevron7.id(this == LANTEACRAFT ? "textures/entity/chevron_lanteacraft.png" : "textures/entity/chevron.png");
 	}
 
 	public Component displayName()

@@ -31,7 +31,6 @@ import net.minecraft.world.level.Level;
 public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity>
 {
 	// the ring, track and horizon textures come from the gate's look (GateLook)
-	static final ResourceLocation CHEVRON = Chevron7.id("textures/entity/chevron.png");
 	static final ResourceLocation IRIS = Chevron7.id("textures/entity/iris.png");
 	public static final ResourceLocation GLYPHS = Chevron7.id("textures/gui/glyphs.png");
 	/** The letters and digits of a Stargate Network gate, A to 9, in the same 8 by 5 grid as the symbols. */
@@ -251,7 +250,7 @@ public class StargateRenderer implements BlockEntityRenderer<StargateBlockEntity
 		VertexConsumer housing = buffers.getBuffer(RenderType.entityCutoutNoCull(look.stoneTexture()));
 		for(int slot = 0; slot < 9; slot++)
 			chevronHousing(housing, m, n, slot * 40.0F, look.housing, light);
-		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(CHEVRON));
+		VertexConsumer glow = buffers.getBuffer(RenderType.entityCutoutNoCull(look.chevronTexture()));
 		for(int slot = 0; slot < 9; slot++)
 			chevronLight(glow, m, n, slot * 40.0F, lit[slot], slot == 0 ? topOffset : 0, look, light);
 	}

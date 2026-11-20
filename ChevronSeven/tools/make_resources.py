@@ -108,6 +108,18 @@ def chevron():
     return img
 
 
+def chevron_lanteacraft():
+    """LanteaCraft's chevron: a small solid triangle pointing to the centre, its left face lit."""
+    s = 64
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.polygon([(12, 10), (52, 10), (32, 46)], fill=(214, 214, 214, 255))
+    d.polygon([(12, 10), (32, 10), (32, 46)], fill=(255, 255, 255, 255))
+    d.line([(12, 10), (52, 10)], fill=(255, 255, 255, 255), width=2)
+    d.line([(52, 10), (32, 46)], fill=(176, 176, 176, 255), width=2)
+    return img
+
+
 def event_horizon():
     """Shimmering blue water, sampled by the renderer with a swirl."""
     s = 128
@@ -162,6 +174,10 @@ LOOKS = {
     # the Stargate Network gate's own look: dark steel-blue, blue chevrons (GateLook.NETWORK).
     # Last, so the looks above keep their seeds and textures.
     "network": dict(stone=(74, 84, 102), track=(46, 52, 64), horizon=((20, 60, 160), (80, 150, 240), (215, 235, 255))),
+    # the gate of LanteaCraft (Minecraft 1.7.10): charcoal stone with a toothed rim, small amber
+    # triangle chevrons (chevron_lanteacraft), a deep navy wormhole flecked with white
+    "lanteacraft": dict(stone=(56, 57, 60), track=(44, 45, 48), horizon=((4, 12, 28), (18, 34, 62), (42, 66, 108)),
+                        teeth=True, flecks=True),
 }
 
 
@@ -185,6 +201,17 @@ def look_stone(spec, seed):
     d.line([(0, 0), (0, 63)], fill=dark)
     rnd = random.Random(40 + seed)
     px = img.load()
+    if spec.get("teeth"):
+        # a toothed rim on both edges: a row of raised blocks with dark gaps between them
+        lip = tuple(clamp(c * 1.22) for c in base) + (255,)
+        for x in range(0, 64, 8):
+            for y0, y1 in ((0, 5), (58, 63)):
+                d.rectangle([x + 1, y0, x + 5, y1], fill=lip)
+                d.rectangle([x + 6, y0, x + 7, y1], fill=dark)
+        # faint carved marks between the grooves, like worn glyphs
+        for _ in range(10):
+            x, y = rnd.randrange(4, 58), rnd.randrange(24, 38)
+            d.line([(x, y), (x + rnd.randrange(2, 6), y + rnd.randrange(-3, 4))], fill=dark, width=2)
     if spec.get("wear"):
         # chips and grime on old stone
         for _ in range(90):
@@ -228,7 +255,30 @@ def look_horizon(spec, seed):
             light = 1 - abs(v / len(waves)) ** 0.5
             col = [dark[i] + (mid[i] - dark[i]) * light + (bright[i] - mid[i]) * light ** 4 for i in range(3)]
             px[x, y] = tuple(clamp(c) for c in col) + (228,)
-    return img.filter(ImageFilter.GaussianBlur(0.6))
+    img = img.filter(ImageFilter.GaussianBlur(0.6))
+    if spec.get("flecks"):
+        flecks(img)
+    return img
+
+
+def flecks(img):
+    """White flecks of foam spread over dark water, as on LanteaCraft's wormhole."""
+    d = ImageDraw.Draw(img)
+    rnd = random.Random(29)
+    s = img.size[0]
+    for _ in range(190):
+        a = rnd.uniform(0, math.tau)
+        r = math.sqrt(rnd.uniform(0.01, 0.72)) * 0.48 * s
+        cx, cy = s / 2 + r * math.cos(a), s / 2 + r * math.sin(a)
+        # a short ragged stroke across the ripple, a few pixels long
+        along = a + math.pi / 2 + rnd.uniform(-0.5, 0.5)
+        n = rnd.randrange(2, 6)
+        shade = rnd.choice(((236, 242, 250), (206, 218, 236), (250, 252, 255)))
+        for k in range(n):
+            x = cx + math.cos(along) * k * 1.4 + rnd.uniform(-0.6, 0.6)
+            y = cy + math.sin(along) * k * 1.4 + rnd.uniform(-0.6, 0.6)
+            w = rnd.choice((1, 1, 2))
+            d.rectangle([x, y, x + w, y + rnd.choice((0, 1))], fill=shade + (240,))
 
 
 def cartoon_horizon():
@@ -770,6 +820,7 @@ LANG = {
     "look.chevron7.goauld": "Goa'uld",
     "look.chevron7.wraith": "Wraith",
     "look.chevron7.crimson": "Crimson",
+    "look.chevron7.lanteacraft": "LanteaCraft",
     "block.chevron7.stargate_base": "Stargate Base Block",
     "block.chevron7.stargate_ring_block": "Stargate Ring Block",
     "block.chevron7.stargate_chevron_block": "Stargate Chevron Block",
@@ -978,6 +1029,7 @@ def main():
     save(gate_stone(), "entity", "gate_stone")
     save(gate_track(), "entity", "gate_track")
     save(chevron(), "entity", "chevron")
+    save(chevron_lanteacraft(), "entity", "chevron_lanteacraft")
     save(event_horizon(), "entity", "event_horizon")
     save(iris(), "entity", "iris")
     save(glyph_atlas(), "gui", "glyphs")
