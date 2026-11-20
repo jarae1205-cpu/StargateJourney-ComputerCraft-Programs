@@ -18,7 +18,7 @@ On a tier 2 or tier 3 screen, gatedial 2.0 opens on the **console**: a control s
 
 ![The console in a Minecraft 1.12.2 world](../imgs/OpenComputersConsoleInGame.jpg)
 
-*In a Minecraft 1.12.2 world with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top: gate A with a wormhole open, and its computer's 3x2 tier 3 screen showing the console. Bottom left: that screen while A's wormhole is open to gate B, with code 1234 sent. Bottom right: gate B's tier 2 screen at the same moment: its automatic iris closed as the call came in, then the code was accepted and the iris opened. The two bottom pictures are the computers' screens as they were in the game, read back from their graphics cards and drawn here in a different font.*
+*Screenshots from a Minecraft 1.12.2 game with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top: gate A with a wormhole open, and its computer's 3x2 tier 3 screen showing the console. Bottom left: that screen opened by the player, with the wormhole open to gate B and code 1234 sent. Bottom right: gate B's tier 2 screen opened during the same call. B's automatic iris closed as the call came in, then the code was accepted and the iris opened.*
 
 The gatedial 1.0 screen is still there: set `screen = "classic"` (see [Settings](#settings)).
 
@@ -140,7 +140,13 @@ At the top of `gatedial.lua`:
 - **The setup.** Two JSG Milky Way gates were spawned with JSG's own `structurespawn` command, each with a creative iris in OC mode. Each gate was cabled to a creative computer case running OpenOS from its hard disk:
   - computer A, with a 3x2 tier 3 screen (160x50);
   - computer B, with a tier 2 screen (80x25).
-- **How it was driven.** A small test program on each computer ran gatedial and sent it key presses and screen taps as signals (`computer.pushSignal`, the same signals a keyboard and screen send). It also read the screen back from the graphics card. A player client joined the world for the pictures. JSG's autoclose was off, and OpenComputers' power use was turned off.
+- **How it was driven.** A small test program on each computer ran gatedial. For most of the scenarios it sent key presses and screen taps as signals (`computer.pushSignal`, the same signals a keyboard and screen send) and read the screen back from the graphics card. A player client was joined to the world. JSG's autoclose was off, and OpenComputers' power use was turned off.
+- **With the player's keyboard and mouse.** The player opened computer A's screen. Then, with real input:
+  - the Down key moved the selection, and A switched the automatic iris off;
+  - clicking the switch turned it on again, and clicking an address selected it;
+  - clicking NEW and typing a name, an address and an iris code added the address to the book;
+  - Up and Enter dialed gate B;
+  - clicking CLOSE GATE closed the wormhole, and LOG and BACK opened and closed the gate log.
 - **What worked.** The console drew on both screens, with the gate picture, the chevron boxes and the energy bar on tier 3.
   - A dialed B: the chevrons lit one by one, and the wormhole opened. A sent code 1234 through JSG's GDO.
   - B's automatic iris closed as the call came in. B accepted the code (`IN 1234 accepted (SG-1)`) and opened its iris.
@@ -151,7 +157,7 @@ At the top of `gatedial.lua`:
   - An open outgoing wormhole showed "REMOTE unknown gate". JSG 1.12.2 reads idle for a moment before the wormhole opens, which cleared the address being dialed. A's console now shows `REMOTE Gate B` and "Wormhole open to Gate B".
   - On tier 2, the status badge cut "INCOMING WORMHOLE" short and the local address ended in "...". They now read INCOMING and `Tau-Leo-Sco-Scu-Ser-Tri`.
   - The screen buffer used too much memory. It now takes about 400 KB less on tier 3.
-- **Not tried in the game.** The console on SGCraft and LanteaCraft gates (gatedial 1.0's gate code for them is unchanged), and typing on the keyboard with the screen open. The test program sent the same key signals instead.
+- **Not tried in the game.** The console on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for them is unchanged.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 
