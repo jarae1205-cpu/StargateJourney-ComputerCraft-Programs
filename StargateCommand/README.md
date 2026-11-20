@@ -285,9 +285,12 @@ Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the 
 What it can't do:
 
 - Lantea's Pegasus gates, and Stargate Journey's Pegasus, Universe, Tollan and Classic gates on a basic interface, can't be dialed by any computer program. The DHD says so.
+- Chevron Seven's Stargate Network gate, through its ring: there the gate numbers its letters, so connect it through its SG Computer Interface instead. The DHD then dials it like an SGCraft gate. Chevron Seven's other gates take six symbols and the dome.
 - A locked chevron can't be taken back on its own, as with a real DHD. CLEAR drops them all.
 
 The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Lantea and SGCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
+
+The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block.
 
 The JSG key names are copied from JSG 5.1.2.0's own symbol lists, and checked against them letter for letter. On Milky Way gates they are the 37 constellations, on Pegasus gates the 35 Pegasus names, and on Universe gates `Glyph 1` to `Glyph 36`. JSG's computer methods look names up without regard to case, and they report Universe symbols by those names, which is why the keys use them. The points of origin, Point of Origin, Subido and Glyph 17, are the dome.
 

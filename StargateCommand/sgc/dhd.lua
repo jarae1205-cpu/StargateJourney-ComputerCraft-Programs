@@ -94,7 +94,16 @@ function D.keys(g)
         return k
     end
     local mod = g.mod
-    if mod == "sgjourney" then
+    if mod == "sgjourney" and g.ptype == "chevron7_stargate" then
+        -- Chevron Seven's ring: addresses are always six symbols and the point of origin
+        range(g.symbolCount or 39)
+        k.origin, k.lengths, k.max, k.direct = 0, { [6] = true }, 6, true
+        if tostring(g:call("getStargateType") or ""):find("network", 1, true) then
+            -- its Stargate Network gate numbers its letters 0-35 here, so 0 is A, not the point of origin
+            k.direct = false
+            k.why = "Connect this Stargate Network gate through its SG Computer Interface to dial its letters"
+        end
+    elseif mod == "sgjourney" then
         range(g.symbolCount or 39)
         k.origin, k.lengths = 0, { [6] = true, [7] = true, [8] = true }
         k.direct = journeyDirect(g)
