@@ -105,8 +105,13 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 | `wraith` | purple-grey, violet chevrons, a violet wormhole |
 | `crimson` | dark red, red chevrons, a red wormhole |
 | `network` | the Stargate Network gate's look: dark steel-blue, blue chevrons, pale symbols or letters |
+| `lanteacraft` | the gate of LanteaCraft, the stargate mod for Minecraft 1.7.10: charcoal stone with a toothed rim, small amber triangle chevrons, a deep navy wormhole flecked with white (1.7.0) |
 
 `/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves. Looks are only colours and textures: the gate works the same in every one.
+
+![The LanteaCraft look](../imgs/ChevronSevenLanteaCraft.jpg)
+
+*The `lanteacraft` look on a gate platform, in a Minecraft 1.20.1 client. The DHD's keys light amber as the gate dials.*
 
 ## Gate platforms and the gate room
 
@@ -256,10 +261,13 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.6.0.jar`](dist/chevron7-1.6.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.7.0.jar`](dist/chevron7-1.7.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
+- **1.7.0 (the LanteaCraft look)**, in a Minecraft 1.20.1 client joined to a dedicated Forge 1.20.1 server (47.4.29), in a world made with 1.5.0:
+  - `/chevron7 looks` listed `lanteacraft`, and `/chevron7 platform … lanteacraft stone` built two gates in it.
+  - Each gate dialed the other with `/chevron7 dial`: the amber triangle chevrons lit one by one, the DHD's keys lit amber, the kawoosh came out and the wormhole settled navy with white flecks, as in the picture above. `/chevron7 close` closed it.
 - **1.6.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
   - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
   - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, look (`chevron7:network`) and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris, and `selfBusy` while dialing.
@@ -358,7 +366,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.6.0.jar`.
+The jar is `build/libs/chevron7-1.7.0.jar`.
 
 ## License
 

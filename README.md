@@ -36,7 +36,7 @@
 ![Personal Dialer image](./imgs/PersonalDialer.png)
 
 ## [Stargate Command: Gate Room, Network Hub and GDO](./StargateCommand/)
- - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack, Chevron Seven's Stargate Network gate): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
+ - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, LanteaCraft, Carter Addon Pack, Chevron Seven's Stargate Network gate): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **SGC Computer** style for the Gate Room: the gate in teal lines like the SGC's dialing computer screen, each symbol shown big over the gate as it is encoded, then filed in its numbered box
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
  - **GDO**: a pocket computer that sends your iris code through the wormhole from the far gate, like the team's GDO in the show; the Gate Room at home opens its iris for a trusted code
@@ -91,7 +91,7 @@ Not ComputerCraft programs, but made to go with them:
 A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - A 7-block ring gate with a turning symbol track, chevrons, kawoosh, event horizon and travel between gates, even across dimensions
  - Dial Home Device, a spiral iris, automatic closing, chunk loading while a wormhole is open
- - 14 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity, Stargate Network and more), gate platforms and an Infinity-style gate room
+ - 15 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity, Stargate Network, LanteaCraft and more), gate platforms and an Infinity-style gate room
  - A **Stargate Network gate** in the style of SGCraft: a ring of letters and nine chevrons; it dials letter addresses such as `1KA0-9KT-HY`, and every gate has one, so it can dial and be dialed by any other gate
  - A Carter Addon Pack pedestal with a red carpet, a round DHD whose keys light up as the gate dials, and `/chevron7 pedestal` to build the pedestal for a Stargate Journey, Lantea or JSG gate
  - An Ori supergate four times the size of a gate, a row of gates in every look, and a dark DHD with a red dome like JSG's
