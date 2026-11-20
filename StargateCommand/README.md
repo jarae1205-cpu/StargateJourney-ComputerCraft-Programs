@@ -250,10 +250,12 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 LanteaCraft's 1.7.10 releases (`sgc.lanteacraft17`) are a different mod underneath, with a much smaller computer interface:
 
 - The computer reaches the gate through LanteaCraft's ComputerCraft Adapter, or an OpenComputers Adapter, against the gate's base block. Both give a `stargate` peripheral, told apart from SGCraft's by its methods (`isDialing`, `isComplete`, `getInterfaceVersion`).
-- An address is 7 or 9 glyphs from the same alphabet. Seven reach a gate in the same dimension, nine another dimension.
-- The gate says only whether it is busy and whether it is dialing. The direction, the chevrons and the caller's address come from its events (`sgOutgoing`, `sgIncoming` with one glyph per chevron, `sgChevronEncode`, `sgWormholeOpening`, `sgWormholeClosing`, `sgIdle`). They carry no peripheral name.
+- An address is 7 or 9 glyphs from the same alphabet. Seven reach a gate in the same dimension, nine another dimension. A gate dials nine glyphs only if the two ring places two blocks to either side of the base, in the bottom row, hold chevrons. With plain ring blocks there it has seven chevrons, and LanteaCraft stops a nine-glyph dial after the sixth chevron.
+- The gate says only whether it is busy and whether it is dialing. The direction, the chevrons and the caller's address come from its events (`sgOutgoing`, `sgIncoming` with one glyph per chevron, `sgChevronEncode`, `sgWormholeOpening`, `sgWormholeClosing`, `sgIdle`). They carry no peripheral name; on OpenComputers a component address comes first, which is skipped.
 - A dial to an address with no gate runs through every chevron before it fails.
 - Either side can close the wormhole, and it closes by itself after 5 minutes. There is no iris a computer can move, and nothing can be sent through the wormhole.
+- LanteaCraft 1.7.10 doesn't save its ring blocks: a gate whose chunk unloads and loads again drops out of its call.
+- Tested with gatedial and the Personal Dialer in a Minecraft 1.7.10 world with OpenComputers 1.8.10 and ComputerCraft 1.75 (see [gatedial's test](../OpenComputers/README.md#tested)).
 
 ## Just Stargate Mod notes
 

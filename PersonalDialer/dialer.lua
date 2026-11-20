@@ -118,15 +118,16 @@ local function isOriginName(s)
     return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17"
 end
 
--- ComputerCraft 1.75 (the last for Minecraft 1.7.10) has no peripheral.getName and keeps
--- table.pack/unpack as Lua 5.1 does
+-- ComputerCraft 1.75 (the last for Minecraft 1.7.10) has no peripheral.getName, and its
+-- table.pack leaves out the count
 local function peripheralName(p, ptype)
     if peripheral.getName then return peripheral.getName(p) end
     for _, name in ipairs(peripheral.getNames()) do
         if peripheral.getType(name) == ptype then return name end
     end
 end
-local pack = table.pack or function(...) return { n = select("#", ...), ... } end
+-- (ComputerCraft 1.75's own table.pack leaves out the count, n)
+local function pack(...) return { n = select("#", ...), ... } end
 local unpack = table.unpack or unpack
 -- ComputerCraft 1.74 and 1.75 lack the teletext characters (128-159) the gate picture is drawn with
 local TELETEXT = not (_CC_VERSION and not _HOST)
@@ -876,7 +877,10 @@ end
 -- Dialing (runs in its own coroutine)
 ---------------------------------------------------------------------------
 
-local DialFailed = {}
+-- a failed dial raises this string, and the reason waits in failReason: ComputerCraft 1.75 (LuaJ)
+-- turns an error value that is not a string into "table: ..."
+local DIAL_FAILED = "dialer: dial failed"
+local failReason
 
 local function redrawLater()
     os.queueEvent("dialer_redraw")
@@ -893,7 +897,8 @@ local function waitUntil(predicate, timeout)
 end
 
 local function fail(reason)
-    error({ DialFailed, reason }, 0)
+    failReason = reason
+    error(DIAL_FAILED, 0)
 end
 
 local function checkFeedback(fb, allowed)
@@ -1122,8 +1127,14 @@ local function runDialLanteaCraft17()
         local b = iface.busy()
         if b == nil then fail("Lost the gate") end
         if not b then
-            -- every chevron dialed and nothing answered: no gate there, or it is busy
-            if os.clock() - started > 1 then fail("No gate answered at that address") end
+            if os.clock() - started > 1 then
+                -- a 7-chevron gate gives up on a 9-glyph address after its sixth chevron
+                if #address == 9 and iface.chevrons == 6 then
+                    fail("This gate has 7 chevrons: it can't dial 9 glyphs (dial the first 7 for this dimension)")
+                end
+                -- every chevron dialed and nothing answered: no gate there, or it is busy
+                fail("No gate answered at that address")
+            end
             return false
         end
         if iface.chevrons ~= shown then
@@ -1247,7 +1258,8 @@ local function dialerTask()
                 setMessage("Dialing aborted", colors.orange)
             end
         elseif not ok then
-            local reason = (type(err) == "table" and err[1] == DialFailed) and err[2] or tostring(err)
+            local reason = tostring(err)
+            if reason:find(DIAL_FAILED, 1, true) then reason = tostring(failReason) end
             if dial.entry then
                 dial.entry.last = "fail"
                 saveBook()
@@ -2447,6 +2459,9 @@ local function lc17Event(name, v)
         if iface.phase == "incoming" then
             local caller = iface.glyphs
             if not caller or (#caller ~= 7 and #caller ~= 9) then caller = nil end
+            -- a 7-glyph caller dialed within this dimension: its full address ends like ours
+            local here = gate.localAddress
+            if caller and #caller == 7 and type(here) == "string" and #here == 9 then caller = caller .. here:sub(8, 9) end
             iface.remote = caller
             gate.outgoing, gate.remote = false, caller
             if caller then gate.lastIncoming = caller end
@@ -2478,7 +2493,10 @@ local function gateEvent(e)
     -- LanteaCraft 1.7.10 sends no peripheral name, and its first argument can be an address
     if LC17_EVENTS[name] then
         if iface and iface.lanteacraft17 then
-            lc17Event(name, e[2])
+            local v = e[2]
+            -- (on OpenComputers a component address would come first)
+            if type(v) == "string" and (v == ifaceName or v:find("^%x+%-%x+%-%x+%-%x+%-%x+$")) then v = e[3] end
+            lc17Event(name, v)
             refreshGate()
         end
         return

@@ -13,12 +13,15 @@
 -- address, so both come from the events.
 --
 -- An address is 7 or 9 glyphs from A-Z, 0-9, "-" and "+": 7 for a gate in the same dimension,
--- 9 to reach another one. One dial() call dials the whole address: 2 seconds per chevron, half a
+-- 9 to reach another one. A gate dials 9 glyphs only if the two ring places beside the base's
+-- neighbours hold chevrons; with plain ring blocks there it has 7 chevrons, and a 9-glyph dial
+-- stops after the sixth chevron. One dial() call dials the whole address: 2 seconds per chevron, half a
 -- second between them, a 1 second kawoosh, and the wormhole stays open 5 minutes unless it is
 -- closed (either end can close it). A dial to an address with no gate runs through all its
 -- chevrons and then gives up. There is no iris a computer can move, no GDO and no messages.
 --
--- Events, without the peripheral name:
+-- Events (ComputerCraft: without the peripheral name; OpenComputers puts a component address
+-- first, which is not the address the computer sees for the gate, so it is skipped):
 --   sgOutgoing (address)   as each chevron of an outgoing dial starts
 --   sgIncoming (glyph)     as each chevron of an incoming dial starts, with that chevron's glyph
 --   sgChevronEncode (n)    chevron n locked
@@ -95,6 +98,7 @@ end
 local function reset(g)
     g.remote, g.engaged, g.openedAt, g.chevrons = nil, {}, nil, 0
     g.incomingChevrons, g.incomingGlyphs, g.lcPhase, g.lcClosing = false, nil, nil, false
+    g.lockedChevrons = nil
 end
 
 function M.detect(g)
@@ -137,7 +141,8 @@ function M.poll(g)
         else
             g.state = g.outgoing and "OPEN" or "INCOMING"
         end
-        if g.remote and #g.remote > 0 then g.chevrons = #g.remote end
+        -- as many chevrons as glyphs were dialed (a 7-glyph caller is shown with its full address)
+        if g.remote and #g.remote > 0 then g.chevrons = g.lockedChevrons or #g.remote end
     end
     if g.state ~= "IDLE" and g.state ~= "OFFLINE" then setEngaged(g) end
     g.iris, g.energy = nil, nil
@@ -146,7 +151,14 @@ end
 
 function M.rotation(g) return nil end
 
+-- OpenComputers signals start with a component address (a UUID)
+local function isUUID(v)
+    return type(v) == "string" and v:find("^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$") ~= nil
+end
+M.isUUID = isUUID
+
 function M.event(g, name, e, o)
+    if isUUID(e[o]) then o = o + 1 end
     local v = e[o]
     if name == "sgOutgoing" then
         -- sent again as every chevron starts; only the first one is news
@@ -182,6 +194,11 @@ function M.event(g, name, e, o)
         if g.lcPhase == "incoming" then
             g.outgoing = false
             local caller = M.address(g.incomingGlyphs)
+            g.lockedChevrons = caller and #caller or nil
+            -- a 7-glyph caller dialed within this dimension: its full address ends like ours
+            if caller and #caller == 7 and g.localAddress and #g.localAddress == 9 then
+                caller = caller .. g.localAddress:sub(8, 9)
+            end
             if caller and (#caller == 7 or #caller == 9) then
                 g.remote = caller
                 g.lastIncoming = caller
@@ -233,8 +250,14 @@ function M.dial(g, address, opts)
         local nowBusy = busy(g)
         if nowBusy == nil then G.fail("Lost the gate") end
         if not nowBusy then
-            -- the gate dialed every chevron and gave up: no gate there, or it was busy
-            if now() - started > 1 then G.fail("No gate answered at that address") end
+            if now() - started > 1 then
+                -- a 7-chevron gate gives up on a 9-glyph address after its sixth chevron
+                if #target == 9 and (g.chevrons or 0) == 6 then
+                    G.fail("This gate has 7 chevrons: it can't dial a 9-glyph address (dial the first 7 glyphs to reach a gate in this dimension)")
+                end
+                -- the gate dialed every chevron and gave up: no gate there, or it was busy
+                G.fail("No gate answered at that address")
+            end
             return false
         end
         local n = math.min(g.chevrons or 0, #target)

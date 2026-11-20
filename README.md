@@ -54,7 +54,7 @@
  - Address book, dialing, iris, gate picture on a tier 3 screen, touch or keys
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
  - Shares its address book, iris codes and gate log files with the ComputerCraft programs
- - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
+ - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in 1.7.10 worlds with SGCraft 1.13.3 and with LanteaCraft: dialing, iris codes and the iris
 
 ![The gatedial console on a tier 3 screen](./imgs/OpenComputersConsole.png)
 
@@ -144,7 +144,7 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/) and [JSG add-on](./JSGInfinityGate/), the [SGCraft add-on](./SGCraftInfinityGate/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
 | **Lantea: Stargates** | 1.20.1 (Forge) and 1.21.1 (NeoForge) | the ComputerCraft programs |
 | **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
-| **LanteaCraft** (its 2014–2015 releases) | 1.7.10 (Forge) | the [Personal Dialer](./PersonalDialer/#lanteacraft-on-1710) on ComputerCraft 1.75, and [gatedial](./OpenComputers/#lanteacraft-on-1710) on OpenComputers; tried only against a gate simulated from LanteaCraft's source |
+| **LanteaCraft** (its 2014–2015 releases) | 1.7.10 (Forge) | the [Personal Dialer](./PersonalDialer/#lanteacraft-on-1710) on ComputerCraft 1.75, and [gatedial](./OpenComputers/#lanteacraft-on-1710) on OpenComputers; both tested in a 1.7.10 world |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
 
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
