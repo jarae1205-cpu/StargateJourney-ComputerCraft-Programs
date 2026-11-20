@@ -14,7 +14,11 @@ On a tier 2 or tier 3 screen, gatedial 2.0 opens on the **console**: a control s
 
 ![The console while dialing, with the iris shut on an unknown code, and on a tier 2 screen](../imgs/OpenComputersConsoleStates.png)
 
-*The console on a JSG 1.12.2 Milky Way gate. Top: a tier 3 screen (160x50) with the wormhole open to Abydos and the iris code sent. Bottom, left to right: dialing Abydos; another gate dialed in, the automatic iris closed, and code 9999 was rejected; a tier 2 screen (80x25) dialing Chulak. These screens were rendered from a headless OpenOS test harness with a simulated gate, not captured in-game.*
+*The console on a JSG 1.12.2 Milky Way gate. Top: a tier 3 screen (160x50) with the wormhole open to Abydos and the iris code sent. Bottom, left to right: dialing Abydos; another gate dialed in, the automatic iris closed, and code 9999 was rejected; a tier 2 screen (80x25) dialing Chulak. These screens were rendered from a headless OpenOS test harness with a simulated gate.*
+
+![The console in a Minecraft 1.12.2 world](../imgs/OpenComputersConsoleInGame.jpg)
+
+*In a Minecraft 1.12.2 world with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top: gate A with a wormhole open, and its computer's 3x2 tier 3 screen showing the console. Bottom left: that screen while A's wormhole is open to gate B, with code 1234 sent. Bottom right: gate B's tier 2 screen at the same moment: its automatic iris closed as the call came in, then the code was accepted and the iris opened. The two bottom pictures are the computers' screens as they were in the game, read back from their graphics cards and drawn here in a different font.*
 
 The gatedial 1.0 screen is still there: set `screen = "classic"` (see [Settings](#settings)).
 
@@ -58,6 +62,8 @@ Then run `gatedial`. Run `components` in the shell if the gate is not found.
 ## Screen
 
 A tier 2 screen and graphics card is enough. gatedial uses the largest resolution the graphics card and screen allow.
+
+The console needs more memory than the classic screen. In the game it used about 0.9 MB on a tier 3 screen and 0.5 MB on a tier 2 screen, OpenOS included. Two tier 3 memory sticks (1.5 MB) are enough for either. With less memory, use the classic screen.
 
 **The console** (tier 2 or tier 3):
 
@@ -129,7 +135,23 @@ At the top of `gatedial.lua`:
 
 ## Tested
 
-**The console (gatedial 2.0)** has only been tried in a headless OpenOS test harness, with a simulated JSG 1.12.2 gate, on tier 3 (160x50) and tier 2 (80x25) screens: dialing, closing, an incoming wormhole with the automatic iris, iris codes accepted and rejected, the switches, the buttons by touch, adding an address and the gate log. It has not been tried in a game yet. The gate code underneath is the same as in gatedial 1.0, which was tested in the games below; if the console misbehaves, `screen = "classic"` brings back the 1.0 screen.
+**The console (gatedial 2.0), in a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8:
+
+- **The setup.** Two JSG Milky Way gates were spawned with JSG's own `structurespawn` command, each with a creative iris in OC mode. Each gate was cabled to a creative computer case running OpenOS from its hard disk:
+  - computer A, with a 3x2 tier 3 screen (160x50);
+  - computer B, with a tier 2 screen (80x25).
+- **How it was driven.** A small test program on each computer ran gatedial and sent it key presses and screen taps as signals (`computer.pushSignal`, the same signals a keyboard and screen send). It also read the screen back from the graphics card. A player client joined the world for the pictures. JSG's autoclose was off, and OpenComputers' power use was turned off.
+- **What worked.** The console drew on both screens, with the gate picture, the chevron boxes and the energy bar on tier 3.
+  - A dialed B: the chevrons lit one by one, and the wormhole opened. A sent code 1234 through JSG's GDO.
+  - B's automatic iris closed as the call came in. B accepted the code (`IN 1234 accepted (SG-1)`) and opened its iris.
+  - Tapping the Automatic iris switch on A turned it on, and tapping DIAL on B dialed A. A's iris closed, then code 4321 was accepted and the iris opened.
+  - B's iris code was changed to 9999 by typing at the Edit prompts. A rejected it, and the iris stayed shut.
+  - Closing the wormhole worked from either computer, and the gate log showed the calls and the codes.
+- **What the test found, now fixed.**
+  - An open outgoing wormhole showed "REMOTE unknown gate". JSG 1.12.2 reads idle for a moment before the wormhole opens, which cleared the address being dialed. A's console now shows `REMOTE Gate B` and "Wormhole open to Gate B".
+  - On tier 2, the status badge cut "INCOMING WORMHOLE" short and the local address ended in "...". They now read INCOMING and `Tau-Leo-Sco-Scu-Ser-Tri`.
+  - The screen buffer used too much memory. It now takes about 400 KB less on tier 3.
+- **Not tried in the game.** The console on SGCraft and LanteaCraft gates (gatedial 1.0's gate code for them is unchanged), and typing on the keyboard with the screen open. The test program sent the same key signals instead.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 
