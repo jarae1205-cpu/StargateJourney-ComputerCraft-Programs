@@ -14,7 +14,7 @@
 -- address, and the dome dials it with sgc.gate's dial().
 --
 --   SGCraft                              36 letters and digits, 7 or 9 of them
---   LanteaCraft                          A-Z, 0-9, - and +, 7 to 9 of them
+--   LanteaCraft                          A-Z, 0-9, - and +, 7 to 9 of them (7 or 9 on 1.7.10)
 --   Just Stargate Mod (1.20.1)           symbol names, 6 to 8 of them
 --
 -- local keyset = D.keys(gate)     what the DHD's keys are for this gate, see below
@@ -116,9 +116,11 @@ function D.keys(g)
     elseif mod == "sgcraft" then
         k.symbols, k.kind = letters(D.SGCRAFT), "letters"
         k.lengths, k.max = { [7] = true, [9] = true }, 9
-    elseif mod == "lanteacraft" then
+    elseif mod == "lanteacraft" or mod == "lanteacraft17" then
         k.symbols, k.kind = letters(D.LANTEACRAFT), "letters"
         k.lengths, k.max = { [7] = true, [8] = true, [9] = true }, 9
+        -- the 1.7.10 releases: 7 glyphs within a dimension, 9 to reach another
+        if mod == "lanteacraft17" then k.lengths[8] = nil end
     elseif mod == "jsg" or mod == "jsg112" then
         k.kind, k.lengths = "names", { [6] = true, [7] = true, [8] = true }
         k.origin = D.JSG_ORIGIN[g.typeId] or g.originSymbol

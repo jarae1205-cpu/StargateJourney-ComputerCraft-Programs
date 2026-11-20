@@ -257,11 +257,11 @@ The DHD from the show: two rings of symbol keys around a big dome. Press the sym
 - When the wormhole is open the dome is lit, and pressing it closes the wormhole.
 - **CLEAR** stops dialing and lets the gate drop its chevrons. **IRIS** opens or closes the iris.
 
-The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe gate (the point of origin is the dome), the 36 letters and digits of SGCraft, LanteaCraft's 38 glyphs, or JSG's symbol names. Each key has its number, letter or a short name ("Crat" for Crater, "LeoM" for Leo Minor, "CaP" for Ca Po, "G5" for Glyph 5) and a line figure from `sgc.glyphs`. The figures are made up by the program, as in the Gate Room's SGC Computer look; they aren't the mod's glyphs, so go by the numbers and names.
+The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe gate (the point of origin is the dome), the 36 letters and digits of SGCraft, LanteaCraft's 38 glyphs (7 to 9 of them in an address; 7 or 9 on LanteaCraft for 1.7.10, once its support from PR #29 is in), or JSG's symbol names. Each key has its number, letter or a short name ("Crat" for Crater, "LeoM" for Leo Minor, "CaP" for Ca Po, "G5" for Glyph 5) and a line figure from `sgc.glyphs`. The figures are made up by the program, as in the Gate Room's SGC Computer look; they aren't the mod's glyphs, so go by the numbers and names.
 
 The panel beside the DHD shows the gate, what it's doing, the address so far one chevron per line, and the address book's name for it ("To Abydos"). An incoming wormhole lights the caller's symbols, names the caller and locks the keys. If someone dials at the gate's own DHD block, or from another computer, the keys light up with it, and you can carry on from the screen.
 
-The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome) and **Infinity** (pale blue-grey, lime). It starts in the gate's own look and remembers your choice.
+The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime) and **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD). It starts in the gate's own look, LanteaCraft's for LanteaCraft gates, and remembers your choice.
 
 A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors, and the computer's own screen, show the keys as a keypad with a DIAL button for the dome:
 
@@ -280,7 +280,7 @@ A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors,
 
 When the wormhole opens to an address book entry with an [iris code](#iris-codes-and-the-gate-log), the DHD sends the code, as the Gate Room does. With a wireless or ender modem it is also a [GDO](#gdo) relay. It leaves checking incoming codes to the Gate Room.
 
-Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"` or `"infinity"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
+Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"` or `"lanteacraft"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
 
 What it can't do:
 

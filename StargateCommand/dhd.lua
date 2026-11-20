@@ -10,8 +10,8 @@
 --   gates the keys build up the address and the dome dials it.
 --
 --   The dome closes an open wormhole again. The look (Milky Way, Pegasus,
---   Universe, Carter Addon Pack, Infinity) follows the gate; the arrows at the
---   top of the panel change it.
+--   Universe, Carter Addon Pack, Infinity, LanteaCraft) follows the gate; the
+--   arrows at the top of the panel change it.
 --
 --   Usage:
 --     dhd              first advanced monitor, or this screen if there is none
@@ -32,7 +32,7 @@ local CONFIG = {
     interfaceName = nil,
     -- monitor text scale
     textScale = 0.5,
-    -- the DHD's look: "milky_way", "pegasus", "universe", "carter" or "infinity";
+    -- the DHD's look: "milky_way", "pegasus", "universe", "carter", "infinity" or "lanteacraft";
     -- nil follows the gate. The arrows on the screen change it and it is remembered
     look = nil,
     -- send the address book entry's iris code when the wormhole opens
@@ -132,6 +132,14 @@ local LOOKS = {
         [colors.orange] = 0xD4F23C, [colors.yellow] = 0x1A1F10,
         [colors.magenta] = 0x3C6C80, [colors.cyan] = 0xBDF6FF,
     }),
+    -- LanteaCraft's DHD: a charcoal console, dark keys with pale carved symbols, amber light
+    -- like its gate's chevrons, and a glossy orange-red dome
+    look("lanteacraft", "LanteaCraft", {
+        [colors.gray] = 0x2B2B2E, [colors.purple] = 0x121214, [colors.green] = 0x0C0C0D,
+        [colors.brown] = 0x404145, [colors.pink] = 0xA7A9AE,
+        [colors.orange] = 0xF0A526, [colors.yellow] = 0xFFF3C8,
+        [colors.magenta] = 0x5A1A0E, [colors.cyan] = 0xF0552A,
+    }),
 }
 local LOOK_BY_ID = {}
 for i, l in ipairs(LOOKS) do
@@ -142,6 +150,7 @@ end
 -- the look for a gate: its type, or a variant named after one
 local function lookFor(g)
     if not g then return LOOK_BY_ID.milky_way end
+    if g.mod == "lanteacraft" or g.mod == "lanteacraft17" then return LOOK_BY_ID.lanteacraft end
     local v = (g.variant or ""):lower()
     if v:find("infinity") then return LOOK_BY_ID.infinity end
     if v:find("carter") or v:find("%f[%a]cap%f[%A]") then return LOOK_BY_ID.carter end
@@ -179,7 +188,7 @@ local ui = UI.new(target)
 
 local book = Book.open(CONFIG.dataFile)
 local gate = Gate.find(CONFIG.interfaceName)
-if gate and gate.mod == "lanteacraft" then A.plainLetters = true end
+if gate and (gate.mod == "lanteacraft" or gate.mod == "lanteacraft17") then A.plainLetters = true end
 local keyset = D.keys(gate)
 
 local lookSetting = CONFIG.look or settings.get("dhd.look")
@@ -1120,7 +1129,7 @@ local function uiTask()
             local t = peripheral.getType(e[2])
             if not gate and Gate.isInterfaceType(t) then
                 gate = Gate.find(CONFIG.interfaceName)
-                if gate and gate.mod == "lanteacraft" then A.plainLetters = true end
+                if gate and (gate.mod == "lanteacraft" or gate.mod == "lanteacraft17") then A.plainLetters = true end
                 keyset = D.keys(gate)
                 if not CONFIG.look and not settings.get("dhd.look") then style = lookFor(gate) end
                 Styles.apply(target, style)
