@@ -111,66 +111,77 @@ end
 
 -- The console is drawn into a buffer first, and only the cells that changed since the last
 -- frame go to the screen: a GPU call costs time on OpenComputers, a table write does not.
+-- A cell is one string, its character followed by its foreground and background colour as
+-- hex digits ("A0f"); a blank cell always has foreground 0, so only its background counts.
+-- One table slot per cell keeps the buffers small: memory is tight on OpenComputers.
 local UTF8_CHAR = "[\1-\127\194-\244][\128-\191]*"
+local HEXDIGITS = "0123456789abcdef"
+local HEXOF, COLOROF, BLANK = {}, {}, {}
+for i = 0, 15 do
+    local h = HEXDIGITS:sub(i + 1, i + 1)
+    HEXOF[2 ^ i] = h
+    COLOROF[h:byte()] = 2 ^ i
+    BLANK[2 ^ i] = " 0" .. h
+end
 local buffered = false
 local back, front = {}, {}
 
 local function bufClear()
+    local blank = BLANK[colors.black]
     for y = 1, H do
         local row = back[y]
-        if not row then row = { c = {}, f = {}, b = {} } back[y] = row end
-        local c, f, b = row.c, row.f, row.b
-        for x = 1, W do c[x], f[x], b[x] = " ", colors.white, colors.black end
+        if not row then row = {} back[y] = row end
+        for x = 1, W do row[x] = blank end
     end
 end
 
 -- forget what is on the screen, so the next flush draws every cell
 local function bufInvalidate()
-    for y = 1, H do front[y] = { c = {}, f = {}, b = {} } end
+    for y = 1, H do front[y] = {} end
 end
 
 local function bufText(x, y, s, fg, bg)
     local row = back[y]
     if not row then return end
-    local c, f, b = row.c, row.f, row.b
+    local tail, blank = HEXOF[fg] .. HEXOF[bg], BLANK[bg]
     for ch in s:gmatch(UTF8_CHAR) do
-        if x >= 1 and x <= W then c[x], f[x], b[x] = ch, fg, bg end
+        if x >= 1 and x <= W then row[x] = (ch == " ") and blank or (ch .. tail) end
         x = x + 1
     end
 end
 
 local function bufFill(x, y, w, h, bg)
+    local blank = BLANK[bg]
     for yy = math.max(1, y), math.min(H, y + h - 1) do
         local row = back[yy]
-        for xx = math.max(1, x), math.min(W, x + w - 1) do
-            row.c[xx], row.f[xx], row.b[xx] = " ", colors.white, bg
-        end
+        for xx = math.max(1, x), math.min(W, x + w - 1) do row[xx] = blank end
     end
-end
-
--- a cell needs drawing if its character or background changed, or the colour of a visible character
-local function changed(bc, bf, bb, fc, ff, fb, x)
-    return bc[x] ~= fc[x] or bb[x] ~= fb[x] or (bf[x] ~= ff[x] and bc[x] ~= " ")
 end
 
 local function flush()
     for y = 1, H do
-        local bc, bf, bb = back[y].c, back[y].f, back[y].b
-        local fc, ff, fb = front[y].c, front[y].f, front[y].b
+        local b, f = back[y], front[y]
         local x = 1
         while x <= W do
-            if changed(bc, bf, bb, fc, ff, fb, x) then
+            local cell = b[x]
+            if cell ~= f[x] then
                 -- one gpu.set for a run of cells in the same colours, through short unchanged stretches
-                local cf, cb = bf[x], bb[x]
+                local fg, bg = cell:byte(-2), cell:byte(-1)
                 local last, n = x, x + 1
-                while n <= W and bb[n] == cb and (bf[n] == cf or bc[n] == " ") and n - last <= 6 do
-                    if changed(bc, bf, bb, fc, ff, fb, n) then last = n end
+                while n <= W and n - last <= 6 do
+                    local c = b[n]
+                    if c:byte(-1) ~= bg or (c:byte(-2) ~= fg and c:sub(1, -3) ~= " ") then break end
+                    if c ~= f[n] then last = n end
                     n = n + 1
                 end
-                setFg(cf)
-                setBg(cb)
-                gpu.set(x, y, table.concat(bc, "", x, last))
-                for i = x, last do fc[i], ff[i], fb[i] = bc[i], bf[i], bb[i] end
+                local chars = {}
+                for i = x, last do
+                    chars[#chars + 1] = b[i]:sub(1, -3)
+                    f[i] = b[i]
+                end
+                setFg(COLOROF[fg])
+                setBg(COLOROF[bg])
+                gpu.set(x, y, table.concat(chars))
                 x = last + 1
             else
                 x = x + 1
@@ -424,7 +435,8 @@ local function chevronPlan()
     end
     syms = {}
     for i, s in ipairs(gate.engaged) do syms[i] = s end
-    local total = math.max(7, #syms)
+    -- a call from another galaxy locks 8 or 9 chevrons
+    local total = math.max(7, #syms, (not gate.outgoing and gate.incomingSize) or 0)
     return syms, total, math.min(lit, total)
 end
 
@@ -514,7 +526,7 @@ local function onGateEvent(info)
         end
         call = nil
         if not dial.active and computer.uptime() - dial.endedAt > 2 then
-            if info.error then setMessage("Gate reset: " .. tostring(info.reason), colors.red)
+            if info.error then setMessage("Gate reset" .. (info.reason and (": " .. info.reason) or ""), colors.red)
             else setMessage("Wormhole closed" .. (info.reason and (": " .. info.reason) or ""), colors.lightGray) end
         end
     elseif ty == "traveler" then
@@ -844,6 +856,20 @@ local function shortAddress(address)
     return table.concat(short, "-")
 end
 
+-- an address on at most maxLines lines of w characters, shortened when it does not fit
+local function addressLines(address, w, maxLines)
+    local lines = wrap(address, w)
+    if #lines <= maxLines then return lines end
+    return { shortAddress(address) }
+end
+
+-- badge texts too long for a narrow badge
+local SHORT_LABEL = { ["INCOMING WORMHOLE"] = "INCOMING", ["WORMHOLE OPEN"] = "OPEN" }
+local function badgeText(s, w)
+    if unicode.len(s) > w and SHORT_LABEL[s] then return SHORT_LABEL[s] end
+    return s
+end
+
 local function energyText(e, unit)
     if type(e) ~= "number" then return "-" end
     local s
@@ -948,12 +974,12 @@ local function drawConsoleHeader()
             text(x, y + 1, fit(gate.typeName, w), colors.white)
             text(x, y + 2, fit(gate.interfaceName, w), colors.gray)
             label(x, y + L.headH - 3, "LOCAL ADDRESS", w)
-            local lines = addr and wrap(addr, w, 2) or { "unknown" }
+            local lines = addr and addressLines(addr, w, 2) or { "unknown" }
             for i, s in ipairs(lines) do text(x, y + L.headH - 3 + i, fit(s, w), colors.orange) end
         else
             text(x, y, fit(gate.typeName .. " stargate", w), colors.white)
             label(x, y + 1, "LOCAL ADDRESS", w)
-            local lines = addr and wrap(addr, w, 2) or { "unknown" }
+            local lines = addr and addressLines(addr, w, 2) or { "unknown" }
             for i, s in ipairs(lines) do text(x, y + 1 + i, fit(s, w), colors.orange) end
         end
     end
@@ -968,7 +994,7 @@ local function drawConsoleHeader()
         local ex = x + sw + iw + 4
         local ew = x + w - ex
         label(x, y, "GATE STATUS", sw)
-        block(x, y + 1, sw, 3, st, stFg, stBg)
+        block(x, y + 1, sw, 3, badgeText(st, sw), stFg, stBg)
         label(x + sw + 2, y, "IRIS", iw)
         block(x + sw + 2, y + 1, iw, 3, ir, irFg, irBg, gate and gate.hasIris and toggleIris or nil)
         label(ex, y, "ENERGY", ew)
@@ -990,7 +1016,7 @@ local function drawConsoleHeader()
             text(x + 8, y + 5, fit(gate and gate.state ~= "IDLE" and "unknown gate" or "-", w - 8), colors.gray)
         end
     else
-        block(x, y, w, 1, st, stFg, stBg)
+        block(x, y, w, 1, badgeText(st, w), stFg, stBg)
         block(x, y + 1, w, 1, ir == "NO IRIS" and ir or ("IRIS " .. ir), irFg, irBg, gate and gate.hasIris and toggleIris or nil)
         text(x, y + 2, fit(energy, w), colors.white)
         if gate and gate.connected then text(x, y + 3, fit("open " .. mmss(gate:openSeconds()), w), colors.lightGray) end
@@ -1110,29 +1136,29 @@ local function drawControls()
     end
     local function dialIt() if dial.active then closeGate() else startDial(e) end end
     local codeText = e and (e.idc or "none") or ""
-    if L.mainH >= 34 then
+    if L.mainH >= 35 then
         label(x, y + 2, "NAME", w)
         block(x, y + 3, w, 1, "", colors.white, colors.gray)
         text(x + 1, y + 3, fit(e and e.name or "-", w - 2), colors.white, colors.gray)
         label(x, y + 5, "ADDRESS", w)
-        fill(x, y + 6, w, 2, colors.gray)
-        local lines = e and e.address and wrap(e.address, w - 2, 2) or { e and "no address yet" or "-" }
+        fill(x, y + 6, w, 3, colors.gray)
+        local lines = e and e.address and addressLines(e.address, w - 2, 3) or { e and "no address yet" or "-" }
         for i, s in ipairs(lines) do text(x + 1, y + 5 + i, fit(s, w - 2), e and e.address and colors.orange or colors.lightGray, colors.gray) end
-        label(x, y + 9, "IRIS CODE TO SEND", w)
-        fill(x, y + 10, w, 1, colors.gray)
-        text(x + 1, y + 10, fit(codeText, w - 2), e and e.idc and colors.white or colors.lightGray, colors.gray)
-        block(x, y + 12, w, 3, dialLabel, dialFg, dialBg, dialIt)
-        block(x, y + 16, w, 3, "CLOSE GATE", closeFg, closeBg, closeGate)
-        block(x, y + 20, w, 3, irisLabel, irisFg, irisBg, toggleIris)
-        label(x, y + 24, "SWITCHES", w)
-        toggleLine(x, y + 25, w, "Automatic iris", "autoIris")
-        toggleLine(x, y + 26, w, "Iris code check", "irisCodes")
-        toggleLine(x, y + 27, w, "Alarm", "alarm")
-        label(x, y + 29, "GDO", w - 10)
-        text(x + w - 10, y + 29, rightAligned(trustedCount .. " trusted", 10), colors.gray)
-        gdoLine(x, y + 30, w, "IN ", gdo.incoming)
-        gdoLine(x, y + 31, w, "OUT", gdo.outgoing)
-        text(x, y + 32, fit("idc add <code> <name>", w), colors.gray)
+        label(x, y + 10, "IRIS CODE TO SEND", w)
+        fill(x, y + 11, w, 1, colors.gray)
+        text(x + 1, y + 11, fit(codeText, w - 2), e and e.idc and colors.white or colors.lightGray, colors.gray)
+        block(x, y + 13, w, 3, dialLabel, dialFg, dialBg, dialIt)
+        block(x, y + 17, w, 3, "CLOSE GATE", closeFg, closeBg, closeGate)
+        block(x, y + 21, w, 3, irisLabel, irisFg, irisBg, toggleIris)
+        label(x, y + 25, "SWITCHES", w)
+        toggleLine(x, y + 26, w, "Automatic iris", "autoIris")
+        toggleLine(x, y + 27, w, "Iris code check", "irisCodes")
+        toggleLine(x, y + 28, w, "Alarm", "alarm")
+        label(x, y + 30, "GDO", w - 10)
+        text(x + w - 10, y + 30, rightAligned(trustedCount .. " trusted", 10), colors.gray)
+        gdoLine(x, y + 31, w, "IN ", gdo.incoming)
+        gdoLine(x, y + 32, w, "OUT", gdo.outgoing)
+        text(x, y + 33, fit("idc add <code> <name>", w), colors.gray)
     else
         fill(x, y + 1, w, 3, colors.gray)
         text(x + 1, y + 1, fit(e and e.name or "-", w - 2), colors.white, colors.gray)
