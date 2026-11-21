@@ -4,8 +4,10 @@
 --
 --   Shows the gate the computer is connected to, drawn in the look of its
 --   series (SG-1, Movie, Atlantis, Universe, Tollan, Classic, Infinity, Legacy
---   Hybrid, SGCraft): chevrons lock one by one, the inner ring turns, the
---   wormhole forms with a kawoosh and the iris closes over it.
+--   Hybrid, SGCraft) or its mod (JSG, Aunis, Stargate Network, LanteaCraft):
+--   chevrons lock one by one, the inner ring turns, the wormhole forms with a
+--   kawoosh and the iris closes over it. The Console look lays it out as a
+--   dialing console: panels down the left, the gate on the right.
 --
 --   Works with Stargate Journey (basic, crystal and advanced crystal interface),
 --   SGCraft (Greg's and SGCraft 2.x), Lantea: Stargates (0.7.7.0+, Milky Way
@@ -225,7 +227,7 @@ local function chooseStyle()
     style = Styles.resolve(book:setting("gateroomStyle", "auto"), gate)
     Styles.apply(target, style)
     -- a style that draws the gate at another size needs the layout done again
-    local key = (style.gateScale or 1) .. "/" .. (style.gateLift or 0)
+    local key = (style.gateScale or 1) .. "/" .. (style.gateLift or 0) .. "/" .. tostring(style.console)
     if canvas and ringKey and key ~= ringKey then os.queueEvent("gateroom_relayout") end
     ringKey = key
     if canvas then paintBackground() end
@@ -249,6 +251,10 @@ local function layout()
     L.gw = W - L.pw
     L.gh = H - 1
     if L.pw == 0 then L.gh = H - 2 end
+    if style and style.console and L.pw > 0 then
+        -- the console look: the panels down the left, a thin rule, the gate on the right
+        L.px, L.gx, L.gw = 1, L.pw + 2, W - L.pw - 1
+    end
     canvas = Pixels.new(L.gw, L.gh, colors.black)
     -- a style can draw the gate smaller and higher, to leave room for its scene below
     local scale, lift = style and style.gateScale or 1, style and style.gateLift or 0
@@ -370,6 +376,17 @@ end
 
 local function drawHeader(t)
     local flash = alarm.on and math.floor(t * 2) % 2 == 0
+    if style.console then
+        -- an orange SGC badge on a black bar, the gate's address on the right
+        local bg = flash and colors.red or colors.black
+        ui:fill(1, 1, W, 1, bg)
+        ui:write(2, 1, " SGC ", colors.black, colors.orange)
+        local title = style.room or "DIALING CONSOLE"
+        ui:write(8, 1, fit(title, W - 8), flash and colors.white or colors.lightGray, bg)
+        local right = gate and (gate.localAddress and A.format(gate.localAddress) or (gate.typeName .. " gate")) or "no interface"
+        if 8 + #title + #right + 3 <= W then ui:write(W - #right, 1, right, flash and colors.white or colors.orange, bg) end
+        return
+    end
     local bg = flash and colors.red or colors.gray
     ui:fill(1, 1, W, 1, bg)
     local title = " " .. (style.room or "GATE ROOM")
@@ -531,19 +548,34 @@ local function drawPanel(t)
     end
     local syms, total, lit = chevronPlan()
     local tall = H >= 30
+    local console = style.console
+    -- a bar between the parts of the panel: a titled blue bar on the console, a line otherwise
+    local function rule(title)
+        if console then
+            ui:fill(x, y, w, 1, colors.blue)
+            ui:write(x + 1, y, fit(title, w - 2), colors.white, colors.blue)
+        else
+            ui:fill(x, y, w, 1, bg) ui:write(x + 1, y, string.rep("\140", w - 2), colors.gray, bg)
+        end
+        y = y + 1
+    end
+    if console then
+        -- the thin rule between the panel and the gate
+        for yy = 2, H do ui:write(x + w, yy, "\149", colors.gray, colors.black) end
+    end
     -- JSG symbols are names: give them a wider column
     local names = false
     for _, s in ipairs(syms) do if type(s) == "string" and #s > 1 then names = true end end
     local symW = names and math.max(4, math.min(14, w - 19)) or 4
 
-    line("DIALING COMPUTER", colors.orange)
+    if console then rule("STARGATE") else line("DIALING COMPUTER", colors.orange) end
     if gate then
         local kind = gate.typeName .. (gate.generation and ("  gen " .. gate.generation) or "")
         line(fit(style.name .. " style - " .. kind, w - 1), colors.lightGray)
     else
         line("no interface found", colors.red)
     end
-    ui:fill(x, y, w, 1, bg) ui:write(x + 1, y, string.rep("\140", w - 2), colors.gray, bg) y = y + 1
+    rule("ADDRESS")
 
     -- chevrons: the SGC computer files each symbol in a box; the others list them
     local boxedTo = tall and style.computer and drawChevronBoxes(t, x, y, w, H - 21, syms, total, lit)
@@ -590,7 +622,7 @@ local function drawPanel(t)
             y = y + 1
         end
     end
-    ui:fill(x, y, w, 1, bg) ui:write(x + 1, y, string.rep("\140", w - 2), colors.gray, bg) y = y + 1
+    rule("STATUS")
 
     -- status box
     local text, fg, sbg = statusLine(t, total, lit)
@@ -652,11 +684,18 @@ local function drawPanel(t)
     if manual ~= "" then ui:write(x, by - 1, pad(" > " .. manual .. "_", w), colors.orange, bg)
     else ui:write(x, by - 1, pad("", w), colors.white, bg) end
 
+    -- the console's buttons are blue
+    local dialFg, dialBg = colors.black, colors.orange
+    local irisFg, irisBg = colors.black, gate and gate.hasIris and colors.lightGray or colors.gray
+    if console then
+        dialFg, dialBg = colors.white, colors.blue
+        irisFg, irisBg = colors.white, gate and gate.hasIris and colors.blue or colors.gray
+    end
     if tall then
         ui:fill(x, by, w, 5, bg)
-        ui:bigButton(b1, by, bw, "DIAL", colors.black, colors.orange, function() overlay = { page = 1 } book:reload() end)
+        ui:bigButton(b1, by, bw, "DIAL", dialFg, dialBg, function() overlay = { page = 1 } book:reload() end)
         ui:bigButton(b2, by, bw, dial.active and "ABORT" or "CLOSE", colors.white, colors.red, closeGate)
-        ui:bigButton(b1, by + 3, bw, "IRIS", colors.black, gate and gate.hasIris and colors.lightGray or colors.gray, toggleIris)
+        ui:bigButton(b1, by + 3, bw, "IRIS", irisFg, irisBg, toggleIris)
         ui:bigButton(b2, by + 3, bw, "STYLE", colors.black, colors.lightGray, cycleStyle)
     else
         -- short screens: two rows of buttons on the last two lines
@@ -665,9 +704,9 @@ local function drawPanel(t)
             ui:fill(b1, yy, bw, 1, b1c) ui:center(b1, yy, bw, l1, f1, b1c) ui:hit(b1, yy, b1 + bw - 1, yy, fn1)
             ui:fill(b2, yy, bw, 1, b2c) ui:center(b2, yy, bw, l2, f2, b2c) ui:hit(b2, yy, b2 + bw - 1, yy, fn2)
         end
-        row(by, "DIAL", colors.black, colors.orange, function() overlay = { page = 1 } book:reload() end,
+        row(by, "DIAL", dialFg, dialBg, function() overlay = { page = 1 } book:reload() end,
             dial.active and "ABORT" or "CLOSE", colors.white, colors.red, closeGate)
-        row(by + 1, "IRIS", colors.black, gate and gate.hasIris and colors.lightGray or colors.gray, toggleIris,
+        row(by + 1, "IRIS", irisFg, irisBg, toggleIris,
             "STYLE", colors.black, colors.lightGray, cycleStyle)
     end
 end
