@@ -35,21 +35,24 @@
 
 ![Personal Dialer image](./imgs/PersonalDialer.png)
 
-## [Stargate Command: Gate Room, Network Hub and GDO](./StargateCommand/)
+## [Stargate Command: Gate Room, Network Hub, DHD and GDO](./StargateCommand/)
  - **Gate Room**: SGC style monitor with an animated gate in the look of its series (SG-1, Movie, Origins, Continuum, Ark of Truth, Atlantis/Lantea, Pegasus, Universe, Tollan, Classic, Infinity, Ori Supergate, Legacy Hybrid, SGCraft, Carter Addon Pack, Chevron Seven's Stargate Network gate): turning ring, chevrons, kawoosh, iris, dialing computer panel and incoming wormhole alarm
  - **SGC Computer** style for the Gate Room: the gate in teal lines like the SGC's dialing computer screen, each symbol shown big over the gate as it is encoded, then filed in its numbered box
  - **Network Hub**: touch screen of destination cards with portal colours and tabs, planned destinations for worlds you have not built yet
+ - **Dial Home Device**: the show's DHD on a touch screen, two rings of symbol keys around a big dome. On Stargate Journey, Chevron Seven and Lantea gates each key locks its chevron as you press it; on SGCraft, LanteaCraft and JSG gates the dome dials the address. Six looks: Milky Way, Pegasus, Universe, Carter Addon Pack, Infinity and LanteaCraft. Tried in a test harness so far, not yet in a game
  - **GDO**: a pocket computer that sends your iris code through the wormhole from the far gate, like the team's GDO in the show; the Gate Room at home opens its iris for a trusted code
  - Works with Stargate Journey (1.20.1), SGCraft (Greg's original and the 1.12.2 SGCraft 2.3), Lantea: Stargates (0.7.7.0+), LanteaCraft (1.21.1) and Just Stargate Mod (1.20.1)
  - Tested in a NeoForge 1.21.1 world with LanteaCraft 0.2.5 and CC: Tweaked: dialing both ways, the iris and LanteaCraft's GDO iris codes
  - Tested on Stargate Journey 0.6.54 gates with every interface tier: dialing, errors, incoming wormholes and the automatic iris
  - Tested on JSG 1.20.1 (5.1.2.0) gates: dialing between gates and the automatic iris
  - Tested on Lantea: Stargates 0.7.7.0 gates, in the same world as Stargate Journey and JSG: dialing between gates
- - Shares its address book with the Personal Dialer; one installer for all three
+ - Shares its address book with the Personal Dialer; one installer for all of them
 
 ![Gate Room image](./imgs/GateRoom.png)
 
 ![GDO on a pocket computer](./imgs/GDO.png)
+
+![The Dial Home Device](./imgs/DHD.png)
 
 ## [gatedial for OpenComputers](./OpenComputers/)
  - The dialer for OpenComputers (OpenOS): SGCraft (Greg's original and 2.x), Just Stargate Mod for 1.12.2 and LanteaCraft
@@ -170,7 +173,7 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 
 ## License
 
-MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub, GDO and the `sgc` library), Stargate Network, Stargate Hybrid Legacy, Chevron Seven, the Stargate Command Addon, the Infinity pack for JSG, and the tools that build the variant pack.
+MIT, see [LICENSE](./LICENSE), for the work added in this repository: the Personal Dialer, Stargate Command (Gate Room, Network Hub, Dial Home Device, GDO and the `sgc` library), Stargate Network, Stargate Hybrid Legacy, Chevron Seven, the Stargate Command Addon, the Infinity pack for JSG, and the tools that build the variant pack.
 
 Not covered:
  - The programs by other authors (MilkyWay Stargate Dialing, SGC dialing, Stargate Dialing and the Window drawer test by Povstalec, Stargate Monitor by lukaskabc, Danger's Dialler by Danger) belong to their authors and keep their authors' terms.

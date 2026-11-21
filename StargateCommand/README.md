@@ -1,9 +1,10 @@
 # Stargate Command
 
-Two monitor programs, a GDO for pocket computers and a shared library for ComputerCraft stargates:
+Three monitor programs, a GDO for pocket computers and a shared library for ComputerCraft stargates:
 
 - **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it.
 - **Gate Network Hub**: a touch screen of destination cards. Each card has its own portal colour and a tab (Milky Way, Pegasus, Crossover...). Tap a card to dial it.
+- **[Dial Home Device](#dial-home-device)**: the DHD from the show on a touch screen. Press the symbols of an address on its two rings of keys, then the big dome in the middle.
 - **[GDO](#gdo)**: a pocket computer turned into the team's iris code transmitter. Punch in your code at the far gate, and the Gate Room at home opens its iris.
 
 They share one address book with the [Personal Dialer](../PersonalDialer/) and work with these mods:
@@ -96,7 +97,7 @@ With HTTP enabled in the CC: Tweaked config:
 wget run https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/StargateCommand/install.lua
 ```
 
-This downloads `gateroom.lua`, `hub.lua`, `dialer.lua`, `idc.lua`, `gdo.lua` and the `sgc` folder into the current folder. Run it again to update; your address book is kept.
+This downloads `gateroom.lua`, `hub.lua`, `dhd.lua`, `dialer.lua`, `idc.lua`, `gdo.lua` and the `sgc` folder into the current folder. Run it again to update; your address book is kept.
 
 To start one of them when the computer boots, add its name:
 
@@ -104,9 +105,9 @@ To start one of them when the computer boots, add its name:
 wget run https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/StargateCommand/install.lua gateroom
 ```
 
-The same goes for `hub`, `dialer`, `gdo` (on a pocket computer) and `relay` (`gdo relay` at a gate).
+The same goes for `hub`, `dhd`, `dialer`, `gdo` (on a pocket computer) and `relay` (`gdo relay` at a gate).
 
-Without HTTP, copy `gateroom.lua`, `hub.lua`, `gdo.lua` and the whole `sgc` folder to the computer. The programs need `sgc` next to them.
+Without HTTP, copy `gateroom.lua`, `hub.lua`, `dhd.lua`, `gdo.lua` and the whole `sgc` folder to the computer. The programs need `sgc` next to them.
 
 ## Gate Room
 
@@ -237,6 +238,62 @@ hub chart        add the planned destinations from the crossover network chart
 
 A 4x3 monitor shows 12 cards per page, a 3x2 monitor 6. Smaller screens use compact cards.
 
+## Dial Home Device
+
+```
+dhd              first advanced monitor (or the computer screen if there is none)
+dhd monitor_3    a specific monitor
+dhd term         the computer screen
+```
+
+![The Dial Home Device](../imgs/DHD.png)
+
+*Top: dialing Abydos on a Milky Way gate, with three chevrons locked and the fourth going in, and the wormhole open with Abydos's iris code sent. Bottom: a Pegasus gate with Atlantis's seven symbols locked, and the Infinity look with the wormhole open. On a 4x3 monitor, rendered from the headless test harness.*
+
+The DHD from the show: two rings of symbol keys around a big dome. Press the symbols of an address, then the dome.
+
+- On **Stargate Journey**, **Chevron Seven** and **Lantea: Stargates** gates, each key locks its chevron as soon as you press it, like a real DHD, and the dome engages the point of origin. On a Stargate Journey basic interface the ring turns to each symbol first, so a key takes a few seconds.
+- On **SGCraft**, **LanteaCraft** and **Just Stargate Mod** gates, a computer can only dial a whole address. The keys light up as you press them, and the dome dials the address. Touch the last key again to take it back. While the gate dials, the keys it hasn't locked yet blink.
+- When the wormhole is open the dome is lit, and pressing it closes the wormhole.
+- **CLEAR** stops dialing and lets the gate drop its chevrons. **IRIS** opens or closes the iris.
+
+The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe gate (the point of origin is the dome), the 36 letters and digits of SGCraft, LanteaCraft's 38 glyphs (7 to 9 of them in an address; 7 or 9 on LanteaCraft for 1.7.10, once its support from PR #29 is in), or JSG's symbol names. Each key has its number, letter or a short name ("Crat" for Crater, "LeoM" for Leo Minor, "CaP" for Ca Po, "G5" for Glyph 5) and a line figure from `sgc.glyphs`. The figures are made up by the program, as in the Gate Room's SGC Computer look; they aren't the mod's glyphs, so go by the numbers and names.
+
+The panel beside the DHD shows the gate, what it's doing, the address so far one chevron per line, and the address book's name for it ("To Abydos"). An incoming wormhole lights the caller's symbols, names the caller and locks the keys. If someone dials at the gate's own DHD block, or from another computer, the keys light up with it, and you can carry on from the screen.
+
+The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime) and **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD). It starts in the gate's own look, LanteaCraft's for LanteaCraft gates, and remembers your choice.
+
+A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors, and the computer's own screen, show the keys as a keypad with a DIAL button for the dome:
+
+![The DHD with JSG names, and as a keypad](../imgs/DHDGates.png)
+
+*Left: a JSG gate, its keys named after the constellations. Right: an SGCraft gate on the computer's screen, dialing Avalon with four chevrons locked. Rendered from the test harness.*
+
+| Keyboard | |
+|---|---|
+| numbers, letters or names | press that key. A number goes in when no other key starts with it, or after a space; a name goes in after Enter or a comma (`crat`, `leo m`) |
+| Enter | the dome |
+| Backspace | take back a typed character, or the last key on an SGCraft, LanteaCraft or JSG gate |
+| Delete | CLEAR |
+| Tab | next look |
+| Ctrl+I, Ctrl+Q | iris, quit |
+
+When the wormhole opens to an address book entry with an [iris code](#iris-codes-and-the-gate-log), the DHD sends the code, as the Gate Room does. With a wireless or ender modem it is also a [GDO](#gdo) relay. It leaves checking incoming codes to the Gate Room.
+
+Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"` or `"lanteacraft"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
+
+What it can't do:
+
+- Lantea's Pegasus gates, and Stargate Journey's Pegasus, Universe, Tollan and Classic gates on a basic interface, can't be dialed by any computer program. The DHD says so.
+- Chevron Seven's Stargate Network gate, through its ring: there the gate numbers its letters, so connect it through its SG Computer Interface instead. The DHD then dials it like an SGCraft gate. Chevron Seven's other gates take six symbols and the dome.
+- A locked chevron can't be taken back on its own, as with a real DHD. CLEAR drops them all.
+
+The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
+
+The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block.
+
+The JSG key names are copied from JSG 5.1.2.0's own symbol lists, and checked against them letter for letter. On Milky Way gates they are the 37 constellations, on Pegasus gates the 35 Pegasus names, and on Universe gates `Glyph 1` to `Glyph 36`. JSG's computer methods look names up without regard to case, and they report Universe symbols by those names, which is why the keys use them. The points of origin, Point of Origin, Subido and Glyph 17, are the dome.
+
 ## Addresses
 
 Each mod writes addresses its own way. Type them like this; the point of origin is added when dialing:
@@ -252,7 +309,7 @@ A gate only dials addresses in its own format; the programs say so if you pick t
 
 ## Shared address book
 
-The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. On an advanced computer you can run the Gate Room on the monitor and the dialer in a second tab (`bg dialer`). Each entry has:
+The Gate Room, the Hub, the DHD and the Personal Dialer all read `/dialer_addresses.db`. On an advanced computer you can run the Gate Room on the monitor and the dialer in a second tab (`bg dialer`). Each entry has:
 
 - `name`, `note`
 - `address`: numbers (Stargate Journey, Lantea), a string of letters (SGCraft, LanteaCraft), a list of symbol names (JSG), or nothing for a planned destination
@@ -274,7 +331,8 @@ The Gate Room, the Hub and the Personal Dialer all read `/dialer_addresses.db`. 
 | `sgc.styles` | the gate looks and their palettes |
 | `sgc.pixels` | a pixel canvas drawn with teletext characters (2x3 pixels per character) |
 | `sgc.ring` | draws a gate on a canvas: ring, chevrons, symbols, event horizon, kawoosh, iris |
-| `sgc.glyphs` | a line figure for every gate symbol (the SGC Computer style) |
+| `sgc.glyphs` | a line figure for every gate symbol (the SGC Computer style and the DHD's keys) |
+| `sgc.dhd` | a DHD's keys for each gate, and locking one symbol at a time where the gate allows it |
 | `sgc.ui` | buttons and touch areas |
 
 ```lua
