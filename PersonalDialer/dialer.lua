@@ -300,6 +300,8 @@ local GATE_TYPES = {
 
 -- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
 local VARIANT_THEMES = {
+    -- Chevron Seven's looks after other stargate mods: first, so "jsg1..." isn't taken for SG-1
+    { "sgcraft", "sgcraft" }, { "jsg", "milky_way" },
     { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
     { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },

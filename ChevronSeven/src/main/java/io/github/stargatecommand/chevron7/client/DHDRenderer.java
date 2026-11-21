@@ -91,7 +91,7 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 		keys(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, look, lit, light, cap);
 		glyphs(buffers.getBuffer(RenderType.entityCutoutNoCull(StargateRenderer.GLYPHS)), m, n, look, lit, light, cap);
 		float glow = open ? 1.0F : dialing ? 0.55F + 0.25F * Mth.sin(time * 0.3F) : 0.3F;
-		dome(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, glow, open || dialing ? FULL_BRIGHT : light, cap);
+		dome(buffers.getBuffer(RenderType.entityCutoutNoCull(KEY)), m, n, glow, open || dialing ? FULL_BRIGHT : light, cap, look);
 
 		pose.popPose();
 	}
@@ -200,12 +200,25 @@ public class DHDRenderer implements BlockEntityRenderer<DHDBlockEntity>
 		}
 	}
 
-	/** The dome in the middle, brighter while the gate dials and glowing while the wormhole is open: blue on the CAP DHD, red on the dark one. */
-	private static void dome(VertexConsumer vc, Matrix4f m, Matrix3f n, float glow, int light, boolean cap)
+	/**
+	 * The dome in the middle, brighter while the gate dials and glowing while the wormhole is open:
+	 * blue on the CAP DHD; on the dark one, the colour of its gate's look (red, or orange by an
+	 * SGCraft gate and blue by a Stargate Network gate).
+	 */
+	private static void dome(VertexConsumer vc, Matrix4f m, Matrix3f n, float glow, int light, boolean cap, GateLook look)
 	{
 		float[][] rings = {{DOME_R, 0.02F}, {DOME_R * 0.8F, 0.08F}, {DOME_R * 0.45F, 0.115F}, {0.0F, 0.125F}};
 		float r = 0.12F + 0.38F * glow, g = 0.42F + 0.5F * glow, b = 0.7F + 0.3F * glow;
-		if(!cap)
+		float[] c = look.dome();
+		if(!cap && c != null)
+		{
+			// dim when idle, the full colour when the wormhole is open
+			float k = 0.42F + 0.58F * glow;
+			r = c[0] * k;
+			g = c[1] * k;
+			b = c[2] * k;
+		}
+		else if(!cap)
 		{
 			r = 0.45F + 0.55F * glow;
 			g = 0.06F + 0.3F * glow;
