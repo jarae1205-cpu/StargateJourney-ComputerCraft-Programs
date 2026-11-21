@@ -99,6 +99,8 @@ On a touch screen, tap an address to pick it and tap it again to dial. The butto
 
 New and edit ask for a name, an address and the iris code to send when you dial it. When you edit, each question shows the current value in [brackets]: press Enter to keep it, or type `-` to clear it. Addresses are typed the way the gate shows them: SGCraft letters such as `WLDQ-DQB-MT`, or JSG symbol names separated by commas such as `Aquila, Cetus, Gemini, Leo, Scorpius, Orion`. An entry with the wrong kind of address for the gate is shown but not dialed.
 
+JSG dials a gate in another galaxy with 8 chevrons, for example from a Pegasus gate to a Milky Way gate. Its address then needs seven symbols, in the dialing gate's symbols. The seventh symbol is in the full address on the other gate's address page. With only six, JSG finds no gate, and gatedial says so with a reminder about the seventh symbol.
+
 ## Iris codes
 
 Iris codes work the same as in the [Gate Room](../StargateCommand/README.md#iris-codes-and-the-gate-log):
@@ -159,7 +161,12 @@ At the top of `gatedial.lua`:
   - An open outgoing wormhole showed "REMOTE unknown gate". JSG 1.12.2 reads idle for a moment before the wormhole opens, which cleared the address being dialed. A's console now shows `REMOTE Gate B` and "Wormhole open to Gate B".
   - On tier 2, the status badge cut "INCOMING WORMHOLE" short and the local address ended in "...". They now read INCOMING and `Tau-Leo-Sco-Scu-Ser-Tri`.
   - The screen buffer used too much memory. It now takes about 400 KB less on tier 3.
-- **Not tried in the game.** The console on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for them is unchanged.
+- **A Pegasus gate.** A third JSG gate, a Pegasus gate, got its own computer, C, on a 3x2 tier 3 screen.
+  - The console drew in the Pegasus look: a blue logo, gate and chevrons, and the address in Pegasus symbols.
+  - Gate B's Pegasus address with six symbols failed. JSG answered `address_malformed`, because a call between galaxies takes 8 chevrons.
+  - gatedial used to say only "Stargate failed to open". It now passes on JSG's reason ("No stargate at that address"), with the reminder about the seventh symbol.
+  - The address was then changed to seven symbols at the Edit prompts. C dialed 8 chevrons and the wormhole opened. B's automatic iris closed, code 1234 was accepted, and B's console showed the call's 8 chevrons.
+- **Not tried in the game.** The console on a JSG Universe gate, and on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for SGCraft and LanteaCraft is unchanged.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 

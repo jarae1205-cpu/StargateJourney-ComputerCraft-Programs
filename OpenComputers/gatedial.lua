@@ -435,7 +435,8 @@ local function chevronPlan()
     end
     syms = {}
     for i, s in ipairs(gate.engaged) do syms[i] = s end
-    local total = math.max(7, #syms)
+    -- a call from another galaxy locks 8 or 9 chevrons
+    local total = math.max(7, #syms, (not gate.outgoing and gate.incomingSize) or 0)
     return syms, total, math.min(lit, total)
 end
 
@@ -525,7 +526,7 @@ local function onGateEvent(info)
         end
         call = nil
         if not dial.active and computer.uptime() - dial.endedAt > 2 then
-            if info.error then setMessage("Gate reset: " .. tostring(info.reason), colors.red)
+            if info.error then setMessage("Gate reset" .. (info.reason and (": " .. info.reason) or ""), colors.red)
             else setMessage("Wormhole closed" .. (info.reason and (": " .. info.reason) or ""), colors.lightGray) end
         end
     elseif ty == "traveler" then

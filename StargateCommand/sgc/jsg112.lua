@@ -38,9 +38,22 @@ local TYPES = {
 
 local ORIGIN = { milky_way = "Point of Origin", pegasus = "Subido", universe = "G17" }
 
--- "stargate_failure_busy" -> "Failure busy"
+-- why a wormhole did not open, from JSG's stargate_failed reasons
+local REASONS = {
+    address_malformed = "No stargate at that address",
+    not_enough_power = "Not enough power to open the wormhole",
+    gate_burried = "The gate is buried: clear the blocks in front of it",
+    caller_hung_up = "The other gate hung up",
+    aborted = "Dialing was aborted",
+    aborted_by_event = "Dialing was aborted",
+}
+
+-- "stargate_failure_busy" -> "Failure busy"; nil for no reason
 function M.reason(r)
-    r = tostring(r or ""):lower():gsub("^stargate_", ""):gsub("_", " ")
+    r = tostring(r or ""):lower():gsub("^stargate_", "")
+    if r == "" then return nil end
+    if REASONS[r] then return REASONS[r] end
+    r = r:gsub("_", " ")
     return (r:gsub("^%l", string.upper))
 end
 
@@ -149,7 +162,7 @@ function M.poll(g)
         g.connected = false
         if st == "idle" then
             g.state = "IDLE"
-            g.openedAt, g.incomingChevrons = nil, false
+            g.openedAt, g.incomingChevrons, g.incomingSize = nil, false, nil
             -- the gate reads idle for a moment between its last chevron and opening:
             -- our own dial keeps the address it is dialing
             if not g.dialing then g.remote, g.engaged = nil, {} end
@@ -197,6 +210,8 @@ function M.event(g, name, e, o)
     elseif name == "stargate_incoming_wormhole" then
         g.outgoing, g.incomingChevrons = false, true
         g.chevrons = tonumber(e[p]) or g.chevrons
+        -- 8 or 9 chevrons for a call from another galaxy
+        g.incomingSize = tonumber(e[p])
         return { type = "dialin" }
     elseif name == "stargate_open" then
         local initiating = e[p] == true
@@ -212,8 +227,14 @@ function M.event(g, name, e, o)
         g.connected, g.openedAt = false, nil
         return { type = "closed", reason = e[p] and M.reason(e[p]) or nil }
     elseif name == "stargate_failed" then
-        g.lastFailure = M.reason(e[p])
-        return { type = "reset", error = true, reason = g.lastFailure }
+        local reason = M.reason(e[p])
+        if not reason then
+            -- JSG follows a failure with a second stargate_failed that has no reason
+            if g.lastFailureAt and now() - g.lastFailureAt < 2 then return nil end
+        else
+            g.lastFailure, g.lastFailureCode, g.lastFailureAt = reason, tostring(e[p]):lower(), now()
+        end
+        return { type = "reset", error = true, reason = reason }
     elseif name == "stargate_traveler" then
         -- JSG names the traveller by its Java class: EntityPlayerMP, EntityPig...
         local who = e[p + 1] == true and "A player" or tostring(e[p + 2] or "Something"):gsub("^Entity", "")
@@ -233,7 +254,7 @@ function M.dial(g, address, opts)
     local list = {}
     for i, s in ipairs(names) do list[i] = s end
     list[#list + 1] = g.originSymbol
-    g.lastFailure, g.engaged, g.outgoing, g.remote, g.incomingChevrons = nil, {}, true, names, false
+    g.lastFailure, g.lastFailureCode, g.engaged, g.outgoing, g.remote, g.incomingChevrons = nil, nil, {}, true, names, false
 
     -- one symbol at a time: the ring turns to it and the chevron locks
     for i, symbol in ipairs(list) do
@@ -249,7 +270,16 @@ function M.dial(g, address, opts)
         g.chevrons = i
     end
 
-    untilAccepted(g, opts, 10, "engageGate")
+    local engaged, err = pcall(untilAccepted, g, opts, 10, "engageGate")
+    if not engaged then
+        -- JSG only says "failed to open"; the reason comes in a stargate_failed just after
+        G.waitUntil(opts, function() return g.lastFailure ~= nil end, 2)
+        if g.lastFailureCode == "address_malformed" and #names == 6 then
+            G.fail(g.lastFailure .. " (between galaxies, such as Pegasus to Milky Way, JSG needs the 7-symbol address)")
+        end
+        if g.lastFailure then G.fail(g.lastFailure) end
+        error(err, 0)
+    end
     if not G.waitUntil(opts, function()
         if g.lastFailure then G.fail(g.lastFailure) end
         local st = status(g)

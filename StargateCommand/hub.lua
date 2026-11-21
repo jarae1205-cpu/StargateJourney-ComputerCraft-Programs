@@ -634,7 +634,7 @@ local function onGateEvent(e)
             setMessage("Dialing " .. (dial.entry and dial.entry.name or "") .. " failed: " .. info.reason, colors.red)
         end
     elseif (info.type == "closed" or info.type == "reset") and not dial.active then
-        setMessage(info.error and ("Gate reset: " .. tostring(info.reason)) or "Wormhole closed", info.error and colors.red or colors.lightGray)
+        setMessage(info.error and ("Gate reset" .. (info.reason and (": " .. info.reason) or "")) or "Wormhole closed", info.error and colors.red or colors.lightGray)
     end
 end
 

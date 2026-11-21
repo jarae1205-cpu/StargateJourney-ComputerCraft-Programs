@@ -947,7 +947,7 @@ local function onGateEvent(info)
             -- the gate resetting after our own dial: keep its result, with the gate's reason if it has one
             if dial.failed and info.error and info.reason then setMessage("Dialing failed: " .. info.reason, colors.red) end
         elseif not dial.active then
-            if info.error then setMessage("Gate reset: " .. tostring(info.reason), colors.red)
+            if info.error then setMessage("Gate reset" .. (info.reason and (": " .. info.reason) or ""), colors.red)
             else setMessage("Wormhole closed" .. (info.reason and (": " .. info.reason) or ""), colors.lightGray) end
         end
     elseif ty == "traveler" then
