@@ -24,8 +24,8 @@ end
 
 local function isOriginName(s)
     s = trim(s):lower()
-    -- Milky Way, Pegasus (JSG "Subido") and Universe (JSG "G17") points of origin
-    return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17"
+    -- Milky Way, Pegasus (JSG "Subido") and Universe (JSG 1.20.1 "G17", JSG 1.12.2 "Glyph 17") points of origin
+    return s == "point of origin" or s == "origin" or s == "poo" or s == "subido" or s == "g17" or s == "glyph 17"
 end
 
 -- "serpens caput" -> "Serpens Caput"

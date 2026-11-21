@@ -36,7 +36,8 @@ local TYPES = {
     { "orlin",    "milky_way", "Orlin",     39, "orlin", "MILKYWAY" },
 }
 
-local ORIGIN = { milky_way = "Point of Origin", pegasus = "Subido", universe = "G17" }
+-- the points of origin by JSG 1.12.2's English names (Universe symbols are "Glyph 1" to "Glyph 36")
+local ORIGIN = { milky_way = "Point of Origin", pegasus = "Subido", universe = "Glyph 17" }
 
 -- why a wormhole did not open, from JSG's stargate_failed reasons
 local REASONS = {
