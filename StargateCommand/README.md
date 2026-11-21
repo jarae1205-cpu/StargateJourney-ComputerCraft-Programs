@@ -46,7 +46,7 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
-| LanteaCraft | LanteaCraft gates (and those of LanteaCraft for 1.7.10, wherever the programs drive them): a dark iron ring with small amber chevrons, and a deep blue event horizon flecked with points of light that drift outwards and twinkle |
+| LanteaCraft | LanteaCraft gates (and those of LanteaCraft for 1.7.10, wherever the programs drive them): a dark iron ring with small amber chevrons, and a deep blue event horizon flecked with points of light that drift outwards and twinkle. The gate stands a little smaller in a room of light stone bricks, with the mod's black DHD and its red dome in front |
 | Stargate Network | Chevron Seven's Stargate Network gate: a dark steel-blue ring of letters with blue chevrons |
 | Carter Addon Pack | pick it with STYLE, or a variant named "cap" or "carter". After the Garry's Mod addon: the gate a little smaller, on a stepped grey pedestal with a red carpet, under the sky, with the round orange DHD and its blue dome in front |
 
