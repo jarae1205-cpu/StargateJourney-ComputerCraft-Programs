@@ -8,6 +8,7 @@
 --   Just Stargate Mod (1.12.2, OpenComputers): the stargate base block
 --   Chevron Seven (1.20.1): any block of the gate ring
 --   LanteaCraft (1.21.1, 0.2.5+): the stargate base block
+--   LanteaCraft (1.7.10): LanteaCraft's ComputerCraft Adapter, or an OpenComputers Adapter, at the base block
 --
 -- local gate = require("sgc.gate").find()
 -- gate:poll()                       re-read the gate state
@@ -36,6 +37,7 @@ G.INTERFACE_NAMES = {
     jsg = "JSG stargate",
     jsg112 = "JSG stargate (1.12.2)",
     lanteacraft = "LanteaCraft stargate",
+    lanteacraft17 = "LanteaCraft stargate (1.7.10)",
 }
 
 -- mods that share the "stargate" peripheral type, told apart by their methods
@@ -58,6 +60,9 @@ function G.modFor(p, ptype)
         if type(p.dialAddress) ~= "function" and type(p.engageSymbol) == "function" then return "jsg112" end
         return "jsg"
     end
+    -- LanteaCraft for 1.7.10: dial() and a few yes/no questions
+    if type(p.isDialing) == "function" and type(p.isComplete) == "function"
+        and type(p.getInterfaceVersion) == "function" then return "lanteacraft17" end
     return "sgcraft"
 end
 
@@ -422,6 +427,9 @@ G.EVENTS = {
     stargate_failed = true, stargate_traveler = true, stargate_event_iris_hit = true, received_code = true,
     -- LanteaCraft
     stargate_event = true, stargate_idc_received = true,
+    -- LanteaCraft for 1.7.10
+    sgOutgoing = true, sgIncoming = true, sgChevronEncode = true, sgWormholeOpening = true,
+    sgWormholeStable = true, sgWormholeClosing = true, sgIdle = true,
 }
 
 local function eventAddress(e, offset)
@@ -437,7 +445,10 @@ function G:event(e)
     if not G.EVENTS[name] then return nil end
     -- the first argument is the peripheral name (Stargate Journey 0.6.x+ and SGCraft)
     local o = 2
-    if type(e[2]) == "string" then
+    if self.namelessEvents then
+        -- LanteaCraft for 1.7.10 names no peripheral; its first argument can be an address
+        if not self.namelessEvents[name] then return nil end
+    elseif type(e[2]) == "string" then
         if e[2] ~= self.name then return nil end
         o = 3
     end

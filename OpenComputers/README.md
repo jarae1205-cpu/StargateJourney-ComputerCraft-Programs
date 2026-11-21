@@ -5,6 +5,7 @@ A stargate dialing computer for **OpenComputers** (OpenOS), for the gate mods th
 - **SGCraft**: Greg Ewing's original (1.7.10) and SGCraft 2.x (1.12.2)
 - **Just Stargate Mod** for Minecraft 1.12.2 (JSG), Milky Way, Pegasus and Universe gates
 - **LanteaCraft** 0.2.5+ for Minecraft 1.21.1, with an OpenComputers port for 1.21.1 (see the note under [Connect the gate](#connect-the-gate))
+- **LanteaCraft for Minecraft 1.7.10**, the mod's 2014–2015 releases (see [LanteaCraft on 1.7.10](#lanteacraft-on-1710))
 
 It is the OpenComputers version of the [Personal Dialer](../PersonalDialer/) and the [Gate Room](../StargateCommand/). It keeps the same address book, trusted iris codes and gate log, so a book written on one computer works on the other. It does not need the Auspex Gate Systems programs.
 
@@ -52,6 +53,8 @@ This puts `gatedial` and `idc` in `/home/bin` and the `sgc` library in `/home/li
 - **LanteaCraft**: connect the gate's base block to the computer with cable. gatedial handles LanteaCraft the same way as the ComputerCraft programs do; see the [LanteaCraft notes](../StargateCommand/README.md#lanteacraft-notes). But LanteaCraft 0.2.5 can't load alongside OpenComputers: Modernized 1.10.0 to 1.10.7, the OpenComputers port for 1.21.1: the game stops at startup with "Please register all drivers in the init phase". LanteaCraft adds its OpenComputers driver after OpenComputers has closed its driver list, so this needs a fix in LanteaCraft. Until then, use the ComputerCraft programs with LanteaCraft. gatedial's LanteaCraft support has only been tested against a simulated gate.
 
 JSG closes a wormhole by itself when no player has been nearby for 5 seconds ("Autoclose" in JSG's `stargates.cfg`). gatedial logs that as a close with the reason Autoclose. Raise the time or turn it off in that config if your computers should keep wormholes open on their own.
+
+- **LanteaCraft for 1.7.10**: put an OpenComputers **Adapter** against the gate's base block and cable the computer to it. The gate shows up as a `stargate` component. An Adapter against the DHD (LanteaCraft's Stargate Controller) gives a `stargate_controller` instead, which can't dial.
 
 Then run `gatedial`. Run `components` in the shell if the gate is not found.
 
@@ -127,6 +130,24 @@ At the top of `gatedial.lua`:
 
 `irisCodes`, `autoIris` and `alarm` are where the console's switches start. Once you flip a switch on the console (or press A), gatedial keeps that choice in the address book's settings, and it wins over the value here.
 
+## LanteaCraft on 1.7.10
+
+LanteaCraft's 1.7.10 builds give a computer very little: `dial`, `disconnect`, and whether the gate is busy, dialing or complete. gatedial fills in the rest from the gate's own signals.
+
+- **Addresses** are 7 or 9 glyphs from A–Z, 0–9, `-` and `+`, typed as the gate shows them, such as `K3-+QPAAA`. Seven glyphs reach a gate in the same dimension; nine reach another dimension.
+- **Seven or nine chevrons**: A gate dials nine glyphs only if the two ring places two blocks to either side of the base, in the bottom row, hold chevrons. With plain ring blocks there it has seven chevrons, and LanteaCraft stops a nine-glyph dial after the sixth chevron. gatedial then says "This gate has 7 chevrons: it can't dial a 9-glyph address"; dial the first seven glyphs to reach a gate in the same dimension.
+- **Dialing**: one call dials the whole address, about 2.5 seconds a chevron. The chevrons light from the gate's `sgChevronEncode` signals.
+- **No gate there**: LanteaCraft accepts any well-formed address, dials every chevron, and only then gives up. gatedial reports "No gate answered at that address" (there was no gate, or it was busy).
+- **Incoming wormholes**: the gate sends the caller's address one glyph per chevron. gatedial puts it together, so the caller is named when the wormhole opens. A caller that dialed seven glyphs is in the same dimension, so gatedial adds this gate's last two glyphs and finds it under its full address.
+- **Closing** works from either end (LanteaCraft's `closeFromEitherEnd`, on by default). A wormhole closes by itself after 5 minutes (`secondsToStayOpen`).
+- **No iris and no iris codes**: LanteaCraft 1.7.10 doesn't let a computer move an iris or send anything through the wormhole. gatedial shows NO IRIS, and an entry's iris code isn't sent.
+- If gatedial starts while a wormhole is already open, it can't tell which way it goes and shows it as incoming.
+- **Keep both gates' chunks loaded** while you use them: stand nearby, or build by the world spawn or use a chunk loader. LanteaCraft 1.7.10 doesn't save its ring blocks, so when a gate's chunk unloads and loads again the gate drops out of its call (the other side stays open) and stops counting as a built gate. This is LanteaCraft's own behaviour, seen in the test world below.
+
+![gatedial on LanteaCraft 1.7.10 gates in a 1.7.10 world](../imgs/LanteaCraft17Console.png)
+
+*gatedial on tier 3 screens in a Minecraft 1.7.10 world. Top: station A dialing Beta Site, four of nine chevrons locked. Bottom: at Beta Site, the wormhole from station A is open; the caller's glyphs added up to an address in the book, so it is named. These are the computers' own screens, read from the server (see [Tested](#tested)).*
+
 ## Tested
 
 **The console (gatedial 2.0)** has only been tried in a headless OpenOS test harness, with a simulated JSG 1.12.2 gate, on tier 3 (160x50) and tier 2 (80x25) screens: dialing, closing, an incoming wormhole with the automatic iris, iris codes accepted and rejected, the switches, the buttons by touch, adding an address and the gate log. It has not been tried in a game yet. The gate code underneath is the same as in gatedial 1.0, which was tested in the games below; if the console misbehaves, `screen = "classic"` brings back the 1.0 screen.
@@ -164,5 +185,21 @@ At the top of `gatedial.lua`:
 ![gatedial on SGCraft 2.3.0](../imgs/OpenComputersSGCraft2.jpg)
 
 *SGCraft 2.3.0 in a Minecraft 1.12.2 world. Left: the dialing computer, with all nine chevrons locked, the wormhole open and the code accepted. Right: the computer at the other gate, with the incoming wormhole and the code it accepted.*
+
+**In a Minecraft 1.7.10 world with LanteaCraft** (Forge 10.13.4.1614, OpenComputers 1.8.10). LanteaCraft was built from its `1.7.10-legacy-patches` source, the last 1.7.10 line it released, with two one-line changes so it compiles against this Forge (a renamed glowstone item and fluid field; neither touches gates or computers). Two gates stood by the world spawn, station A with nine chevrons and station B with seven, each with an Adapter against its base and a tier 3 computer and screen running gatedial. A small test mod built them, turned the computers on, pressed keys and read the screens from the server console.
+
+- gatedial found each gate as a LanteaCraft stargate (1.7.10) and showed its address, `DAB6AA0AA` and `DAB4AA0AA`.
+- A dialed B's nine glyphs; the chevrons lit one by one and the wormhole opened. B raised the alarm while A dialed, then named the caller from its glyphs.
+- B closed the wormhole with X from the receiving side.
+- B dialed A's first seven glyphs and connected; A named B by its full nine-glyph address.
+- B dialing nine glyphs stopped after the sixth chevron with the seven-chevron message. A dialing an address with no gate went through all nine chevrons and reported "No gate answered at that address".
+- Both gate logs recorded every call, close and failure.
+- The test found three bugs, all fixed:
+  - OpenComputers puts a component address before a signal's arguments, so no chevrons were counted and no callers named.
+  - A seven-chevron gate stopping a nine-glyph dial was reported as "No gate answered".
+  - A caller that dialed seven glyphs wasn't found under its nine-glyph entry.
+- In an earlier run, station B was far from the spawn and its chunk unloaded during the call. LanteaCraft dropped it from the call and it stopped counting as a built gate (see the chunk note under [LanteaCraft on 1.7.10](#lanteacraft-on-1710)).
+
+Before that, the same scenarios ran in a headless OpenOS test harness against a gate simulated from LanteaCraft's source; the harness now includes what the game showed.
 
 Please open an issue if a gate behaves differently.

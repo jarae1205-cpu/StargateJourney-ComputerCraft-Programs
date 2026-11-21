@@ -19,6 +19,8 @@ They share one address book with the [Personal Dialer](../PersonalDialer/) and w
 
 On OpenComputers (SGCraft, and Just Stargate Mod for 1.12.2), use [gatedial](../OpenComputers/) instead. It reads and writes the same address book, iris codes and gate log.
 
+The Gate Room and the Hub need CC: Tweaked, which doesn't exist for Minecraft 1.7.10. For **LanteaCraft on 1.7.10**, use the [Personal Dialer](../PersonalDialer/#lanteacraft-on-1710) with ComputerCraft 1.75, or [gatedial](../OpenComputers/#lanteacraft-on-1710) with OpenComputers. The `sgc` library handles those gates (`sgc.lanteacraft17`).
+
 ![Gate Room](../imgs/GateRoom.png)
 
 *Gate Room on a 4x3 monitor. Top: dialing Abydos on an SG-1 gate, and the open wormhole. Bottom: the iris closed over an incoming wormhole, and an SGCraft gate with a 9-symbol address. These screens were rendered from a headless CC: Tweaked test harness with simulated gates, not captured in-game.*
@@ -324,7 +326,7 @@ The Gate Room, the Hub, the DHD and the Personal Dialer all read `/dialer_addres
 | Module | What it does |
 |---|---|
 | `sgc.gate` | finds the gate interface (Stargate Journey, SGCraft, Lantea, LanteaCraft or JSG), reads its state, turns events into simple messages, dials, iris |
-| `sgc.lantea`, `sgc.lanteacraft`, `sgc.jsg` | the Lantea, LanteaCraft and JSG parts of `sgc.gate` |
+| `sgc.lantea`, `sgc.lanteacraft`, `sgc.lanteacraft17`, `sgc.jsg` | the Lantea, LanteaCraft (1.21.1 and 1.7.10) and JSG parts of `sgc.gate` |
 | `sgc.address` | parses, formats and compares the three address formats |
 | `sgc.book` | the shared address book |
 | `sgc.idc`, `sgc.gdo` | iris codes, and the GDO's radio messages and the relay at the gate |
@@ -367,6 +369,16 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - A computer can't send a code; when you dial an entry with an iris code, the programs remind you to send it with your GDO.
 - LanteaCraft reports no energy; the Gate Room shows whether the gate's GDO code is set instead (never the code itself).
 - LanteaCraft's kawoosh kills whatever stands in front of the gate (`kawooshDeath` in its config).
+
+LanteaCraft's 1.7.10 releases (`sgc.lanteacraft17`) are a different mod underneath, with a much smaller computer interface:
+
+- The computer reaches the gate through LanteaCraft's ComputerCraft Adapter, or an OpenComputers Adapter, against the gate's base block. Both give a `stargate` peripheral, told apart from SGCraft's by its methods (`isDialing`, `isComplete`, `getInterfaceVersion`).
+- An address is 7 or 9 glyphs from the same alphabet. Seven reach a gate in the same dimension, nine another dimension. A gate dials nine glyphs only if the two ring places two blocks to either side of the base, in the bottom row, hold chevrons. With plain ring blocks there it has seven chevrons, and LanteaCraft stops a nine-glyph dial after the sixth chevron.
+- The gate says only whether it is busy and whether it is dialing. The direction, the chevrons and the caller's address come from its events (`sgOutgoing`, `sgIncoming` with one glyph per chevron, `sgChevronEncode`, `sgWormholeOpening`, `sgWormholeClosing`, `sgIdle`). They carry no peripheral name; on OpenComputers a component address comes first, which is skipped.
+- A dial to an address with no gate runs through every chevron before it fails.
+- Either side can close the wormhole, and it closes by itself after 5 minutes. There is no iris a computer can move, and nothing can be sent through the wormhole.
+- LanteaCraft 1.7.10 doesn't save its ring blocks: a gate whose chunk unloads and loads again drops out of its call.
+- Tested with gatedial and the Personal Dialer in a Minecraft 1.7.10 world with OpenComputers 1.8.10 and ComputerCraft 1.75 (see [gatedial's test](../OpenComputers/README.md#tested)).
 
 ## Just Stargate Mod notes
 
