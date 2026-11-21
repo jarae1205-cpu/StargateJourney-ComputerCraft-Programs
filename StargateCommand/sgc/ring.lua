@@ -308,8 +308,6 @@ function Ring:zonesFor(style)
         r0, r1, hwIn, hwOut = 0.86, 0.97, 2.4, 2.4
     elseif style.shape == "slim" then
         r0, r1, hwIn, hwOut = 0.83, 1.03, 1.4, 3.4
-    elseif style.shape == "tri" then
-        r0, r1, hwIn, hwOut = 0.86, 1.04, 0.3, 5.2
     else
         r0, r1, hwIn, hwOut = trackR - 0.05, 1.06, 2.2 * cw, 7.5 * cw
     end
@@ -326,9 +324,6 @@ function Ring:zonesFor(style)
             z = Z_STONE
             -- shading: outer edge, inner edge and the seams between chevrons
             if d > 1 - 1.2 * px or d < trackR + 1.0 * px then
-                z = Z_SHADE
-            elseif style.teeth and d > 1 - 2.6 * px and floor(a / 4) % 2 == 0 then
-                -- a toothed rim: dark notches round the outer edge
                 z = Z_SHADE
             else
                 local seam = (a + 20) % 40
@@ -364,10 +359,6 @@ function Ring:zonesFor(style)
                     local light = diff <= hw * 0.62 and f > 0.12 and f < 0.86
                     local core = diff <= hw * 0.22 and f > 0.2 and f < 0.8
                     z = core and (30 + k) or light and (20 + k) or (10 + k)
-                elseif style.shape == "tri" then
-                    -- a solid triangle pointing to the middle, its left face brighter
-                    local side = (a - slot * 40 + 180) % 360 - 180
-                    z = (side < 0 and f > 0.12) and (30 + k) or (20 + k)
                 else
                     z = (diff <= hw * 0.45 and f > 0.2 and f < 0.8) and (30 + k) or (20 + k)
                 end
@@ -595,15 +586,6 @@ function Ring:draw(style, view)
                     else c = BG and BG[j] or BLACK end
                 elseif mode == "closing" and h > 1 - age / 0.8 then
                     c = BG and BG[j] or BLACK
-                elseif style.horizon == "flecks" then
-                    -- deep navy water with white flecks of foam, turning slowly
-                    local q = floor((a + t * 5) / 7)
-                    local ring = floor(h * 10)
-                    local n = (q * 7919 + ring * 104729 + (q * ring) % 89 * 31) % 97
-                    if mode == "kawoosh" and h < 1 - (age - 0.55) / 1.05 then c = IDX[colors.lightBlue]
-                    elseif h < 0.9 and n < 13 then c = n < 5 and IDX[colors.white] or IDX[colors.lightBlue]
-                    elseif h > 0.72 then c = IDX[colors.blue]
-                    else c = IDX[colors.cyan] end
                 elseif style.horizon == "spiral" then
                     -- a cartoon whirlpool: ink lines curling into the middle
                     local q = a / 360 * 16 + h * 2.2 - t * 0.25

@@ -219,17 +219,6 @@ S.LIST = {
         }),
     },
     {
-        -- LanteaCraft: a charcoal ring with a toothed rim, small amber triangle chevrons
-        -- and a deep navy wormhole flecked with white
-        id = "lanteacraft", room = "GATE ROOM", name = "LanteaCraft", series = "LanteaCraft",
-        shape = "tri", track = true, horizon = "flecks", teeth = true,
-        palette = palette({
-            [colors.lightGray] = 0x55575C, [colors.gray] = 0x232427, [colors.brown] = 0x3D3F43, [colors.pink] = 0x9A9DA3,
-            [colors.magenta] = 0x4E3C12, [colors.orange] = 0xFFC21F, [colors.yellow] = 0xFFEA8C,
-            [colors.blue] = 0x07142A, [colors.cyan] = 0x172B4E, [colors.lightBlue] = 0xB8CCE8,
-        }),
-    },
-    {
         id = "sgcraft", room = "GATE ROOM", name = "SGCraft", series = "Greg's SGCraft",
         shape = "v", track = true,
         palette = palette({ [colors.orange] = 0xFF5A20, [colors.lightGray] = 0x8E8E8E, [colors.gray] = 0x474747,
@@ -252,6 +241,7 @@ local VARIANT_MATCH = {
     { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
     { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
     { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" },
+    -- LanteaCraft looks (Chevron Seven's, the Stargate Journey variant) before Lantea's
     { "lanteacraft", "lanteacraft" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "universe", "universe" }, { "tollan", "tollan" }, { "classic", "classic" },
@@ -264,10 +254,9 @@ function S.forGate(gate)
     local v = gate.variant and gate.variant:lower()
     if v then
         for _, m in ipairs(VARIANT_MATCH) do
-            if v:find(m[1]) then return S.BY_ID[m[2]] end
+            if v:find(m[1]) and S.BY_ID[m[2]] then return S.BY_ID[m[2]] end
         end
     end
-    if gate.typeName == "LanteaCraft" then return S.BY_ID.lanteacraft end
     return S.BY_ID[gate.typeId] or S.BY_ID.milky_way
 end
 
