@@ -29,7 +29,16 @@ public enum GateLook
 	WRAITH("wraith", 0.86F, 0.36F, 1.00F, 0.56F, 0.70F, 0.52F, 0.86F, 0.44F, 0.38F, 0.52F, 0.16F, 0.10F, 0.22F, 1, 1, 1),
 	CRIMSON("crimson", 1.00F, 0.24F, 0.18F, 0.56F, 0.22F, 0.08F, 0.08F, 0.52F, 0.36F, 0.36F, 0.22F, 0.10F, 0.10F, 1, 1, 1),
 	/** The Stargate Network gate's own look: dark steel-blue, blue chevrons, pale letters. */
-	NETWORK("network", 0.32F, 0.70F, 1.00F, 0.50F, 0.80F, 0.88F, 1.00F, 0.66F, 0.68F, 0.71F, 0.30F, 0.31F, 0.34F, 1, 1, 1);
+	NETWORK("network", 0.32F, 0.70F, 1.00F, 0.50F, 0.80F, 0.88F, 1.00F, 0.66F, 0.68F, 0.71F, 0.30F, 0.31F, 0.34F, 1, 1, 1),
+	// The stargate mods of Minecraft, for /chevron7 history: each after the way its gate looks.
+	/** Greg's SGCraft: cool grey stone, red-orange chevrons, deep blue water in big square pixels. */
+	SGCRAFT("sgcraft", 1.00F, 0.30F, 0.10F, 0.62F, 0.20F, 0.22F, 0.24F, 0.62F, 0.64F, 0.66F, 0.28F, 0.30F, 0.32F, 1, 1, 1),
+	/** Just Stargate Mod on Minecraft 1.12.2, in evening light: copper-brown stone, gold chevrons. */
+	JSG112("jsg112", 1.00F, 0.80F, 0.30F, 0.70F, 0.24F, 0.15F, 0.10F, 0.70F, 0.62F, 0.54F, 0.30F, 0.24F, 0.18F, 1, 1, 1),
+	/** Stargate Journey: slate blue-grey stone, orange chevrons. */
+	JOURNEY("journey", 1.00F, 0.60F, 0.14F, 0.66F, 0.14F, 0.16F, 0.22F, 0.62F, 0.66F, 0.72F, 0.26F, 0.28F, 0.34F, 1, 1, 1),
+	/** Just Stargate Mod on Minecraft 1.20: pale grey stone, amber chevrons, a white glow in the middle of the wormhole. */
+	JSG120("jsg120", 1.00F, 0.62F, 0.30F, 0.80F, 0.40F, 0.40F, 0.42F, 0.74F, 0.75F, 0.77F, 0.32F, 0.32F, 0.34F, 1, 1, 1);
 
 	public final String id;
 	public final float chevronR, chevronG, chevronB;
@@ -72,6 +81,21 @@ public enum GateLook
 		return Chevron7.id("textures/entity/event_horizon" + suffix() + ".png");
 	}
 
+	/**
+	 * The colour of the dark DHD's dome at full glow by a gate of this look: orange by an SGCraft
+	 * gate and blue by a Stargate Network gate, like the DHDs of those mods; null for the usual red.
+	 */
+	@Nullable
+	public float[] dome()
+	{
+		return switch(this)
+		{
+			case SGCRAFT -> new float[] {1.00F, 0.56F, 0.12F};
+			case NETWORK -> new float[] {0.30F, 0.66F, 1.00F};
+			default -> null;
+		};
+	}
+
 	public Component displayName()
 	{
 		return Component.translatable("look.chevron7." + id);
@@ -95,8 +119,12 @@ public enum GateLook
 			return ATLANTIS;
 		if(key.equals("destiny"))
 			return UNIVERSE;
-		if(key.equals("stargatenetwork") || key.equals("sgcraft"))
+		if(key.equals("stargatenetwork"))
 			return NETWORK;
+		if(key.equals("stargatejourney") || key.equals("sgjourney"))
+			return JOURNEY;
+		if(key.equals("jsg") || key.equals("juststargatemod"))
+			return JSG120;
 		for(GateLook look : values())
 			if(look.id.equals(key))
 				return look;

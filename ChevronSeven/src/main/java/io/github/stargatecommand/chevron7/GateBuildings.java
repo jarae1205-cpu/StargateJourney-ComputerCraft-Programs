@@ -6,19 +6,25 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 
 /**
- * Gates with something built around them: a raised platform with stairs up to the gate, and a
- * gate room in the style of the animated series. Positions are given in the gate's own frame:
+ * Gates with something built around them: a raised platform with stairs up to the gate, a
+ * gate room in the style of the animated series, and the stargate mods of Minecraft in a row. Positions are given in the gate's own frame:
  * {@code x} to the right as you face the gate, {@code d} towards the front (where you stand to
  * walk in), {@code y} up from the ground.
  */
@@ -107,7 +113,17 @@ public final class GateBuildings
 	@Nullable
 	public static StargateBlockEntity placeGate(LevelAccessor level, BlockPos core, Direction facing, GateLook look)
 	{
-		level.setBlock(core, Chevron7.STARGATE.get().defaultBlockState().setValue(StargateBlock.FACING, facing), FLAGS);
+		return placeGate(level, core, facing, look, Chevron7.STARGATE.get());
+	}
+
+	/**
+	 * Places a gate of the given kind (Chevron7.STARGATE, or Chevron7.NETWORK_STARGATE for one that
+	 * dials letters) whose stargate block is at {@code core}.
+	 */
+	@Nullable
+	public static StargateBlockEntity placeGate(LevelAccessor level, BlockPos core, Direction facing, GateLook look, StargateBlock block)
+	{
+		level.setBlock(core, block.defaultBlockState().setValue(StargateBlock.FACING, facing), FLAGS);
 		for(int part = 0; part < GateShape.FRAME.length; part++)
 		{
 			level.setBlock(GateShape.frameCell(core, facing, part), Chevron7.GATE_FRAME.get().defaultBlockState()
@@ -336,6 +352,151 @@ public final class GateBuildings
 		}
 		level.setBlock(f.at(0, 0, 4), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
 		supergate(level, f.at(0, 0, -18), facing);
+	}
+
+	/**
+	 * One gate of /chevron7 history: a stargate mod of Minecraft, the look and kind of gate it gets,
+	 * the lines of its plaque, and the ground it stands on, after a shot of its gate in a video of their history.
+	 * @param pad the ground under and around the gate
+	 * @param post the plaque's post, a full block so the sign holds on to it
+	 */
+	private record Exhibit(String name, String[] plaque, GateLook look, boolean letters,
+			Block floor, Block pad, Block border, Block stairs, Block post) {}
+
+	/** The stargate mods in the order they came out. */
+	private static final Exhibit[] HISTORY = {
+		// a ring of letters on a stone brick step, as in Greg's mod
+		new Exhibit("SGCraft", new String[] {"SGCraft", "Greg's original", "Minecraft", "1.7.10 - 1.12.2"}, GateLook.SGCRAFT, true,
+				Blocks.STONE_BRICKS, Blocks.STONE_BRICKS, Blocks.MOSSY_STONE_BRICKS, Blocks.STONE_BRICK_STAIRS, Blocks.CHISELED_STONE_BRICKS),
+		// on the grass
+		new Exhibit("Stargate Network", new String[] {"Stargate", "Network", "SGCraft 2.x", "Minecraft 1.12.2"}, GateLook.NETWORK, true,
+				Blocks.GRASS_BLOCK, Blocks.POLISHED_ANDESITE, Blocks.STONE_BRICKS, Blocks.POLISHED_ANDESITE_STAIRS, Blocks.POLISHED_ANDESITE),
+		// dark stone brick steps with a pillar on each side
+		new Exhibit("JSG (1.12.2)", new String[] {"Just Stargate", "Mod (JSG)", "", "Minecraft 1.12.2"}, GateLook.JSG112, false,
+				Blocks.DEEPSLATE_BRICKS, Blocks.DEEPSLATE_BRICKS, Blocks.DEEPSLATE_TILES, Blocks.DEEPSLATE_BRICK_STAIRS, Blocks.CHISELED_DEEPSLATE),
+		// sand and grass, with a birch tree
+		new Exhibit("Stargate Journey", new String[] {"Stargate", "Journey", "", "Minecraft 1.20.1"}, GateLook.JOURNEY, false,
+				Blocks.SAND, Blocks.SMOOTH_SANDSTONE, Blocks.GRASS_BLOCK, Blocks.SMOOTH_SANDSTONE_STAIRS, Blocks.CHISELED_SANDSTONE),
+		// on a beach, by a pool with sugar cane
+		new Exhibit("JSG (1.20)", new String[] {"Just Stargate", "Mod (JSG)", "", "Minecraft 1.20.1"}, GateLook.JSG120, false,
+				Blocks.SAND, Blocks.SAND, Blocks.SANDSTONE, Blocks.SANDSTONE_STAIRS, Blocks.CUT_SANDSTONE),
+	};
+
+	/** The mods /chevron7 history builds, oldest first. */
+	public static String historyNames()
+	{
+		StringBuilder names = new StringBuilder();
+		for(Exhibit e : HISTORY)
+			names.append(names.length() == 0 ? "" : ", ").append(e.name());
+		return names.toString();
+	}
+
+	/**
+	 * The stargate mods of Minecraft side by side, oldest on the left as you face them: SGCraft and
+	 * the Stargate Network with rings of letters, then Just Stargate Mod on 1.12.2, Stargate Journey
+	 * and Just Stargate Mod on 1.20. Each gate is in its mod's look, on ground like its own, with a
+	 * plaque saying which mod it is and a DHD of its own. A path runs along the front.
+	 * @param ground the first block above the ground, under the middle gate
+	 * @return the gates, oldest first
+	 */
+	public static java.util.List<StargateBlockEntity> history(LevelAccessor level, BlockPos ground, Direction facing)
+	{
+		Frame f = new Frame(level, ground, facing, GateShape.right(facing));
+		final int spacing = 12, half = HISTORY.length / 2 * spacing + 8, back = -4, front = 9;
+		f.fill(-half, 0, back, half, 10, front, Blocks.AIR);
+		for(int x = -half; x <= half; x++)
+			for(int d = back; d <= front; d++)
+			{
+				f.foundation(x, d, Blocks.STONE);
+				f.set(x, -1, d, Blocks.GRASS_BLOCK);
+			}
+		// the path along the front
+		for(int x = -half; x <= half; x++)
+			for(int d = 6; d <= 8; d++)
+				f.set(x, -1, d, d == 7 && Math.abs(x) < half ? Blocks.POLISHED_ANDESITE : Blocks.STONE_BRICKS);
+
+		java.util.List<StargateBlockEntity> gates = new java.util.ArrayList<>();
+		for(int i = 0; i < HISTORY.length; i++)
+		{
+			Exhibit e = HISTORY[i];
+			int cx = (i - HISTORY.length / 2) * spacing;
+			for(int x = -5; x <= 5; x++)
+				for(int d = -3; d <= 5; d++)
+				{
+					boolean edge = Math.abs(x) == 5 || d == -3 || d == 5;
+					f.set(cx + x, -1, d, edge ? e.border() : Math.abs(x) <= 4 && d >= -2 && d <= 2 ? e.pad() : e.floor());
+				}
+			BlockPos core = f.at(cx, 0, 0);
+			StargateBlockEntity gate = placeGate(level, core, facing, e.look(),
+					e.letters() ? Chevron7.NETWORK_STARGATE.get() : Chevron7.STARGATE.get());
+			if(gate != null)
+				gates.add(gate);
+			GateField.placeStep(level, core, facing, e.stairs(), FLAGS);
+			plaque(f, cx - 3, 4, e.post(), e.plaque());
+			level.setBlock(f.at(cx + 3, 0, 4), Chevron7.DHD.get().defaultBlockState().setValue(DHDBlock.FACING, facing), FLAGS);
+			switch(e.look())
+			{
+				case JSG112 -> {
+					// a pillar on each side of the step
+					for(int x : new int[] {-4, 4})
+					{
+						f.set(cx + x, 0, 1, Blocks.DEEPSLATE_BRICKS);
+						f.set(cx + x, 1, 1, Blocks.DEEPSLATE_BRICK_WALL);
+					}
+				}
+				case JOURNEY -> birch(f, cx - 4, -2);
+				case JSG120 -> {
+					// a pool in the sand, with sugar cane at its edge
+					for(int x = -4; x <= -3; x++)
+						for(int d = 2; d <= 3; d++)
+							f.set(cx + x, -1, d, Blocks.WATER);
+					f.set(cx - 5, -1, 2, Blocks.SAND);
+					f.set(cx - 5, 0, 2, Blocks.SUGAR_CANE);
+					f.set(cx - 5, 1, 2, Blocks.SUGAR_CANE);
+				}
+				default -> {}
+			}
+		}
+		plaque(f, -half + 1, 4, Blocks.CHISELED_STONE_BRICKS, new String[] {"Stargate mods", "of Minecraft", "oldest on", "the left"});
+		return gates;
+	}
+
+	/** A post two blocks high with a lantern on top and a sign on its front. */
+	private static void plaque(Frame f, int x, int d, Block post, String[] lines)
+	{
+		f.set(x, 0, d, post);
+		f.set(x, 1, d, post);
+		f.set(x, 2, d, Blocks.LANTERN);
+		BlockPos at = f.at(x, 1, d + 1);
+		f.level().setBlock(at, Blocks.DARK_OAK_WALL_SIGN.defaultBlockState().setValue(WallSignBlock.FACING, f.facing()), FLAGS);
+		if(f.level().getBlockEntity(at) instanceof SignBlockEntity sign)
+		{
+			SignText text = new SignText().setColor(DyeColor.WHITE).setHasGlowingText(true);
+			for(int i = 0; i < lines.length && i < 4; i++)
+				text = text.setMessage(i, Component.literal(lines[i]));
+			sign.setText(text, true);
+			// so nobody edits the plaques by accident
+			sign.setWaxed(true);
+		}
+	}
+
+	/** A small birch tree whose leaves stay. */
+	private static void birch(Frame f, int x, int d)
+	{
+		for(int y = 0; y <= 3; y++)
+			f.set(x, y, d, Blocks.BIRCH_LOG);
+		BlockState leaves = Blocks.BIRCH_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true);
+		for(int dx = -1; dx <= 1; dx++)
+			for(int dd = -1; dd <= 1; dd++)
+			{
+				if(dx != 0 || dd != 0)
+				{
+					f.set(x + dx, 2, d + dd, leaves);
+					f.set(x + dx, 3, d + dd, leaves);
+				}
+				if(dx == 0 || dd == 0)
+					f.set(x + dx, 4, d + dd, leaves);
+			}
 	}
 
 	/** The gate room's golden-brown wall, with darker and lighter patches like the painted walls of the show. */
