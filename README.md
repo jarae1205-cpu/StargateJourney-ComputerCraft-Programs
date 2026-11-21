@@ -93,6 +93,7 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
  - Dial Home Device, a spiral iris, automatic closing, chunk loading while a wormhole is open
  - 14 gate looks (SG-1, Movie, Origins, Ark of Truth, Atlantis, Universe, Infinity, Stargate Network and more), gate platforms and an Infinity-style gate room
  - A **Stargate Network gate** in the style of SGCraft: a ring of letters and nine chevrons; it dials letter addresses such as `1KA0-9KT-HY`, and every gate has one, so it can dial and be dialed by any other gate
+ - `/chevron7 history`: the stargate mods of Minecraft in a row, oldest first (SGCraft, the Stargate Network, JSG on 1.12.2, Stargate Journey, JSG on 1.20), each gate in its mod's look, on its own ground, with a plaque and a DHD
  - A Carter Addon Pack pedestal with a red carpet, a round DHD whose keys light up as the gate dials, and `/chevron7 pedestal` to build the pedestal for a Stargate Journey, Lantea or JSG gate
  - An Ori supergate four times the size of a gate, a row of gates in every look, and a dark DHD with a red dome like JSG's
  - Gates built SGCraft style from a base, Ring Blocks and Chevron Blocks, which come apart into those blocks again, and a Gate Computer Interface for the computer
@@ -101,6 +102,8 @@ A stargate mod for Minecraft 1.20.1 (Forge), built from scratch:
 ![Chevron Seven](./imgs/ChevronSeven.jpg)
 
 ![A gate in the Infinity look and the Stargate Network gate, in the game](./imgs/ChevronSevenInGame.jpg)
+
+![The stargate mods of Minecraft in a row](./imgs/HistoryRow.jpg)
 
 ### [Stargate Infinity look for Just Stargate Mod](./JSGInfinity/)
 A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of the animated series *Stargate Infinity*, with ink outlines, black glyphs, lime chevrons and a pale whirlpool. Every texture is drawn by the pack's own script; none are taken from JSG. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0. It restyles every JSG Milky Way gate; for a separate Infinity gate next to ordinary ones, use the [Infinity Stargate add-on](./JSGInfinityGate/) below.
