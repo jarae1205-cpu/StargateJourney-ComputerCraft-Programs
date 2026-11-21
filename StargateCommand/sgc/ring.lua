@@ -162,11 +162,40 @@ local function capScene(x, y, cx, cy, R)
     return colors.lightBlue
 end
 
+-- the LanteaCraft gate room: walls of light stone bricks, a slab floor, and the mod's
+-- black DHD with its red dome standing in front of the gate, to the left
+local function lanteacraftScene(x, y, cx, cy, R)
+    local dx, dy = (x - 0.5) - cx, (y - 0.5) - cy
+    -- the DHD: a dark disc seen at an angle, a ring of key marks, the red dome, on a column
+    local ex, ey = (dx + R * 0.88) / (R * 0.4), (dy - R * 1.14) / (R * 0.17)
+    local e = ex * ex + ey * ey
+    if e <= 1 then
+        if e < 0.13 then return colors.red end
+        if e > 0.35 and e < 0.7 and (floor(math.deg(atan2(ex, ey)) / 15) % 2 == 0) then return colors.brown end
+        return colors.gray
+    end
+    if ey > 0 and abs(dx + R * 0.88) < R * 0.22 and dy < R * 1.8 then return colors.gray end
+    -- the floor: slabs, with their joints running towards the gate
+    if dy > R * 1.08 then
+        local row = (dy - R * 1.08) % (R * 0.22)
+        local col = (dx / (1 + (dy - R * 1.08) / R)) % (R * 0.5)
+        if row < R * 0.03 or col < R * 0.03 then return colors.brown end
+        return colors.green
+    end
+    -- the walls: courses of stone bricks, every other course shifted half a brick
+    local course = floor(y / math.max(2, R * 0.16))
+    local bx = (x + (course % 2) * R * 0.2) % math.max(4, R * 0.4)
+    local by = y % math.max(2, R * 0.16)
+    if by < 1 or bx < 1 then return colors.brown end
+    return colors.pink
+end
+
 -- what is behind the gate: black, a starfield, or a style's own wall (nil = black)
 function Ring.backdropAt(style, x, y, cx, cy, R)
     if style.stars then return Ring.starAt(x, y) end
     if style.backdrop == "infinity" then return infinityWall(x, y, cx, cy, R) end
     if style.backdrop == "cap" then return capScene(x, y, cx, cy, R) end
+    if style.backdrop == "lanteacraft" then return lanteacraftScene(x, y, cx, cy, R) end
     return nil
 end
 
@@ -375,6 +404,29 @@ local function horizonSwirl(h, a, t)
     -- rings of light rolling outwards, bent by two slow waves around the gate
     local bend = 1.3 * h * sin(ar * 2 + t * 0.6) + 0.7 * h * h * sin(ar * 5 - t * 0.9)
     return 0.24 + 0.46 * (1 - h) ^ 1.4 + 0.17 * sin(h * 15 - t * 3 + bend)
+end
+
+-- LanteaCraft's horizon: deep blue, flecked with points of light that drift outwards
+-- in rings and twinkle. Worked out from the pixel's angle and radius, so it needs no state.
+local function sparkleColor(h, a, t)
+    local ring = h * 15 - t * 0.8
+    local band = math.floor(ring)
+    -- more cells towards the rim, so the specks are as dense there as in the middle
+    local cells = 24 + math.floor(h * 60)
+    local cell = math.floor(a / 360 * cells)
+    local n = (cell * 7919 + band * 104729 + (cell * band) % 131) % 997
+    local into = ring - band
+    -- a speck of light sits in the middle of its band and twinkles
+    if n < 300 and into > 0.38 and into < 0.62 then
+        local tw = (n * 0.173 + t * 1.7) % 1
+        if tw < 0.6 then
+            if n < 70 then return IDX[colors.white] end
+            return IDX[colors.lightBlue]
+        end
+    end
+    -- a faint haze, thicker towards the rim
+    if h > 0.4 and (n * 7 + cell) % 9 == 0 then return IDX[colors.cyan] end
+    return IDX[colors.blue]
 end
 
 local function swirlColor(v)
@@ -586,6 +638,9 @@ function Ring:draw(style, view)
                     else c = BG and BG[j] or BLACK end
                 elseif mode == "closing" and h > 1 - age / 0.8 then
                     c = BG and BG[j] or BLACK
+                elseif style.horizon == "sparkle" then
+                    c = sparkleColor(h, a, t)
+                    if mode == "kawoosh" and h < 1 - (age - 0.55) / 1.05 then c = IDX[colors.cyan] end
                 elseif style.horizon == "spiral" then
                     -- a cartoon whirlpool: ink lines curling into the middle
                     local q = a / 360 * 16 + h * 2.2 - t * 0.25

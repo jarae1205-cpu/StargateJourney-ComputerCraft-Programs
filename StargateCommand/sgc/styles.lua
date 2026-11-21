@@ -219,6 +219,21 @@ S.LIST = {
         }),
     },
     {
+        -- LanteaCraft (1.7.10 and 1.21.1): a dark iron ring with small amber chevrons round
+        -- its rim, and a deep blue event horizon flecked with points of light that drift
+        -- outwards and twinkle, in a room of light stone bricks with the black DHD in front
+        id = "lanteacraft", room = "GATE ROOM", name = "LanteaCraft", series = "LanteaCraft",
+        shape = "v", track = true, horizon = "sparkle", chevronWidth = 0.8,
+        -- the gate in its stone room, a little smaller, with the black DHD in front
+        backdrop = "lanteacraft", gateScale = 0.8, gateLift = 0.1,
+        palette = palette({
+            [colors.lightGray] = 0x4B4B52, [colors.gray] = 0x1F1F24, [colors.brown] = 0x33333A, [colors.pink] = 0x8E8E98,
+            [colors.magenta] = 0x5A4216, [colors.orange] = 0xF5A623, [colors.yellow] = 0xFFE27A,
+            [colors.blue] = 0x08133A, [colors.cyan] = 0x1C3577, [colors.lightBlue] = 0xA6C6FF,
+            [colors.green] = 0x6A6A72, [colors.purple] = 0x2E2E34,
+        }),
+    },
+    {
         id = "sgcraft", room = "GATE ROOM", name = "SGCraft", series = "Greg's SGCraft",
         shape = "v", track = true,
         palette = palette({ [colors.orange] = 0xFF5A20, [colors.lightGray] = 0x8E8E8E, [colors.gray] = 0x474747,
@@ -249,6 +264,8 @@ local VARIANT_MATCH = {
 
 function S.forGate(gate)
     if not gate then return S.BY_ID.milky_way end
+    -- LanteaCraft gates (both versions) say they are SGCraft-like; they get their own look
+    if gate.mod == "lanteacraft" or gate.mod == "lanteacraft17" then return S.BY_ID.lanteacraft end
     local v = gate.variant and gate.variant:lower()
     if v then
         for _, m in ipairs(VARIANT_MATCH) do
