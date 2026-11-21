@@ -273,6 +273,8 @@ local THEMES = {
     atlantis  = { name = "Atlantis",      header = colors.blue,  title = colors.cyan,      address = colors.cyan,      lit = colors.cyan,      master = colors.lightBlue, button = colors.cyan },
     infinity  = { name = "Infinity",      header = colors.gray,  title = colors.lime,      address = colors.lime,      lit = colors.lime,      master = colors.yellow,    button = colors.lime },
     sgcraft   = { name = "SGCraft",       header = colors.gray,  title = colors.orange,    address = colors.orange,    lit = colors.orange,    master = colors.red,       button = colors.orange },
+    -- LanteaCraft: charcoal ring, small amber triangle chevrons, navy wormhole flecked with white
+    lanteacraft = { name = "LanteaCraft", header = colors.gray, title = colors.yellow,    address = colors.yellow,    lit = colors.yellow,    master = colors.orange,    button = colors.yellow },
     network   = { name = "Stargate Network", header = colors.gray, title = colors.lightBlue, address = colors.lightBlue, lit = colors.lightBlue, master = colors.blue,      button = colors.lightBlue },
     -- the Carter Addon Pack (Garry's Mod): red carpet, the orange DHD and its blue dome
     cap       = { name = "Carter Addon Pack", header = colors.red, title = colors.orange,   address = colors.orange,    lit = colors.orange,    master = colors.cyan,      button = colors.orange },
@@ -285,7 +287,7 @@ local THEMES = {
     hybrid    = { name = "Legacy Hybrid", header = colors.blue,  title = colors.lightBlue, address = colors.lightBlue, lit = colors.orange,    master = colors.lightBlue, button = colors.lightBlue,
                   palette = { colors.orange, colors.red, colors.purple, colors.purple, colors.red, colors.orange, colors.white, colors.white } },
 }
-local THEME_ORDER = { "auto", "milky_way", "sg1", "sgc_computer", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "cap", "network" }
+local THEME_ORDER = { "auto", "milky_way", "sg1", "sgc_computer", "movie", "origins", "continuum", "ark", "pegasus", "atlantis", "universe", "tollan", "classic", "infinity", "ori", "hybrid", "sgcraft", "lanteacraft", "cap", "network" }
 
 local GATE_TYPES = {
     { match = "milky_way", name = "Milky Way", theme = "milky_way" },
@@ -295,14 +297,15 @@ local GATE_TYPES = {
     { match = "classic",   name = "Classic",   theme = "classic" },
     { match = "sgcraft",   name = "SGCraft",   theme = "sgcraft" },
     { match = "chevron7",  name = "Chevron Seven", theme = "milky_way" },
-    { match = "lanteacraft", name = "LanteaCraft", theme = "sgcraft" },
+    { match = "lanteacraft", name = "LanteaCraft", theme = "lanteacraft" },
 }
 
 -- gate variants (Stargate Journey "stargate variant crystal", resource packs) that have their own theme
 local VARIANT_THEMES = {
     { "origins", "origins" }, { "1939", "origins" }, { "continuum", "continuum" }, { "arctic", "continuum" },
     { "%f[%a]ark%f[%A]", "ark" }, { "truth", "ark" },
-    { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" }, { "lantea", "atlantis" },
+    { "sg%-?1", "sg1" }, { "promo", "sg1" }, { "movie", "movie" }, { "atlantis", "atlantis" },
+    { "lanteacraft", "lanteacraft" }, { "lantea", "atlantis" },
     { "infinity", "infinity" }, { "hybrid", "hybrid" }, { "legacy", "hybrid" }, { "destiny", "universe" },
     { "supergate", "ori" }, { "%f[%a]ori%f[%A]", "ori" }, { "carter", "cap" }, { "%f[%a]cap%f[%A]", "cap" },
     { "computer", "sgc_computer" },
@@ -1857,6 +1860,7 @@ local RING_COLORS = {
     network  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     pegasus  = { colors.gray, colors.black, colors.gray, colors.lightBlue },
     atlantis = { colors.gray, colors.black, colors.gray, colors.cyan },
+    lanteacraft = { colors.gray, colors.black, colors.gray, colors.lightGray },
     -- black stone with teal edges and seams: the ring as a line drawing
     sgc_computer = { colors.black, colors.cyan, colors.black, colors.gray },
 }
@@ -1932,6 +1936,11 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                             local q = a / 360 * 16 + hh * 2.2 - t * 0.25
                             local f = q - math.floor(q)
                             c = (f < 0.08 and hh > 0.14) and colors.black or hh < 0.35 and colors.white or hh < 0.8 and colors.lightBlue or colors.cyan
+                        elseif themeId == "lanteacraft" then
+                            -- deep blue water flecked with white
+                            local q = math.floor((a + t * 5) / 9)
+                            local n = (q * 7919 + math.floor(hh * 6) * 104729) % 97
+                            c = (hh < 0.9 and n < 16) and colors.white or colors.blue
                         elseif themeId == "ark" then
                             -- the Ark's golden light
                             c = v < 0.36 and colors.brown or v < 0.56 and colors.orange or v < 0.8 and colors.yellow or colors.white
@@ -1971,13 +1980,17 @@ local function drawGatePicture(x0, y0, cols, rows, th)
                     if themeId == "continuum" and (n * n * 41 + n * 7) % 1009 < (d > 0.93 and 130 or 60) then c = colors.white end
                 end
                 -- chevrons
-                if not supergate and d >= 0.8 and d <= 1.06 then
+                local tri = themeId == "lanteacraft"
+                if not supergate and d >= (tri and 0.86 or 0.8) and d <= 1.06 then
                     local slot = math.floor(a / 40 + 0.5) % 9
                     local diff = math.abs(a - slot * 40)
                     if diff > 180 then diff = 360 - diff end
-                    local f = (d - 0.8) / 0.26
-                    local hw = 2.5 + 6 * f
-                    if diff <= hw then
+                    local f = tri and (d - 0.86) / 0.2 or (d - 0.8) / 0.26
+                    local hw = tri and 0.5 + 6 * f or 2.5 + 6 * f
+                    if tri and diff <= hw then
+                        -- LanteaCraft: a small solid triangle, no housing
+                        c = on[POSITION_OF_SLOT[slot]] or colors.brown
+                    elseif diff <= hw then
                         local pos = POSITION_OF_SLOT[slot]
                         local off, housing = colors.brown, colors.gray
                         if cartoon then off, housing = colors.gray, colors.black end

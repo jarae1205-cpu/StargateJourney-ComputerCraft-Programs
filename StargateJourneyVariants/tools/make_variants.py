@@ -11,6 +11,7 @@ model exactly. Run from anywhere:
 pack, or inside a mod jar.
 """
 import json
+import math
 import os
 import random
 import sys
@@ -103,10 +104,25 @@ VARIANTS = {
         "symbols": (20, 22, 28),
         "recipe": ("minecraft:lime_dye", "minecraft:book"),
     },
+    # LanteaCraft, the stargate mod for Minecraft 1.7.10: charcoal stone, small amber
+    # chevron lights, a deep navy wormhole flecked with white
+    "lanteacraft": {
+        "name": "LanteaCraft",
+        "stone": [0x0E0F11, 0x222326, 0x34363A, 0x4C4E53],
+        "specks": None,
+        "light_off": [0x281C06, 0x4A3810],
+        "light_on": [0x8A5400, 0xFFC21F, 0xFFF2B8],
+        "horizon": [0x030A18, 0x0C1C3A, 0x1A3360],
+        "flecks": [0xB8CCE8, 0xF2F6FF, 0xFFFFFF],
+        "vortex": [0x0C1C3A, 0x7C9CCC, 0xFFFFFF],
+        "symbols": (92, 94, 100),
+        "recipe": ("minecraft:coal_block", "sgjourney:naquadah"),
+    },
 }
 
 # variant name -> the Gate Room / Personal Dialer look it switches on
-GATE_ROOM_LOOK = {"origins": "Origins", "continuum": "Continuum", "ark_of_truth": "Ark of Truth", "infinity": "Infinity"}
+GATE_ROOM_LOOK = {"origins": "Origins", "continuum": "Continuum", "ark_of_truth": "Ark of Truth", "infinity": "Infinity",
+                  "lanteacraft": "LanteaCraft"}
 
 
 def recolor_gate(src, v, engaged=False, seed=1):
@@ -143,11 +159,17 @@ def recolor_gate(src, v, engaged=False, seed=1):
     return out
 
 
-def recolor_strip(src, colors):
-    """Animated textures (event horizon, kawoosh): map brightness onto the variant's colours."""
+def recolor_strip(src, colors, flecks=None):
+    """Animated textures (event horizon, kawoosh): map brightness onto the variant's colours.
+    With flecks (a list of pale colours), the ripples are stretched over the whole of the
+    variant's colours and flecks of foam are drawn over every frame, as on LanteaCraft's wormhole."""
     im = src.convert("RGBA")
     px = im.load()
     w, h = im.size
+    lo, hi = 0.0, 1.0
+    if flecks:
+        ts = [min(1.0, lum(*px[x, y][:3]) * 1.6) for y in range(h) for x in range(w) if px[x, y][3]]
+        lo, hi = min(ts), max(ts)
     out = Image.new("RGBA", (w, h))
     op = out.load()
     for y in range(h):
@@ -158,8 +180,34 @@ def recolor_strip(src, colors):
                 continue
             # the blue horizon is mostly dark: stretch its brightness
             t = min(1.0, lum(r, g, b) * 1.6)
+            if flecks:
+                t = (t - lo) / (hi - lo) if hi > lo else 0.5
             op[x, y] = ramp(colors, t) + (a,)
+    if flecks:
+        draw_flecks(out, flecks)
     return out
+
+
+def draw_flecks(img, colors):
+    """Short ragged strokes of foam on each square frame of a vertical animation strip,
+    turning slowly round the middle from one frame to the next."""
+    w, h = img.size
+    op = img.load()
+    rnd = random.Random(29)
+    specks = []
+    for _ in range(int(w * w / 52)):
+        r = math.sqrt(rnd.uniform(0.0, 0.8)) * w / 2
+        specks.append((r, rnd.uniform(0, math.tau), rnd.uniform(-0.5, 0.5), rnd.randrange(2, 5), hexc(rnd.choice(colors))))
+    for frame in range(h // w):
+        turn = frame / (h // w) * math.tau / 9
+        for r, ang, tilt, n, c in specks:
+            a = ang + turn * (1.4 - r / w)
+            cx, cy = w / 2 + r * math.cos(a), w / 2 + r * math.sin(a)
+            along = a + math.pi / 2 + tilt
+            for k in range(n):
+                x, y = int(cx + math.cos(along) * k), int(cy + math.sin(along) * k)
+                if 0 <= x < w and 0 <= y < w and op[x, frame * w + y][3]:
+                    op[x, frame * w + y] = c + (op[x, frame * w + y][3],)
 
 
 def animation(texture, rows, columns, frames, alpha):
@@ -235,7 +283,7 @@ def main():
         os.makedirs(tex, exist_ok=True)
         recolor_gate(gate, v, False, seed=i + 1).save(os.path.join(tex, f"{name}_stargate.png"), optimize=True)
         recolor_gate(engaged, v, True, seed=i + 1).save(os.path.join(tex, f"{name}_stargate_engaged.png"), optimize=True)
-        recolor_strip(horizon, v["horizon"]).save(os.path.join(tex, f"{name}_event_horizon.png"), optimize=True)
+        recolor_strip(horizon, v["horizon"], v.get("flecks")).save(os.path.join(tex, f"{name}_event_horizon.png"), optimize=True)
         recolor_strip(vortex, v["vortex"]).save(os.path.join(tex, f"{name}_vortex.png"), optimize=True)
         write_json(os.path.join(out, "assets", NS, "sgjourney", "stargate_variant", "milky_way", f"{name}.json"), client_variant(name))
         write_json(os.path.join(out, "data", NS, "sgjourney", "stargate_variant", f"milky_way_{name}.json"),
@@ -258,7 +306,7 @@ def main():
     # one pack.mcmeta for both: Minecraft 1.20.1 uses pack format 15 for resource and data packs
     write_json(os.path.join(out, "pack.mcmeta"), {"pack": {
         "pack_format": 15,
-        "description": "Stargate Journey gate variants: Origins, Continuum, Ark of Truth, Infinity",
+        "description": "Stargate Journey gate variants: Origins, Continuum, Ark of Truth, Infinity, LanteaCraft",
     }})
     print("built", ", ".join(VARIANTS))
     if len(sys.argv) > 3:
