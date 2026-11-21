@@ -19,11 +19,11 @@ Written for Stargate Journey on Minecraft 1.20.1 with CC: Tweaked. Also works wi
 
 ComputerCraft 1.75 is the last ComputerCraft for Minecraft 1.7.10, and the dialer runs on it as well as on CC: Tweaked. The Gate Room and the Network Hub need CC: Tweaked, so on 1.7.10 the Personal Dialer is the ComputerCraft program to use; with OpenComputers, use [gatedial](../OpenComputers/).
 
-- **Install on ComputerCraft 1.75**: it has no `wget`, and runs a program only by its exact file name (no `.lua` added), so save the dialer as `dialer`. With the HTTP API on in `ComputerCraft.cfg`, type `lua` and then:
+- **Install on ComputerCraft 1.75**: it has no `wget`, and runs a program only by its exact file name (no `.lua` added), so save the dialer as `dialer`. The HTTP API is on by default (`http_enable` in `ComputerCraft.cfg`). Type `lua` and then:
   ```lua
   local r = http.get("https://raw.githubusercontent.com/jarae1205-cpu/StargateJourney-ComputerCraft-Programs/main/PersonalDialer/dialer.lua") local f = fs.open("dialer", "w") f.write(r.readAll()) f.close() r.close()
   ```
-  then `exit()` and run `dialer`. (The test world had no internet, so this download line hasn't been tried in a game.)
+  then `exit()` and run `dialer`. In the test world this line was tried against a local web server standing in for GitHub: it saved the dialer, and `dialer` ran it. The download from GitHub itself hasn't been tried.
 - **Connect the gate**: craft LanteaCraft's **ComputerCraft Adapter** (obsidian around a control crystal, with redstone under it) and place it against the gate's base block, then put the computer next to the adapter (or reach it with a wired modem). The adapter must touch no other LanteaCraft block; against the DHD (the Stargate Controller) it gives a `stargate_controller`, which can't dial.
 - **Dialing**: one call dials the whole address, about 2.5 seconds a chevron. The gate only says whether it is busy and whether it is dialing, so the dialer counts the chevrons and learns the direction from the gate's events.
 - **Seven or nine chevrons**: A gate dials nine glyphs only if the two ring places two blocks to either side of the base, in the bottom row, hold chevrons. With plain ring blocks there it has seven chevrons, and LanteaCraft stops a nine-glyph dial after the sixth chevron. The dialer then says the gate has 7 chevrons; dial the first seven glyphs to reach a gate in the same dimension.
