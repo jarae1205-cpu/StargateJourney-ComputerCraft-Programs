@@ -58,6 +58,9 @@ local CONFIG = {
     -- send it by themselves after the wormhole opens.
     irisCodes = true,
     codesFile = "iris_codes.db",
+    -- with a wireless or ender modem on the computer, pass codes from travellers'
+    -- GDOs (the gdo program on a pocket computer) through the open wormhole
+    gdoRelay = true,
     -- log of wormholes, travellers and codes (Ctrl+L, or LOG in the destination list)
     logFile = "gate_log.db",
     logSize = 200,
@@ -70,6 +73,8 @@ local A = require("sgc.address")
 local Book = require("sgc.book")
 local CallLog = require("sgc.calllog")
 local Gate = require("sgc.gate")
+local GDO = require("sgc.gdo")
+local Glyphs = require("sgc.glyphs")
 local IDC = require("sgc.idc")
 local Styles = require("sgc.styles")
 local Pixels = require("sgc.pixels")
@@ -122,6 +127,8 @@ local speaker = peripheral.find("speaker")
 local alarm = { on = false, lastBeep = 0, beep = 0 }
 local autoCloseAt -- os.clock() time to close an outgoing wormhole after a traveller
 local lastFrame = os.clock()
+-- passes codes from travellers' GDOs through the wormhole (nil without a radio)
+local relay = CONFIG.gdoRelay and GDO.newRelay(function() return gate end) or nil
 
 local function setMessage(text, color)
     message.text = text or ""
@@ -191,9 +198,22 @@ local function onCode(code, info)
     end
 end
 
+-- corner brackets of the SGC dialing computer's screen
+local function drawBrackets()
+    local w, h = canvas.w, canvas.h
+    local n = math.max(4, math.floor(math.min(w, h) / 10))
+    local c = colors.gray
+    for _, corner in ipairs({ { 2, 2, 1, 1 }, { w - 1, 2, -1, 1 }, { 2, h - 1, 1, -1 }, { w - 1, h - 1, -1, -1 } }) do
+        local x, y, dx, dy = corner[1], corner[2], corner[3], corner[4]
+        Glyphs.line(canvas, x, y, x + dx * n, y, c)
+        Glyphs.line(canvas, x, y, x, y + dy * n, c)
+    end
+end
+
 -- black, or the style's backdrop (a starfield, the Infinity gate room wall)
 local function paintBackground()
     canvas:clear(colors.black)
+    if style.computer then drawBrackets() end
     if style.stars or style.backdrop then
         for y = 1, canvas.h do
             for x = 1, canvas.w do
@@ -401,6 +421,103 @@ local function symbolText(s)
     return tostring(s)
 end
 
+---------------------------------------------------------------------------
+-- The SGC dialing computer look: each symbol comes up big over the gate as its
+-- chevron is encoded, then shrinks away into its box beside the gate
+---------------------------------------------------------------------------
+
+local encode = { lit = 0, at = -99, symbol = nil }
+local glyphArea -- canvas pixels the big symbol covered on the last frame
+local GLYPH_HOLD, GLYPH_FLY = 0.9, 0.35
+
+local function glyphKey(s)
+    if s == 0 or (type(s) == "string" and A.isOriginName(s)) then return 0 end
+    return s
+end
+
+-- wipes the big symbol of the last frame (before the gate is drawn again over it)
+local function clearEncodedSymbol()
+    if glyphArea then
+        canvas:rect(glyphArea[1], glyphArea[2], glyphArea[3], glyphArea[4], colors.black)
+        glyphArea = nil
+    end
+end
+
+local function drawEncodedSymbol(t, syms, total, lit)
+    -- a chevron locked while the gate dials: its symbol comes up. A gate found already
+    -- open (the program just started) doesn't play every chevron again
+    local live = gate and (dial.active or gate.state == "DIALING" or (gate.state == "INCOMING" and not gate.connected)
+        or (gate.connected and (gate:openSeconds() or 99) < 1.5))
+    if lit > encode.lit and live and syms[math.min(lit, total)] ~= nil then
+        encode.lit, encode.at, encode.symbol = lit, t, glyphKey(syms[math.min(lit, total)])
+    elseif lit ~= encode.lit and not live or lit < encode.lit then
+        encode.lit = lit
+    end
+    local age = t - encode.at
+    if encode.symbol == nil or age >= GLYPH_HOLD + GLYPH_FLY then return end
+    local p = age <= GLYPH_HOLD and 0 or (age - GLYPH_HOLD) / GLYPH_FLY
+    local size = ring.R * 1.1 * (1 - 0.8 * p)
+    local cx = ring.cx + (canvas.w - size / 2 - 3 - ring.cx) * p
+    local gx, gy = math.floor(cx - size / 2 + 0.5), math.floor(ring.cy - size / 2 + 0.5)
+    local thick = size > 44 and 3 or size > 20 and 2 or 1
+    Glyphs.draw(canvas, encode.symbol, gx, gy, size, size, colors.white, thick)
+    glyphArea = { gx - 2, gy - 2, math.ceil(size) + 6, math.ceil(size) + 6 }
+end
+
+-- the numbered boxes beside the gate, each with the symbol locked in it.
+-- Returns the next free line, or nil if they don't fit (the panel then lists the chevrons as text)
+local boxCanvas
+local function drawChevronBoxes(t, x, y, w, room, syms, total, lit)
+    local count = math.max(7, total)
+    -- one column of boxes 3 lines high if there's room, else two or three columns
+    local perRow, cellH = nil, 3
+    for n = 1, 3 do
+        local cw = math.floor((w - 1) / n)
+        if math.ceil(count / n) * cellH <= room and cw >= 15 then perRow = n break end
+    end
+    if not perRow then return nil end
+    local rowsOf = math.ceil(count / perRow)
+    local cw = math.floor((w - 1) / perRow)
+    local bw = 4 -- 8 x 8 pixels
+    local areaH = rowsOf * cellH
+    if not boxCanvas or boxCanvas.cols ~= w or boxCanvas.rows ~= areaH then
+        boxCanvas = Pixels.new(w, areaH, colors.black)
+    end
+    boxCanvas:clear(colors.black)
+    local names = {}
+    for i = 1, count do
+        local col, row = math.floor((i - 1) / rowsOf), (i - 1) % rowsOf
+        local cx, cy = 1 + col * cw, row * cellH
+        local on = i <= lit and i <= total
+        local engaging = dial.active and i == lit + 1 and i <= total
+        local bx, by = (cx + 2) * 2 + 1, cy * 3 + 1
+        local fill = on and colors.magenta or (engaging and math.floor(t * 3) % 2 == 0) and colors.gray or colors.brown
+        if i <= total then
+            boxCanvas:rect(bx, by, bw * 2, cellH * 3 - 1, fill)
+            if on and syms[i] ~= nil then
+                Glyphs.draw(boxCanvas, glyphKey(syms[i]), bx + 1, by + 1, bw * 2 - 2, cellH * 3 - 3,
+                    i == total and colors.yellow or colors.white, 1)
+            end
+        end
+        names[i] = { tx = x + cx - 1, ty = y + cy, on = on, engaging = engaging }
+    end
+    boxCanvas:invalidate()
+    boxCanvas:draw(target, x, y)
+    -- numbers on the left of each box, the symbol and its state on the right
+    for i = 1, count do
+        local n = names[i]
+        local s = syms[i]
+        local color = n.on and colors.orange or colors.lightGray
+        if i > total then color = colors.gray end
+        ui:write(n.tx + 1, n.ty, tostring(i), color, colors.black)
+        local tx, tw = n.tx + 3 + bw + 1, cw - bw - 4
+        if s ~= nil and i <= total then ui:write(tx, n.ty, fit(symbolText(s), tw), n.on and colors.white or colors.lightGray, colors.black) end
+        local status = n.on and ((i == total) and "LOCKED" or "ENCODED") or (n.engaging and math.floor(t * 3) % 2 == 0 and "ENGAGING") or ""
+        if status ~= "" then ui:write(tx, n.ty + 1, fit(status, tw), n.on and colors.orange or colors.lightGray, colors.black) end
+    end
+    return y + areaH
+end
+
 local function drawPanel(t)
     if L.pw == 0 then
         -- narrow screen: one status line under the gate
@@ -433,8 +550,11 @@ local function drawPanel(t)
     end
     ui:fill(x, y, w, 1, bg) ui:write(x + 1, y, string.rep("\140", w - 2), colors.gray, bg) y = y + 1
 
-    -- chevrons
-    if tall then
+    -- chevrons: the SGC computer files each symbol in a box; the others list them
+    local boxedTo = tall and style.computer and drawChevronBoxes(t, x, y, w, H - 21, syms, total, lit)
+    if boxedTo then
+        y = boxedTo
+    elseif tall then
         local rows = math.max(7, total)
         for i = 1, rows do
             local s = syms[i]
@@ -657,7 +777,9 @@ local function drawGate(t)
         closingAt = gate and not gate.connected and gate.closingAt or nil,
         iris = gate and gate.iris,
     }
+    if style.computer then clearEncodedSymbol() end
     ring:draw(style, view)
+    if style.computer then drawEncodedSymbol(t, syms, total, lit) end
     canvas:draw(target, L.gx, L.gy)
 end
 
@@ -679,6 +801,9 @@ local function drawNative()
         { "", colors.white },
         { "Ctrl+X close gate   Ctrl+I iris   Ctrl+S style", colors.lightGray },
         { "Ctrl+D destinations   Ctrl+L log   Ctrl+Q quit", colors.lightGray },
+        { "", colors.white },
+        relay and { "GDO relay on: travellers' codes go through the gate", colors.gray }
+            or { "Fit a wireless or ender modem to relay GDO codes", colors.gray },
     }
     for i, l in ipairs(lines) do
         native.setCursorPos(1, i)
@@ -815,6 +940,7 @@ local function onGateEvent(info)
         end
     elseif ty == "closed" or ty == "reset" then
         autoCloseAt = nil
+        if relay then relay:closed() end
         -- a dial-in that stopped before the wormhole formed: close the iris opened for it again
         if irisReclose and CONFIG.autoIris and gate.hasIris then gate:closeIris() end
         irisReclose = false
@@ -852,11 +978,13 @@ local function onGateEvent(info)
         if kind == "code" then
             onCode(value, info)
         elseif kind == "accepted" then
-            setMessage("Iris code accepted" .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
-            logCall({ kind = "code", text = "our code accepted" })
+            local forGdo = relay and relay:answer(kind, value)
+            setMessage((forGdo and "GDO code accepted" or "Iris code accepted") .. (value and (" as " .. value) or "") .. " - the way is open", colors.lime)
+            logCall({ kind = "code", text = forGdo and "GDO code accepted" or "our code accepted" })
         elseif kind == "rejected" then
-            setMessage("Iris code rejected - their iris stays closed", colors.red)
-            logCall({ kind = "code", text = "our code rejected" })
+            local forGdo = relay and relay:answer(kind, value)
+            setMessage((forGdo and "GDO code rejected" or "Iris code rejected") .. " - their iris stays closed", colors.red)
+            logCall({ kind = "code", text = forGdo and "GDO code rejected" or "our code rejected" })
         else
             setMessage("Message: " .. info.text, colors.yellow)
         end
@@ -912,12 +1040,16 @@ local INPUT_EVENTS = {
     peripheral = true, peripheral_detach = true,
 }
 local inputQueue = {}
+local radioEvents = {}
 
 local function listenerTask()
     while true do
         local e = table.pack(os.pullEventRaw())
         if Gate.EVENTS[e[1]] then
             gateEvents[#gateEvents + 1] = e
+            os.queueEvent("gateroom_gate_event")
+        elseif e[1] == "modem_message" then
+            radioEvents[#radioEvents + 1] = e
             os.queueEvent("gateroom_gate_event")
         elseif INPUT_EVENTS[e[1]] then
             inputQueue[#inputQueue + 1] = e
@@ -982,6 +1114,10 @@ local function uiTask()
                 redraw = true
             end
             if not speaker and peripheral.getType(e[2]) == "speaker" then speaker = peripheral.wrap(e[2]) end
+            if not relay and CONFIG.gdoRelay and peripheral.getType(e[2]) == "modem" then
+                relay = GDO.newRelay(function() return gate end)
+                nativeDirty = true
+            end
         elseif name == "peripheral_detach" then
             if gate and e[2] == gate.name then
                 if dial.active then dial.abort = true end
@@ -991,6 +1127,10 @@ local function uiTask()
                 redraw = true
             elseif monitorName and e[2] == monitorName then
                 running = false
+            end
+            if relay and relay:detached(e[2]) then
+                relay = nil
+                nativeDirty = true
             end
         elseif name == "monitor_touch" then
             if e[2] == monitorName then ui:click(e[3], e[4], 1) redraw = true end
@@ -1023,6 +1163,21 @@ local function uiTask()
             end
             redraw = true
         end
+        if #radioEvents > 0 then
+            local pending = radioEvents
+            radioEvents = {}
+            for _, re in ipairs(pending) do
+                local r = relay and relay:event(re)
+                if r and r.kind == "sent" then
+                    setMessage("A traveller's GDO sent code " .. r.code .. " through the gate", colors.lightBlue)
+                    logCall({ kind = "code", text = "GDO sent " .. r.code })
+                    redraw = true
+                elseif r then
+                    setMessage("A traveller's GDO code " .. tostring(r.code) .. " was not sent: " .. r.why, colors.orange)
+                    redraw = true
+                end
+            end
+        end
 
         if running and redraw then
             updateAlarm(os.clock())
@@ -1054,6 +1209,7 @@ end
 local ok, err = pcall(parallel.waitForAny, uiTask, dialerTask, listenerTask, tickTask)
 
 if CONFIG.alarmSide then redstone.setOutput(CONFIG.alarmSide, false) end
+if relay then relay:close() end
 Styles.reset(target)
 target.setBackgroundColor(colors.black)
 target.setTextColor(colors.white)

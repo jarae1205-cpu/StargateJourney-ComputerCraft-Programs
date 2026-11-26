@@ -594,6 +594,21 @@ function G.closeRefusal(code, desc)
     return G.feedbackName(desc) or (type(code) == "number" and G.FEEDBACK[code]) or "The gate refused to close"
 end
 
+-- true if the gate can send messages through a wormhole (iris codes), or false and why
+function G:canSendMessages()
+    if self.impl then
+        if self.impl.canSendMessages then return self.impl.canSendMessages(self) end
+        if self.impl.sendMessage then return true end
+        return false, "This gate can't send messages"
+    end
+    if self.mod == "sgcraft" then
+        if self:has("sendMessage") then return true end
+        return false, "This gate can't send messages"
+    end
+    if self:has("sendStargateMessage") then return true end
+    return false, "Codes need a crystal interface"
+end
+
 -- sends a text message through an open wormhole (iris codes use this)
 function G:sendMessage(text)
     if self.impl then
