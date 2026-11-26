@@ -209,7 +209,8 @@ function M.event(g, name, e, o)
         if n and e[p + 2] then g.engaged[n] = e[p + 2] end
         return { type = "chevron", n = n, symbol = e[p + 2], incoming = false }
     elseif name == "stargate_incoming_wormhole" then
-        g.outgoing, g.incomingChevrons = false, true
+        -- JSG does not say which gate is calling: forget the gate we last dialed
+        g.outgoing, g.incomingChevrons, g.remote = false, true, nil
         g.chevrons = tonumber(e[p]) or g.chevrons
         -- 8 or 9 chevrons for a call from another galaxy
         g.incomingSize = tonumber(e[p])

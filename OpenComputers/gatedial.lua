@@ -431,7 +431,10 @@ local function chevronPlan()
     local lit = gate.connected and 99 or gate.chevrons
     if syms then
         if origin ~= nil then syms[#syms + 1] = origin end
-        return syms, #syms, math.min(lit, #syms)
+        -- an incoming call from another galaxy locks more chevrons than the address shows
+        local total = #syms
+        if not gate.outgoing and gate.incomingSize then total = math.max(total, gate.incomingSize) end
+        return syms, total, math.min(lit, total)
     end
     syms = {}
     for i, s in ipairs(gate.engaged) do syms[i] = s end
