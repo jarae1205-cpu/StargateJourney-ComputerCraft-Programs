@@ -136,7 +136,8 @@ def chevron_textures(size=256):
 
 # --------------------------------------------------------------------------
 # the wormhole: JSG plays these sheets frame by frame (14 frames a row) and tints them
-# blue itself, so they are grey: dark water, white flecks of foam
+# blue itself, so they are grey: dark water, white flecks of foam. JSG draws them lighter
+# and a little see-through, so the water is very dark here to come out deep navy.
 # --------------------------------------------------------------------------
 
 def foam(count, seed=29):
@@ -151,13 +152,13 @@ def foam(count, seed=29):
 FOAM = foam(260)
 
 
-def flecked_frame(n, phase, base=62, density=1.0, flash=0.0, burst=None):
+def flecked_frame(n, phase, base=30, density=1.0, flash=0.0, burst=None):
     """One frame: dark water a little lighter in the middle, and flecks of foam that drift
     outwards from the middle to the rim once over the loop (phase 0..1), so the loop is seamless."""
     c = (n - 1) / 2
     ys, xs = np.mgrid[0:n, 0:n].astype(np.float32)
     r = np.hypot(xs - c, ys - c) / (n / 2)
-    tone = base + (1 - np.clip(r, 0, 1)) ** 2 * 26 + 6 * np.sin(r * 20 - phase * 2 * math.pi * 4)
+    tone = base + (1 - np.clip(r, 0, 1)) ** 2 * 20 + 5 * np.sin(r * 20 - phase * 2 * math.pi * 4)
     tone = tone + flash * (250 - tone)
     if burst is not None:  # a bright ring running out from the middle
         tone = np.maximum(tone, 250 * np.clip(1 - np.abs(r - burst) * 9, 0, 1))
@@ -191,9 +192,9 @@ def kawoosh_frame(i, n, frames=196):
         return flecked_frame(n, 0.0, base=90, density=0.3, flash=s, burst=0.1 + 0.9 * s)
     if t < 0.6:
         s = (t - 0.15) / 0.45
-        return flecked_frame(n, s * 0.5, base=200 - 110 * s, density=1.0, flash=max(0.0, 0.6 - s))
+        return flecked_frame(n, s * 0.5, base=200 - 150 * s, density=1.0, flash=max(0.0, 0.6 - s))
     s = (t - 0.6) / 0.4
-    return flecked_frame(n, 0.5 + 0.5 * s, base=90 - 28 * s)
+    return flecked_frame(n, 0.5 + 0.5 * s, base=50 - 20 * s)
 
 
 # --------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # Stargate Journey Variants
 
-Four new looks for **Stargate Journey's Milky Way stargate** on Minecraft 1.20.1. They change the real gate in your world: stone, chevron lights, event horizon and kawoosh.
+Five new looks for **Stargate Journey's Milky Way stargate** on Minecraft 1.20.1. They change the real gate in your world: stone, chevron lights, event horizon and kawoosh.
 
 | Variant | id | Look |
 |---|---|---|
@@ -8,10 +8,15 @@ Four new looks for **Stargate Journey's Milky Way stargate** on Minecraft 1.20.1
 | Continuum | `sgcvariants:milky_way_continuum` | the gate found frozen in the Arctic: frosted blue-grey stone flecked with ice, an icy horizon |
 | Ark of Truth | `sgcvariants:milky_way_ark_of_truth` | an Ancient gate in aged gold, white-gold chevrons, a wormhole of golden light |
 | Infinity | `sgcvariants:milky_way_infinity` | the cartoon gate of the animated series: pale stone with ink-dark shading, lime-yellow chevrons, a pale whirlpool |
+| LanteaCraft | `sgcvariants:milky_way_lanteacraft` | the gate of LanteaCraft, the stargate mod for Minecraft 1.7.10: charcoal stone, amber chevrons, a deep navy wormhole flecked with white |
 
 ![Variant textures](../imgs/VariantPack.png)
 
 *The textures of each variant: the gate texture sheet, a lit chevron, and one frame of the event horizon. Top: Origins, Continuum. Bottom: Ark of Truth, Infinity.*
+
+![The LanteaCraft variant in the game](../imgs/VariantLanteaCraft.jpg)
+
+*The LanteaCraft variant in a Minecraft 1.20.1 client with Stargate Journey 0.6.54: idle beside a gate in Stargate Journey's own look, and open.*
 
 The [Gate Room and the Personal Dialer](../StargateCommand/) recognise these variant names and switch their screens to the matching look by themselves.
 
@@ -22,7 +27,7 @@ The [Gate Room and the Personal Dialer](../StargateCommand/) recognise these var
 1. Put it in `.minecraft/resourcepacks` and turn it on (the textures).
 2. Put the same zip in your world's `datapacks` folder (the variant definitions and recipes). On a server, put it in the world's `datapacks` folder on the server and give the zip to players as a resource pack.
 
-Or install the [Stargate Command Addon](../StargateCommandAddon/) mod, which carries this pack inside it, so there is nothing else to set up.
+Or install the [Stargate Command Addon](../StargateCommandAddon/) mod, which carries this pack inside it, so there is nothing else to set up. Its 1.0.0 jar carries the first four variants; for LanteaCraft, add this zip as well until the addon is rebuilt.
 
 ## Use
 
@@ -34,6 +39,7 @@ Make a variant crystal in Stargate Journey's crystallizer, starting from a blank
 | Continuum | blue ice | naquadah |
 | Ark of Truth | gold block | naquadah |
 | Infinity | lime dye | book |
+| LanteaCraft | block of coal | naquadah |
 
 Then use the crystal on a Milky Way stargate. In creative, or with cheats:
 
@@ -58,3 +64,5 @@ Each variant is a few colour ramps in that script, so new ones are easy to add.
 The textures are recoloured from Stargate Journey's textures, which are CC BY-NC-SA 4.0 (Povstalec and contributors). This pack is shared under the same license; see [LICENSE.txt](LICENSE.txt). The script that makes it, `tools/make_variants.py`, is MIT ([LICENSE](../LICENSE)).
 
 Tested inside the [Stargate Command Addon](../StargateCommandAddon/): the four variants and their crystallizer recipes loaded on a dedicated Forge 1.20.1 server with Stargate Journey 0.6.54. In a Minecraft 1.20.1 client, the four looks and their event horizons rendered on Stargate Journey gates (see the [picture in the addon's README](../StargateCommandAddon/README.md#tested)).
+
+The LanteaCraft variant was tested from this zip as a data pack on a dedicated Forge 1.20.1 server with Stargate Journey 0.6.54, and as a resource pack in a Minecraft 1.20.1 client. A gate given the variant drew charcoal with dark amber chevrons, its chevrons lit amber as `/sgjourney stargateNetwork dial` dialed it from another gate, and its wormhole was deep navy flecked with white (see the picture above). The kawoosh drew black in that client, on both gates, in Stargate Journey's own look too: that is the client's software rendering, not the variant.

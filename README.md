@@ -125,7 +125,12 @@ A Forge 1.20.1 add-on for Stargate Journey:
  - Includes the variants below
 
 ### [Stargate Journey Variants](./StargateJourneyVariants/)
-A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth and Infinity looks, made in the crystallizer.
+A resource and data pack for Stargate Journey's Milky Way gate: Origins, Continuum, Ark of Truth, Infinity and LanteaCraft looks, made in the crystallizer.
+
+### [LanteaCraft look for Just Stargate Mod](./JSGLanteaCraft/)
+A resource pack for Just Stargate Mod 1.20.1: its Milky Way gate in the look of LanteaCraft's gate on Minecraft 1.7.10, with a charcoal ring, a toothed rim, amber chevrons and a wormhole flecked with white. Drawn by its own script from JSG's models, like the Infinity pack. Tested in a Minecraft 1.20.1 client with JSG 5.1.2.0; JSG draws the water paler than LanteaCraft's.
+
+![JSG with the LanteaCraft pack](./imgs/JSGLanteaCraftInGame.jpg)
 
 ### [Infinity Stargate for JSG](./JSGInfinityGate/)
 An add-on for Just Stargate Mod 1.20.1 (Forge): the gate from *Stargate Infinity*, built from its own base, ring and chevron blocks in JSG's pattern:
@@ -144,12 +149,12 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | Mod | Minecraft | Here |
 |---|---|---|
 | **Stargate Journey** | 1.20.1 (Forge) | every program, the [Stargate Command Addon](./StargateCommandAddon/) and the [variant pack](./StargateJourneyVariants/) with an Infinity look |
-| **Just Stargate Mod** (JSG) | 1.20.1 (Forge and NeoForge, 5.1.x), and 1.12.2 | the ComputerCraft programs on 1.20.1, `gatedial` on 1.12.2, the [Infinity pack](./JSGInfinity/) and the [Infinity Stargate add-on](./JSGInfinityGate/) |
+| **Just Stargate Mod** (JSG) | 1.20.1 (Forge and NeoForge, 5.1.x), and 1.12.2 | the ComputerCraft programs on 1.20.1, `gatedial` on 1.12.2, the [Infinity pack](./JSGInfinity/), the [LanteaCraft pack](./JSGLanteaCraft/) and the [Infinity Stargate add-on](./JSGInfinityGate/) |
 | **Stargate Network** (SGCraft 2.x, the continuation of Greg's SGCraft) | 1.12.2 only; no 1.20.1 version found | the programs on 1.12.2; on 1.20.1, [Chevron Seven](./ChevronSeven/)'s Stargate Network gate and SG Computer Interface stand in for it |
 | **SGCraft** (Greg's original) | 1.7.10 to 1.12.2 | the programs, and `gatedial` |
 | **Stargate Infinity** | no mod found | the Infinity looks: the [JSG pack](./JSGInfinity/) and [JSG add-on](./JSGInfinityGate/), the [SGCraft add-on](./SGCraftInfinityGate/), the [Stargate Journey variant](./StargateJourneyVariants/), [Chevron Seven](./ChevronSeven/)'s Infinity look, and the Gate Room and Personal Dialer themes |
 | **Lantea: Stargates** | 1.20.1 (Forge) and 1.21.1 (NeoForge) | the ComputerCraft programs |
-| **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
+| **LanteaCraft** | 1.21.1 (NeoForge) | the programs, and LanteaCraft looks after its 1.7.10 gate: [Chevron Seven](./ChevronSeven/)'s `lanteacraft` look, the [Stargate Journey variant](./StargateJourneyVariants/), the [JSG pack](./JSGLanteaCraft/) and the Personal Dialer's theme |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
 
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
