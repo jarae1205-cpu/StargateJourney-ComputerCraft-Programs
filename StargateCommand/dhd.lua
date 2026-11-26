@@ -10,8 +10,9 @@
 --   gates the keys build up the address and the dome dials it.
 --
 --   The dome closes an open wormhole again. The look (Milky Way, Pegasus,
---   Universe, Carter Addon Pack, Infinity, LanteaCraft) follows the gate; the
---   arrows at the top of the panel change it.
+--   Universe, Carter Addon Pack, Infinity, LanteaCraft, JSG, SG Network and
+--   SG Network Pegasus) follows the gate; the arrows at the top of the panel
+--   change it.
 --
 --   Usage:
 --     dhd              first advanced monitor, or this screen if there is none
@@ -32,8 +33,9 @@ local CONFIG = {
     interfaceName = nil,
     -- monitor text scale
     textScale = 0.5,
-    -- the DHD's look: "milky_way", "pegasus", "universe", "carter", "infinity" or "lanteacraft";
-    -- nil follows the gate. The arrows on the screen change it and it is remembered
+    -- the DHD's look: "milky_way", "pegasus", "universe", "carter", "infinity", "lanteacraft",
+    -- "jsg", "sgnet" or "sgnet_pegasus"; nil follows the gate. The arrows on the screen
+    -- change it and it is remembered
     look = nil,
     -- send the address book entry's iris code when the wormhole opens
     sendCodes = true,
@@ -140,6 +142,29 @@ local LOOKS = {
         [colors.orange] = 0xF0A526, [colors.yellow] = 0xFFF3C8,
         [colors.magenta] = 0x5A1A0E, [colors.cyan] = 0xF0552A,
     }),
+    -- Just Stargate Mod (and Aunis before it): a black DHD, dark keys with grey symbols,
+    -- orange light like its chevrons and a deep red dome
+    look("jsg", "JSG", {
+        [colors.gray] = 0x1F1F21, [colors.purple] = 0x0E0E10, [colors.green] = 0x080809,
+        [colors.brown] = 0x2F2F33, [colors.pink] = 0x8C8C93,
+        [colors.orange] = 0xFF7424, [colors.yellow] = 0xFFF0D2,
+        [colors.magenta] = 0x5C0B09, [colors.cyan] = 0xFF2B1C,
+    }),
+    -- SGCraft 2.x, the "Stargate Network" mod (1.12.2): a dark stone DHD with pale symbols
+    -- and an orange dome
+    look("sgnet", "SG Network", {
+        [colors.gray] = 0x2A2927, [colors.purple] = 0x161514, [colors.green] = 0x0D0C0C,
+        [colors.brown] = 0x3E3C39, [colors.pink] = 0xB3AFA7,
+        [colors.orange] = 0xFF6F1E, [colors.yellow] = 0xFFF0C8,
+        [colors.magenta] = 0x6A2806, [colors.cyan] = 0xFF9A1E,
+    }),
+    -- its Pegasus DHD: the same dark console with symbols that light blue and a blue dome
+    look("sgnet_pegasus", "SG Network Pegasus", {
+        [colors.gray] = 0x22252A, [colors.purple] = 0x111317, [colors.green] = 0x0A0B0D,
+        [colors.brown] = 0x33373E, [colors.pink] = 0x8DB3D6,
+        [colors.orange] = 0x3FB0FF, [colors.yellow] = 0xE6F6FF,
+        [colors.magenta] = 0x0E3260, [colors.cyan] = 0x46B4FF,
+    }),
 }
 local LOOK_BY_ID = {}
 for i, l in ipairs(LOOKS) do
@@ -151,6 +176,8 @@ end
 local function lookFor(g)
     if not g then return LOOK_BY_ID.milky_way end
     if g.mod == "lanteacraft" or g.mod == "lanteacraft17" then return LOOK_BY_ID.lanteacraft end
+    if (g.mod == "jsg" or g.mod == "jsg112") and g.typeId == "milky_way" and not g.variant then return LOOK_BY_ID.jsg end
+    if g.mod == "sgcraft" and g.hasZpm and not g.variant then return LOOK_BY_ID.sgnet end
     local v = (g.variant or ""):lower()
     if v:find("infinity") then return LOOK_BY_ID.infinity end
     if v:find("carter") or v:find("%f[%a]cap%f[%A]") then return LOOK_BY_ID.carter end
