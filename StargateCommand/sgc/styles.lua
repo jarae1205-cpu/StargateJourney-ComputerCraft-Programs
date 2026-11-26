@@ -224,6 +224,73 @@ S.LIST = {
         palette = palette({ [colors.orange] = 0xFF5A20, [colors.lightGray] = 0x8E8E8E, [colors.gray] = 0x474747,
                             [colors.brown] = 0x6A6A6A, [colors.pink] = 0xB8B8B8 }),
     },
+    {
+        -- Just Stargate Mod (1.20.1): smooth grey stone, orange chevrons, and a wormhole
+        -- of deep blue flecked with white around a bright core. JSG's Milky Way gates use it
+        id = "jsg", room = "GATE ROOM", name = "JSG", series = "Just Stargate Mod",
+        shape = "v", track = true, horizon = "speckle", glow = true,
+        palette = palette({
+            [colors.lightGray] = 0x8C8B87, [colors.gray] = 0x4B4A47, [colors.brown] = 0x6F6D68, [colors.pink] = 0xB5B2AA,
+            [colors.magenta] = 0x5A2E16, [colors.orange] = 0xFF7A1A, [colors.yellow] = 0xFFD58A,
+            [colors.blue] = 0x0A2A7A, [colors.cyan] = 0x2C6CDE, [colors.lightBlue] = 0x9CCBFF,
+        }),
+    },
+    {
+        -- Aunis, the 1.12.2 mod JSG grew out of: a dark ribbed ring with pale chevron
+        -- housings. JSG's 1.12.2 Milky Way gates use it
+        id = "aunis", room = "GATE ROOM", name = "Aunis", series = "Aunis / JSG (1.12.2)",
+        shape = "v", track = true, ribs = 36, housing = colors.pink, horizon = "speckle", glow = true,
+        palette = palette({
+            [colors.lightGray] = 0x4C4946, [colors.gray] = 0x262422, [colors.brown] = 0x3A3734, [colors.pink] = 0xC9C1B3,
+            [colors.magenta] = 0x4A2A1A, [colors.orange] = 0xFF8A2A, [colors.yellow] = 0xFFE0A0,
+            [colors.blue] = 0x0A2A7A, [colors.cyan] = 0x2C6CDE, [colors.lightBlue] = 0x9CCBFF,
+        }),
+    },
+    {
+        -- SGCraft 2.x, the "Stargate Network" mod (1.12.2): dark stone carved with symbols,
+        -- red-orange chevrons that glow yellow at the heart. SGCraft 2.x gates use it
+        id = "sgnet", room = "GATE ROOM", name = "SG Network", series = "SGCraft 2.x (Stargate Network)",
+        shape = "v", track = true, chevronWidth = 1.2,
+        palette = palette({
+            [colors.lightGray] = 0x5A5753, [colors.gray] = 0x2C2A28, [colors.brown] = 0x46433F, [colors.pink] = 0x8C877E,
+            [colors.magenta] = 0x4E1C10, [colors.orange] = 0xF2471B, [colors.yellow] = 0xFFC93C,
+        }),
+    },
+    {
+        -- its Pegasus gate: near-black stone with symbols and chevrons that light blue.
+        -- The computer can't tell it from the Milky Way gate, so pick it with STYLE
+        id = "sgnet_pegasus", room = "GATE ROOM", name = "SG Network Pegasus", series = "SGCraft 2.x (Stargate Network)",
+        shape = "v", track = true, glyphLight = true, chevronWidth = 1.2,
+        palette = palette({
+            [colors.lightGray] = 0x35383E, [colors.gray] = 0x1A1C20, [colors.brown] = 0x272A2F, [colors.pink] = 0x41719C,
+            [colors.magenta] = 0x15304D, [colors.orange] = 0x3FB0FF, [colors.yellow] = 0xD8F2FF,
+            [colors.green] = 0x8E9AAE, [colors.purple] = 0x46526A,
+        }),
+    },
+    {
+        -- LanteaCraft: a dark slate ring of letter glyphs with amber chevrons and a deep
+        -- navy wormhole flecked with white. LanteaCraft gates use it
+        id = "lanteacraft", room = "GATE ROOM", name = "LanteaCraft", series = "LanteaCraft",
+        shape = "v", track = true, horizon = "speckle",
+        palette = palette({
+            [colors.lightGray] = 0x3F4147, [colors.gray] = 0x1D1E22, [colors.brown] = 0x2C2E33, [colors.pink] = 0x9CA2AC,
+            [colors.magenta] = 0x4A3510, [colors.orange] = 0xF5B21E, [colors.yellow] = 0xFFF0B0,
+            [colors.blue] = 0x07164A, [colors.cyan] = 0x1A49B8, [colors.lightBlue] = 0xB7D2FF,
+        }),
+    },
+    {
+        -- a dialing console: boxed panels and blue buttons down the left, the gate a
+        -- plain grey ring on the right whose iris closes to a white disc. Any gate can use it
+        id = "console", room = "DIALING CONSOLE", name = "Console", series = "Dialing console",
+        shape = "slim", track = false, console = true, ring = { track = 0.87, rim = 0.87, horizon = 0.83 },
+        palette = palette({
+            [colors.black] = 0x000000, [colors.white] = 0xF4F4F4,
+            [colors.lightGray] = 0x6E737B, [colors.gray] = 0x33363C, [colors.brown] = 0x5A5E66, [colors.pink] = 0x9AA0A8,
+            [colors.magenta] = 0x3A2A1E, [colors.orange] = 0xFF8C1A, [colors.yellow] = 0xFFD48A,
+            [colors.blue] = 0x1446C8, [colors.cyan] = 0x2F7BFF, [colors.lightBlue] = 0x9CC6FF,
+            [colors.green] = 0xF0F0F0, [colors.purple] = 0xA9AEB6,
+        }),
+    },
 }
 
 S.BY_ID = {}
@@ -254,6 +321,14 @@ function S.forGate(gate)
         for _, m in ipairs(VARIANT_MATCH) do
             if v:find(m[1]) then return S.BY_ID[m[2]] end
         end
+    end
+    -- gates of a mod with a look of its own
+    if gate.mod == "lanteacraft" or gate.mod == "lanteacraft17" then return S.BY_ID.lanteacraft end
+    -- SGCraft 2.x is the one SGCraft with ZPMs
+    if gate.mod == "sgcraft" and gate.hasZpm then return S.BY_ID.sgnet end
+    if gate.typeId == "milky_way" then
+        if gate.mod == "jsg" then return S.BY_ID.jsg end
+        if gate.mod == "jsg112" then return S.BY_ID.aunis end
     end
     return S.BY_ID[gate.typeId] or S.BY_ID.milky_way
 end
