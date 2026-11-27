@@ -110,7 +110,7 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 | `journey` | after Stargate Journey (1.7.0): slate blue-grey stone, orange chevrons |
 | `jsg120` | after Just Stargate Mod on 1.20 (1.7.0): pale grey stone, amber chevrons, a dark blue wormhole with a white glow in the middle |
 
-`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves: their SGCraft style for `sgcraft`, and their Milky Way style for `journey` and the two JSG looks. Looks are only colours and textures: the gate works the same in every one.
+`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room, DHD and Personal Dialer](../StargateCommand/) pick their matching style by themselves. For the looks after other mods, the Gate Room uses its SGCraft style for `sgcraft`, JSG for `jsg120`, Aunis for `jsg112` and Milky Way for `journey`; the DHD program uses its JSG look for both JSG looks and SG Network for `sgcraft`; the Personal Dialer uses SGCraft for `sgcraft` and Milky Way for the rest. Looks are only colours and textures: the gate works the same in every one.
 
 The dark DHD's dome glows red by most gates; by a gate in the `sgcraft` look it is orange, and by one in the `network` look blue, like those mods' DHDs (1.7.0).
 
@@ -297,7 +297,7 @@ Put [`dist/chevron7-1.7.0.jar`](dist/chevron7-1.7.0.jar) in the `mods` folder (c
   - The command, run from a data pack, built the five gates where they belong, oldest on the left, with their looks, steps, DHDs and plaques. The signs read as above, glowing and waxed; the pool, sugar cane, birch tree and pillars were in place.
   - **The SGCraft gate dialed the JSG 1.20 gate by its letters**, and **the JSG 1.12.2 gate dialed the Stargate Network gate by its symbols**: both wormholes opened.
   - In the client every look showed as in the pictures above, with the pixelated water on the SGCraft gate and the white glow on the JSG 1.20 one. The SGCraft gate's DHD had an orange dome and the Stargate Network gate's a blue one; the others stayed red.
-  - The Gate Room's and Personal Dialer's style for each new look was checked by running their look-up in Lua: SGCraft for `sgcraft`, Milky Way for `journey`, `jsg112` and `jsg120`. Not checked on a computer in the game.
+  - The Gate Room's style for each new look was checked by running its look-up in Lua 5.2: SGCraft for `sgcraft`, Aunis for `jsg112`, JSG for `jsg120` and Milky Way for `journey`. The DHD program's and Personal Dialer's were only syntax-checked. None of the three was run on a computer in the game.
 - **1.6.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
   - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
   - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, look (`chevron7:network`) and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris, and `selfBusy` while dialing.
