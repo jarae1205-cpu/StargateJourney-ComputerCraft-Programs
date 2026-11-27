@@ -2,7 +2,7 @@
 
 Three monitor programs, a GDO for pocket computers and a shared library for ComputerCraft stargates:
 
-- **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it.
+- **Gate Room**: an SGC style gate room screen. The gate is drawn in the look of its series or its mod, the chevrons lock one by one, the inner ring turns, the wormhole forms with a kawoosh and the iris closes over it. The [Console](#console) look lays it all out as a dialing console instead.
 - **Gate Network Hub**: a touch screen of destination cards. Each card has its own portal colour and a tab (Milky Way, Pegasus, Crossover...). Tap a card to dial it.
 - **[Dial Home Device](#dial-home-device)**: the DHD from the show on a touch screen. Press the symbols of an address on its two rings of keys, then the big dome in the middle.
 - **[GDO](#gdo)**: a pocket computer turned into the team's iris code transmitter. Punch in your code at the far gate, and the Gate Room at home opens its iris.
@@ -25,7 +25,7 @@ On OpenComputers (SGCraft, and Just Stargate Mod for 1.12.2), use [gatedial](../
 
 ## Gate looks
 
-The look is picked from the gate type and its Stargate Journey variant. You can also cycle it with the **STYLE** button.
+The look is picked from the gate type, its Stargate Journey variant, or the mod the gate comes from. You can also cycle it with the **STYLE** button.
 
 ![Gate styles](../imgs/GateStyles.png)
 
@@ -47,9 +47,14 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 | Legacy Hybrid | variants with "hybrid" or "legacy" in their name: amber, red and purple chevrons with a blue master chevron |
 | Ori Supergate | variants named with "supergate" or the word "ori" (e.g. `ori_gate`, not "origins"); pick it with STYLE for an SGCraft 2.3 Ori supergate. A ring of 40 separate segments in space, no symbols or chevrons |
 | SGCraft | gates from Greg's SGCraft |
-| LanteaCraft | LanteaCraft gates (and those of LanteaCraft for 1.7.10, wherever the programs drive them): a dark iron ring with small amber chevrons, and a deep blue event horizon flecked with points of light that drift outwards and twinkle. The gate stands a little smaller in a room of light stone bricks, with the mod's black DHD and its red dome in front |
 | Stargate Network | Chevron Seven's Stargate Network gate: a dark steel-blue ring of letters with blue chevrons |
 | Carter Addon Pack | pick it with STYLE, or a variant named "cap" or "carter". After the Garry's Mod addon: the gate a little smaller, on a stepped grey pedestal with a red carpet, under the sky, with the round orange DHD and its blue dome in front |
+| JSG | Just Stargate Mod (1.20.1) Milky Way gates: smooth grey stone, orange chevrons, and a deep blue wormhole flecked with white around a bright core |
+| Aunis | Just Stargate Mod 1.12.2 Milky Way gates (on OpenComputers), after Aunis, the mod JSG grew out of: a dark ribbed ring, pale chevron housings and the same flecked wormhole |
+| SG Network | SGCraft 2.x gates, the "Stargate Network" mod on 1.12.2: dark stone carved with symbols, red-orange chevrons glowing yellow at the heart |
+| SG Network Pegasus | pick it with STYLE for an SGCraft 2.x Pegasus gate: near-black stone, symbols and chevrons that light blue |
+| LanteaCraft | LanteaCraft gates: a dark slate ring of glyphs, amber chevrons and a deep navy wormhole flecked with white. The gate stands a little smaller in a room of light stone bricks, with the mod's black DHD and its red dome in front ([picture](../imgs/GateRoomLanteaCraft.png)) |
+| Console | pick it with STYLE (any gate). A dialing console: boxed panels down the left, the gate as a plain grey ring on the right, see [below](#console) |
 
 ![The Carter Addon Pack style](../imgs/GateRoomCAP.png)
 
@@ -57,11 +62,11 @@ The look is picked from the gate type and its Stargate Journey variant. You can 
 
 Variants from resource packs are matched by name, so a variant called `lantea_gate` gets the Atlantis look.
 
-### LanteaCraft
+![The looks for JSG, Aunis, SGCraft 2.x and LanteaCraft gates, and the Console](../imgs/GateStylesMods.png)
 
-![The LanteaCraft style](../imgs/GateRoomLanteaCraft.png)
+*The looks after other stargate mods. Top: JSG and Aunis with a wormhole open, and SGCraft 2.x's Stargate Network gate dialing. Bottom: its Pegasus gate dialing, with the symbols lighting up, LanteaCraft with a wormhole open, and the Console's gate with the iris closed. Rendered from the headless test harness.*
 
-*The LanteaCraft style on a 4x3 monitor. Left: all seven chevrons locked. Right: the wormhole open. Rendered from the headless test harness.*
+They are drawn after screenshots of the mods, in the Gate Room's own pixel style; they aren't the mods' textures. JSG and Aunis gates, SGCraft 2.x gates and LanteaCraft gates now start in these looks instead of the Milky Way and SGCraft ones. Tap **STYLE** to go back; the choice is remembered.
 
 ### SGC Computer
 
@@ -74,6 +79,16 @@ The gate as the SGC's dialing computer shows it: teal lines on a dark screen, wi
 The symbols are line figures drawn by the program, like constellations: each symbol always gets the same one, and the point of origin is a pyramid under a sun. They are not the mod's glyphs or the show's. Every gate type has them: numbers, SGCraft letters and JSG's symbol names each get a figure of their own.
 
 On a monitor four blocks high the boxes stand in one numbered column; on one three blocks high they are in two columns. Smaller screens (under 30 lines) list the chevrons as text, as the other styles do.
+
+### Console
+
+A dialing console laid out like a control room computer: an orange **SGC** badge in the title bar, and down the left side blue-titled panels for the gate, the address being dialed, chevron by chevron, and its status, with blue **DIAL** and **IRIS** buttons. The gate stands on the right as a plain grey ring with slim chevrons. When the iris closes it fills the ring as a white disc.
+
+![The Console look](../imgs/GateRoomConsole.png)
+
+*Left: an incoming wormhole against the closed iris. Right: dialing Abydos, chevron 4 encoded. On a 4x3 monitor, rendered from the headless test harness.*
+
+Pick it with **STYLE**; it works with every gate. On a monitor too narrow for a side panel it shows the gate with one status line, like the other looks.
 
 ### Ori Supergate
 
@@ -268,7 +283,11 @@ The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe g
 
 The panel beside the DHD shows the gate, what it's doing, the address so far one chevron per line, and the address book's name for it ("To Abydos"). An incoming wormhole lights the caller's symbols, names the caller and locks the keys. If someone dials at the gate's own DHD block, or from another computer, the keys light up with it, and you can carry on from the screen.
 
-The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime) and **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD). It starts in the gate's own look, LanteaCraft's for LanteaCraft gates, and remembers your choice.
+The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime), **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD), **JSG** (a black DHD with orange light and a deep red dome), **SG Network** (dark stone, pale symbols, an orange dome, after SGCraft 2.x's DHD) and **SG Network Pegasus** (the same with blue light and a blue dome). It starts in the gate's own look (LanteaCraft's for LanteaCraft gates, JSG's for JSG Milky Way gates, SG Network for SGCraft 2.x gates) and remembers your choice.
+
+![The JSG, SG Network and SG Network Pegasus looks](../imgs/DHDLooksMods.png)
+
+*The JSG, SG Network and SG Network Pegasus looks, each with four chevrons locked. Rendered from the headless test harness.*
 
 A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors, and the computer's own screen, show the keys as a keypad with a DIAL button for the dome:
 
@@ -287,7 +306,7 @@ A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors,
 
 When the wormhole opens to an address book entry with an [iris code](#iris-codes-and-the-gate-log), the DHD sends the code, as the Gate Room does. With a wireless or ender modem it is also a [GDO](#gdo) relay. It leaves checking incoming codes to the Gate Room.
 
-Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"` or `"lanteacraft"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
+Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"`, `"lanteacraft"`, `"jsg"`, `"sgnet"` or `"sgnet_pegasus"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
 
 What it can't do:
 
@@ -350,7 +369,7 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 
 ## SGCraft 2.3 notes
 
-- The computer interface doesn't report whether a gate is Milky Way, Pegasus, Universe or an Ori supergate, so every SGCraft gate starts with the SGCraft look. Tap **STYLE** in the Gate Room (or pick a theme in the dialer's gate info) to match a Pegasus, Universe or Ori Supergate gate. The choice is remembered.
+- The computer interface doesn't report whether a gate is Milky Way, Pegasus, Universe or an Ori supergate, so every SGCraft 2.x gate starts with the SG Network look (its ZPM support tells it apart from Greg's SGCraft). Tap **STYLE** in the Gate Room (or pick a theme in the dialer's gate info) to match a Pegasus gate with SG Network Pegasus, or a Universe or Ori Supergate gate. The choice is remembered.
 - ZPMs feeding the gate are shown next to its energy.
 - Incoming wormholes are recognised from the gate's dialing direction, which 2.3 reports instead of the old `sgDialIn`/`sgDialOut` events.
 - Dialing errors are shown as text ("No stargate at that address", "Not enough energy to dial"...) instead of SGCraft's message keys.
@@ -381,7 +400,7 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - JSG's iris can only be toggled by a computer when its mode is OC/computer. Otherwise JSG refuses, and the Gate Room says so ("Could not close the iris: Iris mode must be set to OC").
 - JSG's iris stops the kawoosh, so with `autoIris` the Gate Room closes it as soon as another gate starts dialing in.
 - A gate built with `/jsg buildgate` has its base block (the bottom middle of the ring) one block into the ground: put the computer against it there, or use a wired modem.
-- JSG Movie gates get the Movie look; Pegasus, Universe and Tollan gates get theirs.
+- JSG Milky Way gates get the JSG look, and on 1.12.2 the Aunis look. Movie gates get the Movie look; Pegasus, Universe and Tollan gates get theirs.
 
 ## Stargate Journey notes
 

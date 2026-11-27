@@ -162,6 +162,7 @@ local function capScene(x, y, cx, cy, R)
     return colors.lightBlue
 end
 
+
 -- the LanteaCraft gate room: walls of light stone bricks, a slab floor, and the mod's
 -- black DHD with its red dome standing in front of the gate, to the left
 local function lanteacraftScene(x, y, cx, cy, R)
@@ -332,6 +333,7 @@ function Ring:zonesFor(style)
     local trackR, rimR, horizonR = ring.track, ring.rim, ring.horizon
     local px = 1 / R -- one pixel in radius units
     local cw = style.chevronWidth
+    local ribGap = style.ribs and 360 / style.ribs or 40
     local r0, r1, hwIn, hwOut
     if style.shape == "light" then
         r0, r1, hwIn, hwOut = 0.86, 0.97, 2.4, 2.4
@@ -355,8 +357,9 @@ function Ring:zonesFor(style)
             if d > 1 - 1.2 * px or d < trackR + 1.0 * px then
                 z = Z_SHADE
             else
-                local seam = (a + 20) % 40
-                if rad(math.min(seam, 40 - seam)) * d * R < 0.55 then z = Z_SHADE end
+                -- ribbed stone (Aunis) has a seam every few degrees, not only between chevrons
+                local seam = (a + ribGap / 2) % ribGap
+                if rad(math.min(seam, ribGap - seam)) * d * R < 0.55 then z = Z_SHADE end
             end
         end
         if z == Z_STONE and not style.track and style.shape == "light" and d > rimR + 0.05 and d < 0.84 then
@@ -406,26 +409,26 @@ local function horizonSwirl(h, a, t)
     return 0.24 + 0.46 * (1 - h) ^ 1.4 + 0.17 * sin(h * 15 - t * 3 + bend)
 end
 
--- LanteaCraft's horizon: deep blue, flecked with points of light that drift outwards
--- in rings and twinkle. Worked out from the pixel's angle and radius, so it needs no state.
-local function sparkleColor(h, a, t)
-    local ring = h * 15 - t * 0.8
-    local band = math.floor(ring)
-    -- more cells towards the rim, so the specks are as dense there as in the middle
-    local cells = 24 + math.floor(h * 60)
-    local cell = math.floor(a / 360 * cells)
-    local n = (cell * 7919 + band * 104729 + (cell * band) % 131) % 997
-    local into = ring - band
-    -- a speck of light sits in the middle of its band and twinkles
-    if n < 300 and into > 0.38 and into < 0.62 then
-        local tw = (n * 0.173 + t * 1.7) % 1
-        if tw < 0.6 then
-            if n < 70 then return IDX[colors.white] end
-            return IDX[colors.lightBlue]
-        end
-    end
-    -- a faint haze, thicker towards the rim
-    if h > 0.4 and (n * 7 + cell) % 9 == 0 then return IDX[colors.cyan] end
+-- a deep blue pool flecked with white specks that drift outwards (LanteaCraft, JSG).
+-- rpx: the horizon's radius in pixels, so a speck stays about two pixels across.
+-- glow: a bright core, like JSG's wormhole
+local function speckleColor(h, a, t, rpx, glow, boost)
+    local core = glow and (0.15 + boost * 0.35) or boost * 0.3
+    if h < core then return IDX[colors.white] end
+    if h < core * 1.8 then return IDX[colors.lightBlue] end
+    if h > 0.93 then return IDX[colors.cyan] end
+    -- cells about 2 pixels square on rings that roll out from the middle
+    local band = h * rpx / 2 - t * 1.6
+    local ring = floor(band)
+    -- the same number of cells all the way round each ring
+    local hc = (ring + 0.5 + t * 1.6) * 2 / rpx
+    local slots = math.max(6, floor(2 * math.pi * hc * rpx / 2.2))
+    local cell = floor((a / 360 + (ring % 89) * 0.618) * slots) % slots
+    local v = abs(sin(ring * 12.9898 + cell * 78.233)) * 43758.5453
+    local n = floor((v - floor(v)) * 997)
+    if n < 25 then return IDX[colors.white] end
+    if n < 110 then return IDX[colors.lightBlue] end
+    if glow and h < core * 2.8 and n < 520 then return IDX[colors.cyan] end
     return IDX[colors.blue]
 end
 
@@ -547,7 +550,7 @@ function Ring:draw(style, view)
     for i = 1, math.min(lit, total) do
         chevOn[Ring.position(i, total)] = IDX[S.chevronColor(style, i, total)]
     end
-    local OFF, HOUSING, CORE = IDX[colors.magenta], IDX[colors.gray], IDX[colors.yellow]
+    local OFF, HOUSING, CORE = IDX[colors.magenta], IDX[style.housing or colors.gray], IDX[colors.yellow]
     local STONE, SHADE, TRACK, GLYPH, LITGLYPH, RIM = IDX[colors.lightGray], IDX[colors.gray], IDX[colors.brown], IDX[colors.pink], IDX[colors.orange], IDX[colors.gray]
     local BLACK = IDX[colors.black]
     local IRIS_DARK, IRIS_LIGHT = IDX[colors.purple], IDX[colors.green]
@@ -638,9 +641,10 @@ function Ring:draw(style, view)
                     else c = BG and BG[j] or BLACK end
                 elseif mode == "closing" and h > 1 - age / 0.8 then
                     c = BG and BG[j] or BLACK
-                elseif style.horizon == "sparkle" then
-                    c = sparkleColor(h, a, t)
-                    if mode == "kawoosh" and h < 1 - (age - 0.55) / 1.05 then c = IDX[colors.cyan] end
+                elseif style.horizon == "speckle" then
+                    local boost = 0
+                    if mode == "kawoosh" then boost = math.max(0, 1 - (age - 0.55) / 1.05) end
+                    c = speckleColor(h, a, t, horizonR * R, style.glow, boost)
                 elseif style.horizon == "spiral" then
                     -- a cartoon whirlpool: ink lines curling into the middle
                     local q = a / 360 * 16 + h * 2.2 - t * 0.25
