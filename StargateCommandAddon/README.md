@@ -42,6 +42,8 @@ Everything is in the **Stargate Command** creative tab.
 
 On a dedicated Forge 1.20.1 (47.4.29) server with Stargate Journey 0.6.54: two gates on the network, one dials the other (with a kawoosh), then disconnects. The alarm by the receiving gate came on during the kawoosh, stayed on while the wormhole was open and went off after the disconnect. Its redstone input also worked. The monitor read incoming, then open, then idle, counting the chevrons up to 9. The four variants and all recipes loaded into the game.
 
+Stargate Journey 0.6.55: the addon asks the gate four things, `getChevronsEngaged`, `isConnected`, `isDialingOut` and `isWormholeOpen`, and 0.6.55 still has all four, unchanged. 0.6.55 still reads every setting in the variants' gate files, and it still has the crystallizer recipe type and the items the recipes use. That was checked against 0.6.55's code; the addon hasn't been loaded in a game on 0.6.55 yet.
+
 In a Minecraft 1.20.1 client joined to that server, the blocks and the four gate variants render as intended:
 
 ![The addon in game](../imgs/AddonInGame.jpg)

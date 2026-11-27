@@ -326,7 +326,7 @@ What it can't do:
 
 The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice (refused on numbered gates, a repeated letter on SGCraft), taking symbols back from the address lines, a cartouche followed by hand, left and picked up again, PRESS ALL on numbered and letter gates, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
 
-The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block.
+The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block. Stargate Journey 0.6.55 does the same: its `engageSymbol` takes the same arguments, and it sends `stargate_chevron_engaged` with the same values.
 
 The JSG key names are copied from JSG 5.1.2.0's own symbol lists, and checked against them letter for letter. On Milky Way gates they are the 37 constellations, on Pegasus gates the 35 Pegasus names, and on Universe gates `Glyph 1` to `Glyph 36`. JSG's computer methods look names up without regard to case, and they report Universe symbols by those names, which is why the keys use them. The points of origin, Point of Origin, Subido and Glyph 17, are the dome.
 
@@ -414,6 +414,7 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 
 ## Stargate Journey notes
 
+- Stargate Journey 0.6.55 has the same computer methods, events and error codes as 0.6.54, so the programs should work with it the same way. That was checked against its code; the games were played on 0.6.54. See [Stargate Journey 0.6.55](../README.md#stargate-journey-0655).
 - Stargate Journey's kawoosh destroys an iris that is closed when the wormhole forms (in 0.6.54 a full iron iris is gone at once), so with `autoIris` the Gate Room keeps the iris open until the wormhole is open, then closes it. It shuts in about three seconds and keeps its durability.
 - The gates run on Forge Energy (FE) unless the server turns energy off. BuildCraft Community Edition's engines make MJ, which the gates don't take: a Creative Engine against a crystal interface sent it nothing. BuildCraft's FE Engine turns FE into MJ, not the other way. BuildCraft's Forge Energy pipes should be able to carry FE from another mod's generator; that hasn't been tried.
 
