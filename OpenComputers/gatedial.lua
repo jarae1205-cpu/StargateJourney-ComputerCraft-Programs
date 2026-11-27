@@ -445,10 +445,7 @@ end
 
 local function shortSymbol(s)
     if type(s) == "number" then return s == 0 and "PoO" or tostring(s) end
-    if type(s) == "string" then
-        if A.isOriginName(s) then return "PoO" end
-        return s:sub(1, 3)
-    end
+    if type(s) == "string" then return A.shortName(s) end
     return "?"
 end
 
@@ -851,11 +848,11 @@ local function wrap(address, w, maxLines)
     return lines
 end
 
--- JSG's symbol names shortened: Aqu-Cet-Gem-Leo-Sco-Ori
+-- JSG's symbol names shortened: Aqu-Cet-Gem-Leo-Sco-Ori, or G12-G22-G35 for Universe glyphs
 local function shortAddress(address)
     if A.kind(address) ~= "names" then return A.format(address) end
     local short = {}
-    for i, s in ipairs(A.strip(address)) do short[i] = unicode.sub(tostring(s), 1, 3) end
+    for i, s in ipairs(A.strip(address)) do short[i] = A.shortName(s) end
     return table.concat(short, "-")
 end
 
@@ -1344,8 +1341,13 @@ function editEntry(entry)
         for k, v in pairs(clean) do entry[k] = v end
     else
         book.entries[#book.entries + 1] = clean
+        entry = clean
     end
     book:save()
+    -- select the entry just saved, so Enter dials it
+    for i, e in ipairs(entries()) do
+        if e == entry then sel = i break end
+    end
     setMessage("Saved " .. clean.name, colors.lime)
     full = true
 end

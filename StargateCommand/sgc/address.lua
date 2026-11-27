@@ -192,5 +192,15 @@ function A.dialableBy(address, mod)
     return false, "That is " .. A.KIND_LABEL[kind] .. " address, this gate needs " .. (A.KIND_LABEL[A.MOD_KIND[mod]] or "a different") .. " one"
 end
 
+-- a symbol name in three or four letters for tight spaces: "Aquila" -> "Aqu",
+-- JSG 1.12.2's Universe "Glyph 12" -> "G12", a point of origin -> "PoO"
+function A.shortName(s)
+    if s == 0 or (type(s) == "string" and isOriginName(s)) then return "PoO" end
+    if type(s) ~= "string" then return tostring(s) end
+    local n = s:match("^%s*[Gg]lyph%s*(%d+)%s*$")
+    if n then return "G" .. n end
+    return trim(s):sub(1, 3)
+end
+
 A.isOriginName = isOriginName
 return A

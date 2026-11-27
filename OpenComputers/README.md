@@ -99,7 +99,13 @@ On a touch screen, tap an address to pick it and tap it again to dial. The butto
 
 New and edit ask for a name, an address and the iris code to send when you dial it. When you edit, each question shows the current value in [brackets]: press Enter to keep it, or type `-` to clear it. Addresses are typed the way the gate shows them: SGCraft letters such as `WLDQ-DQB-MT`, or JSG symbol names separated by commas such as `Aquila, Cetus, Gemini, Leo, Scorpius, Orion`. An entry with the wrong kind of address for the gate is shown but not dialed.
 
-JSG dials a gate in another galaxy with 8 chevrons, for example from a Pegasus gate to a Milky Way gate. Its address then needs seven symbols, in the dialing gate's symbols. The seventh symbol is in the full address on the other gate's address page. With only six, JSG finds no gate, and gatedial says so with a reminder about the seventh symbol.
+JSG 1.12.2 dials some gates with more than 7 chevrons, and their addresses then need more symbols, in the dialing gate's symbols. The extra symbols are in the full address on the other gate's address page.
+
+- A gate in another galaxy, for example from a Pegasus gate to a Milky Way gate: 8 chevrons, so seven symbols.
+- Between a Universe gate and a Milky Way or Pegasus gate: 9 chevrons, so all eight symbols.
+- A Universe gate in another galaxy: 8 chevrons, so seven symbols.
+
+With too few symbols, JSG finds no gate, and gatedial says so with a reminder of how many symbols are needed.
 
 ## Iris codes
 
@@ -166,7 +172,16 @@ At the top of `gatedial.lua`:
   - Gate B's Pegasus address with six symbols failed. JSG answered `address_malformed`, because a call between galaxies takes 8 chevrons.
   - gatedial used to say only "Stargate failed to open". It now passes on JSG's reason ("No stargate at that address"), with the reminder about the seventh symbol.
   - The address was then changed to seven symbols at the Edit prompts. C dialed 8 chevrons and the wormhole opened. B's automatic iris closed, code 1234 was accepted, and B's console showed the call's 8 chevrons.
-- **Not tried in the game.** The console on a JSG Universe gate, and on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for SGCraft and LanteaCraft is unchanged.
+- **A Universe gate.** A fourth gate, a JSG Universe gate, got computer D on a 3x2 tier 3 screen.
+  - The console drew in the Universe look: a grey ring, "UNIVERSE STARGATE", and the addresses in glyph names (`Glyph 24, Glyph 22, ...`).
+  - JSG took "Glyph 17" as the point of origin. gatedial used to send "G17", the JSG 1.20.1 name, which JSG 1.12.2 doesn't know.
+  - Gate B was added with New. D dialed its 6 and then 7 Universe glyphs, and JSG answered `address_malformed` both times. JSG's code wants 9 chevrons from a Universe gate to a Milky Way gate.
+  - With all 8 glyphs, D locked all 9 chevrons, the origin included, and JSG still answered `address_malformed`. Dialing the same symbols by hand from the Lua prompt got the same answer, so this comes from JSG, not gatedial. Why JSG refuses is not known yet.
+- **What the Universe test found, now fixed.**
+  - The REMOTE line showed `Gly-Gly-Gly-Gly-Gly-Gly`, because every Universe glyph name starts with "Gly". It now shows `G12-G22-G35-G32-G19-G34`.
+  - A new address wasn't selected after New, so Enter dialed the first address in the book. It is now selected.
+  - The reminder after a failed dial only knew about the seventh symbol. It now gives the counts in the list above.
+- **Not tried in the game.** A call into a Universe gate, and the console on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for SGCraft and LanteaCraft is unchanged.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 

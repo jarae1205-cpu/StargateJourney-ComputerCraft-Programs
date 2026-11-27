@@ -249,6 +249,22 @@ function M.event(g, name, e, o)
     return nil
 end
 
+-- JSG 1.12.2 wants longer addresses between galaxies and gate types: 7 symbols (8 chevrons)
+-- from a Milky Way or Pegasus gate to another galaxy, such as Pegasus to Milky Way, and all
+-- 8 (9 chevrons) between a Universe gate and another type; "" when length isn't the problem
+function M.lengthHint(typeId, count)
+    if typeId == "universe" then
+        if count < 8 then
+            return " (a Universe gate dials a Milky Way or Pegasus gate with all 8 symbols, and a Universe gate in another galaxy with 7)"
+        end
+    elseif count == 6 then
+        return " (between galaxies, such as Pegasus to Milky Way, JSG needs the 7-symbol address, and all 8 for a Universe gate)"
+    elseif count == 7 then
+        return " (a Universe gate needs all 8 symbols)"
+    end
+    return ""
+end
+
 function M.dial(g, address, opts)
     local G = require("sgc.gate")
     if status(g) ~= "idle" then G.fail("The gate is busy") end
@@ -276,8 +292,8 @@ function M.dial(g, address, opts)
     if not engaged then
         -- JSG only says "failed to open"; the reason comes in a stargate_failed just after
         G.waitUntil(opts, function() return g.lastFailure ~= nil end, 2)
-        if g.lastFailureCode == "address_malformed" and #names == 6 then
-            G.fail(g.lastFailure .. " (between galaxies, such as Pegasus to Milky Way, JSG needs the 7-symbol address)")
+        if g.lastFailureCode == "address_malformed" then
+            G.fail(g.lastFailure .. M.lengthHint(g.typeId, #names))
         end
         if g.lastFailure then G.fail(g.lastFailure) end
         error(err, 0)

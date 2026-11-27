@@ -576,7 +576,7 @@ local function drawPanel(t)
         for i = 1, total do
             local s = syms[i]
             local text = s ~= nil and symbolText(s) or ""
-            if names then text = text:sub(1, 3) end
+            if names and s ~= nil then text = A.shortName(s) end
             parts[#parts + 1] = { "\31" .. text, i <= lit and colors.orange or colors.gray }
         end
         for row = 1, 2 do
