@@ -152,6 +152,14 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
 
+### Stargate Journey 0.6.55
+
+Stargate Journey 0.6.55 came out on 23 November 2026. It rewrote the mod's Java API, the part other mods build on. The computer side is the same as in 0.6.54: comparing the two versions' code, the interfaces have the same 78 methods, taking the same arguments, and the gates send the same events with the same values and report the same error codes. Only one method, `engageStargate`, changed in its code, and it does what it did before. The gate's own code was rewritten underneath, so a game may still turn up a difference, but the programs here should work with 0.6.55 as they do with 0.6.54.
+
+The [Stargate Command Addon](./StargateCommandAddon/) asks the gate four things (`getChevronsEngaged`, `isConnected`, `isDialingOut` and `isWormholeOpen`), and 0.6.55 still has all four, unchanged. All 47 settings in the [variant pack](./StargateJourneyVariants/)'s gate files are still read, and the crystallizer recipes and the items they use are still there.
+
+That was checked against 0.6.55's code, not yet in a game. The games were played on 0.6.54.
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program

@@ -31,7 +31,7 @@ The layout borrows from the 1.12.2 era Stargate mods: an address book like a per
 
 The Advanced Crystal Interface also shows the local and connected address and unlocks the gate address whitelist and blacklist.
 
-The program was written against the Stargate Journey **0.6.54** sources for 1.20.1. Older 0.6.x builds that use `raiseChevron` and `lowerChevron` are handled as well.
+The program was written against the Stargate Journey **0.6.54** sources for 1.20.1. Older 0.6.x builds that use `raiseChevron` and `lowerChevron` are handled as well. **0.6.55** has the same computer methods, events and error codes as 0.6.54 (checked against its code, not yet in a game).
 
 ## Gate display
 

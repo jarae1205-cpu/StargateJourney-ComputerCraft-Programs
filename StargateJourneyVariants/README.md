@@ -58,3 +58,5 @@ Each variant is a few colour ramps in that script, so new ones are easy to add.
 The textures are recoloured from Stargate Journey's textures, which are CC BY-NC-SA 4.0 (Povstalec and contributors). This pack is shared under the same license; see [LICENSE.txt](LICENSE.txt). The script that makes it, `tools/make_variants.py`, is MIT ([LICENSE](../LICENSE)).
 
 Tested inside the [Stargate Command Addon](../StargateCommandAddon/): the four variants and their crystallizer recipes loaded on a dedicated Forge 1.20.1 server with Stargate Journey 0.6.54. In a Minecraft 1.20.1 client, the four looks and their event horizons rendered on Stargate Journey gates (see the [picture in the addon's README](../StargateCommandAddon/README.md#tested)).
+
+Stargate Journey 0.6.55 still reads all 47 settings in the pack's gate files, and it still has the crystallizer recipe type and the items the recipes use. That was checked against 0.6.55's code, not yet in a game.

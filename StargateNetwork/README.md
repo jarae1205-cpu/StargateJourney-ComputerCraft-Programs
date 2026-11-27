@@ -97,6 +97,8 @@ In a Minecraft 1.20.1 world with Stargate Journey 0.6.54 and CC: Tweaked 1.120.2
 - Caller ID named the network gate that was calling, and an unknown gate as unknown.
 - With auto-iris on, the iris stayed whole: it closed for the unknown gate once its wormhole was open, stayed open for the network gate, and went back to how it was when the wormhole closed.
 
+Stargate Journey 0.6.55 has the same computer methods, events and error codes as 0.6.54, so the program should work with it the same way. That was checked against 0.6.55's code, not yet in a game.
+
 ## Iris codes
 
 When a code comes in through an incoming wormhole (`IDC:600`, as the [Gate Room](../StargateCommand/#iris-codes-and-the-gate-log) and the [GDO](../StargateCommand/#gdo) send it), sgnet checks it:
