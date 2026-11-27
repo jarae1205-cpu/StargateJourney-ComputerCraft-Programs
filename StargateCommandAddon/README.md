@@ -50,6 +50,8 @@ In a Minecraft 1.20.1 client joined to that server, the blocks and the four gate
 
 The ramp blocks are see-through grating, so a full block of it looks like a cage, the way other see-through blocks do. The klaxon was checked by recording the client's audio to a file: with the alarm lights next to a gate, the seconds while an incoming wormhole forms were 2 to 4 times louder than the same dial without them, and the klaxon stopped once the wormhole was stable. Not checked yet: the alarm light's flashing (seen only lit and unlit).
 
+**Stargate Journey 0.6.55:** the addon reads a gate through four of its methods (`isConnected`, `isDialingOut`, `getChevronsEngaged`, `isWormholeOpen`). 0.6.55 still has all four with the same signatures, checked in its jar against the addon's built jar, so `sgcaddon-1.0.0.jar` should load with it. The variant format is unchanged too. Not yet run on 0.6.55.
+
 ## Build
 
 ```

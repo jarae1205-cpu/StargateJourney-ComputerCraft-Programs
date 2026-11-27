@@ -153,6 +153,12 @@ Which of the stargate mods run on Minecraft 1.20.1, and what this repository has
 | **LanteaCraft** | 1.21.1 (NeoForge) | the programs |
 | **Chevron Seven** (in this repository) | 1.20.1 (Forge) | every program |
 
+### Stargate Journey 0.6.55
+
+Stargate Journey 0.6.55 (23 November 2026) rewrote the mod's API for other mods, but what a computer sees has not changed: the interface methods, the events and the error codes are the same as in 0.6.54. This was checked against 0.6.55's code, and nothing here needs an update: not the ComputerCraft programs, not the [Stargate Command Addon](./StargateCommandAddon/) (the four gate methods it calls are still there), and not the [variant pack](./StargateJourneyVariants/) (the variant format is the same). None of them has been run on 0.6.55 gates yet.
+
+One thing you may notice: dialing an address that is too short or has no point of origin now fails with *Incomplete address*, where 0.6.54 said *Invalid address*. An address with no gate is still *Invalid address*. The programs name both errors.
+
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
  - unfinished program
