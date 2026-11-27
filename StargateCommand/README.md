@@ -275,7 +275,7 @@ dhd term         the computer screen
 The DHD from the show: two rings of symbol keys around a big dome. Press the symbols of an address, then the dome.
 
 - On **Stargate Journey**, **Chevron Seven** and **Lantea: Stargates** gates, each key locks its chevron as soon as you press it, like a real DHD, and the dome engages the point of origin. On a Stargate Journey basic interface the ring turns to each symbol first, so a key takes a few seconds.
-- On **SGCraft**, **LanteaCraft** and **Just Stargate Mod** gates, a computer can only dial a whole address. The keys light up as you press them, and the dome dials the address. Touch the last key again to take it back. While the gate dials, the keys it hasn't locked yet blink.
+- On **SGCraft**, **LanteaCraft** and **Just Stargate Mod** gates, a computer can only dial a whole address. The keys light up as you press them, and the dome dials the address. To take symbols back, touch their line in the address beside the DHD: that symbol and the ones after it go. On a JSG gate, touching the last key again also takes it back. On SGCraft and LanteaCraft gates a key can be pressed twice, since their addresses can repeat a letter (`WLDQ-DQB-MT`). While the gate dials, the keys it hasn't locked yet blink.
 - When the wormhole is open the dome is lit, and pressing it closes the wormhole.
 - **CLEAR** stops dialing and lets the gate drop its chevrons. **IRIS** opens or closes the iris.
 
@@ -289,6 +289,14 @@ The arrows at the top of the panel change the look: **Milky Way** (sand-coloured
 
 *The JSG, SG Network and SG Network Pegasus looks, each with four chevrons locked. Rendered from the headless test harness.*
 
+### The cartouche
+
+Like the glyph sheet of an address you carry to a DHD: **BOOK** lists the address book entries the gate can dial from its keys. Pick one and it becomes the cartouche. Its symbols fill the address lines in order, and the next key to press glows green. Press them yourself, or touch **PRESS ALL** (**ALL** on the keypad) to have the rest pressed for you, the dome included. A key off the cartouche still works; the panel says which symbol the cartouche has there, and CLEAR takes you back to its start. Once the trip is over the cartouche goes back in the book. Entries tied to another gate, with no address yet, or in another mod's format aren't listed.
+
+![The cartouche](../imgs/DHDCartouche.png)
+
+*Left: the address book, picking a cartouche. Middle: following Abydos, with 26 locked and 6 glowing next. Right: the keypad on the computer's screen with an SGCraft cartouche, W first. Rendered from the test harness.*
+
 A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors, and the computer's own screen, show the keys as a keypad with a DIAL button for the dome:
 
 ![The DHD with JSG names, and as a keypad](../imgs/DHDGates.png)
@@ -300,6 +308,8 @@ A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors,
 | numbers, letters or names | press that key. A number goes in when no other key starts with it, or after a space; a name goes in after Enter or a comma (`crat`, `leo m`) |
 | Enter | the dome |
 | Backspace | take back a typed character, or the last key on an SGCraft, LanteaCraft or JSG gate |
+| Ctrl+B | the address book, to pick a cartouche |
+| Ctrl+A | press all of the cartouche's keys, and the dome |
 | Delete | CLEAR |
 | Tab | next look |
 | Ctrl+I, Ctrl+Q | iris, quit |
@@ -314,7 +324,7 @@ What it can't do:
 - Chevron Seven's Stargate Network gate, through its ring: there the gate numbers its letters, so connect it through its SG Computer Interface instead. The DHD then dials it like an SGCraft gate. Chevron Seven's other gates take six symbols and the dome.
 - A locked chevron can't be taken back on its own, as with a real DHD. CLEAR drops them all.
 
-The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
+The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice (refused on numbered gates, a repeated letter on SGCraft), taking symbols back from the address lines, a cartouche followed by hand, left and picked up again, PRESS ALL on numbered and letter gates, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
 
 The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block.
 
