@@ -236,7 +236,7 @@ local function openEditor(entry)
         entry = entry,
         fields = {
             { label = "Name",    value = entry and entry.name or "" },
-            { label = "Address", value = addr },
+            { label = "Address", value = addr, max = 160 }, -- JSG addresses as names run long
             { label = "Note",    value = entry and entry.note or "" },
             { label = "Group",   value = entry and entry.group or (tab ~= "All" and tab or "") },
         },
@@ -518,7 +518,7 @@ local function drawNative()
         native.write("Editing " .. f.label .. ":")
         native.setCursorPos(1, 4)
         native.setTextColor(colors.orange)
-        native.write("> " .. f.value)
+        native.write("> " .. (#f.value > 48 and ".." .. f.value:sub(-46) or f.value))
         native.setCursorPos(1, 6)
         native.setTextColor(colors.lightGray)
         native.write("Tab / Up / Down: field   Enter: save   Esc: cancel")
@@ -586,7 +586,7 @@ local function editorKey(e, held)
         elseif k == keys.escape then editor = nil
         end
     elseif e[1] == "char" or e[1] == "paste" then
-        f.value = (f.value .. tostring(e[2]):gsub("[\r\n]", " ")):sub(1, 40)
+        f.value = (f.value .. tostring(e[2]):gsub("[\r\n]", " ")):sub(1, f.max or 40)
     end
 end
 

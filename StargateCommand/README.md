@@ -68,6 +68,12 @@ Variants from resource packs are matched by name, so a variant called `lantea_ga
 
 They are drawn after screenshots of the mods, in the Gate Room's own pixel style; they aren't the mods' textures. JSG and Aunis gates, SGCraft 2.x gates and LanteaCraft gates now start in these looks instead of the Milky Way and SGCraft ones. Tap **STYLE** to go back; the choice is remembered.
 
+![The JSG look and DHD in a game](../imgs/InGameJSG.jpg)
+
+*In a Minecraft 1.20.1 game with JSG 5.1.2.0 and CC: Tweaked 1.120.2. Top: a JSG gate with its wormhole open over the Gate Room in the JSG look, and the screen close up. Bottom: the DHD in its JSG look at the other gate, which dialed it, and the Gate Room there showing the incoming wormhole against the closed iris.*
+
+The JSG look and the JSG DHD have been tried in that game. Both gates started in their JSG looks by themselves; one dialed the other from the Gate Room and back from the DHD. The Aunis, SG Network and LanteaCraft looks have only been tried in the test harness so far.
+
 ### SGC Computer
 
 The gate as the SGC's dialing computer shows it: teal lines on a dark screen, with corner brackets, a crosshair in the middle, the symbol track turning with the ring and chevrons that fill in as they lock. As each chevron is encoded, its symbol comes up big across the gate, then shrinks away into its numbered box beside it, where it stays until the gate closes. The wormhole is drawn as rings of light running out from the middle, and the iris as a line drawing of its blades.
@@ -89,6 +95,10 @@ A dialing console laid out like a control room computer: an orange **SGC** badge
 *Left: an incoming wormhole against the closed iris. Right: dialing Abydos, chevron 4 encoded. On a 4x3 monitor, rendered from the headless test harness.*
 
 Pick it with **STYLE**; it works with every gate. On a monitor too narrow for a side panel it shows the gate with one status line, like the other looks.
+
+![The Console in a game](../imgs/InGameConsole.jpg)
+
+*The Console on a JSG gate in a Minecraft 1.20.1 game: IRIS closed the gate's iris, and the console filled the ring with the white disc.*
 
 ### Ori Supergate
 
@@ -401,6 +411,7 @@ local ok, why = gate:dial({ 26, 6, 14, 31, 11, 29 })
 - JSG's iris stops the kawoosh, so with `autoIris` the Gate Room closes it as soon as another gate starts dialing in.
 - A gate built with `/jsg buildgate` has its base block (the bottom middle of the ring) one block into the ground: put the computer against it there, or use a wired modem.
 - JSG Milky Way gates get the JSG look, and on 1.12.2 the Aunis look. Movie gates get the Movie look; Pegasus, Universe and Tollan gates get theirs.
+- Type a JSG address on the Gate Room's computer as names with commas: `Gemini, Pegasus, Scutum, Bootes, Auriga, Leo`. Up to 160 characters fit, enough for 8 long names. Before 1.7.1 the line stopped at 40, which cut most JSG addresses short.
 
 ## Stargate Journey notes
 

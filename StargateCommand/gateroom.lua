@@ -86,6 +86,12 @@ local UI = require("sgc.ui")
 local args = { ... }
 local fit, pad = UI.fit, UI.pad
 
+-- the end of a long line, so what is being typed stays in view
+local function tail(s, width)
+    if #s <= width then return s end
+    return ".." .. s:sub(-(width - 2))
+end
+
 ---------------------------------------------------------------------------
 -- Screen
 ---------------------------------------------------------------------------
@@ -681,7 +687,7 @@ local function drawPanel(t)
         ui:write(x, my, pad(" " .. l, w), message.color, bg)
         my = my + 1
     end
-    if manual ~= "" then ui:write(x, by - 1, pad(" > " .. manual .. "_", w), colors.orange, bg)
+    if manual ~= "" then ui:write(x, by - 1, pad(" > " .. tail(manual .. "_", w - 3), w), colors.orange, bg)
     else ui:write(x, by - 1, pad("", w), colors.white, bg) end
 
     -- the console's buttons are blue
@@ -831,7 +837,7 @@ local function drawNative()
             or { "  WLDQ-DQB-MT             SGCraft", colors.gray },
         { "  Crater, Virgo, Bootes.. JSG (names, commas)", colors.gray },
         { "", colors.white },
-        { "> " .. manual, colors.orange },
+        { "> " .. tail(manual, 48), colors.orange },
         { "", colors.white },
         { "Ctrl+X close gate   Ctrl+I iris   Ctrl+S style", colors.lightGray },
         { "Ctrl+D destinations   Ctrl+L log   Ctrl+Q quit", colors.lightGray },
@@ -844,7 +850,7 @@ local function drawNative()
         native.setTextColor(l[2])
         native.write(l[1])
     end
-    native.setCursorPos(3 + #manual, 9)
+    native.setCursorPos(3 + #tail(manual, 48), 9)
     native.setTextColor(colors.white)
     native.setCursorBlink(true)
 end
@@ -1056,7 +1062,8 @@ local function keyEvent(e, held)
         end
     elseif (e[1] == "char" or e[1] == "paste") and not ctrl then
         local s = tostring(e[2]):gsub("[^%w%s%-%+,]", "")
-        manual = (manual .. s):sub(1, 40)
+        -- room for a JSG address typed as names, which can run past 100 characters
+        manual = (manual .. s):sub(1, 160)
     end
 end
 
