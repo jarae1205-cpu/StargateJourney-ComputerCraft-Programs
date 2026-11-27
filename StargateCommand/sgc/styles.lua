@@ -269,9 +269,11 @@ S.LIST = {
     },
     {
         -- LanteaCraft: a dark slate ring of letter glyphs with amber chevrons and a deep
-        -- navy wormhole flecked with white. LanteaCraft gates use it
+        -- navy wormhole flecked with white, a little smaller, in a room of light stone
+        -- bricks with the mod's black DHD and its red dome in front. LanteaCraft gates use it
         id = "lanteacraft", room = "GATE ROOM", name = "LanteaCraft", series = "LanteaCraft",
         shape = "v", track = true, horizon = "speckle",
+        backdrop = "lanteacraft", gateScale = 0.8, gateLift = 0.1,
         palette = palette({
             [colors.lightGray] = 0x3F4147, [colors.gray] = 0x1D1E22, [colors.brown] = 0x2C2E33, [colors.pink] = 0x9CA2AC,
             [colors.magenta] = 0x4A3510, [colors.orange] = 0xF5B21E, [colors.yellow] = 0xFFF0B0,

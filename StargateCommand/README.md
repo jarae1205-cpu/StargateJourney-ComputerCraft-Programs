@@ -53,7 +53,7 @@ The look is picked from the gate type, its Stargate Journey variant, or the mod 
 | Aunis | Just Stargate Mod 1.12.2 Milky Way gates (on OpenComputers), after Aunis, the mod JSG grew out of: a dark ribbed ring, pale chevron housings and the same flecked wormhole |
 | SG Network | SGCraft 2.x gates, the "Stargate Network" mod on 1.12.2: dark stone carved with symbols, red-orange chevrons glowing yellow at the heart |
 | SG Network Pegasus | pick it with STYLE for an SGCraft 2.x Pegasus gate: near-black stone, symbols and chevrons that light blue |
-| LanteaCraft | LanteaCraft gates: a dark slate ring of glyphs, amber chevrons and a deep navy wormhole flecked with white |
+| LanteaCraft | LanteaCraft gates: a dark slate ring of glyphs, amber chevrons and a deep navy wormhole flecked with white. The gate stands a little smaller in a room of light stone bricks, with the mod's black DHD and its red dome in front ([picture](../imgs/GateRoomLanteaCraft.png)) |
 | Console | pick it with STYLE (any gate). A dialing console: boxed panels down the left, the gate as a plain grey ring on the right, see [below](#console) |
 
 ![The Carter Addon Pack style](../imgs/GateRoomCAP.png)
