@@ -155,6 +155,11 @@ local function sendCode(entry)
         setMessage("Wormhole established to " .. entry.name .. " - send code " .. entry.idc .. " with your GDO", colors.lightBlue)
         return
     end
+    if gate.mod == "lanteacraft17" then
+        -- LanteaCraft for 1.7.10 has no iris codes and sends nothing through the wormhole
+        setMessage("Wormhole established to " .. entry.name .. " - LanteaCraft 1.7.10 can't send iris codes", colors.lightBlue)
+        return
+    end
     local ok, why = gate:sendMessage(IDC.message(entry.idc))
     if ok then
         setMessage("Wormhole established to " .. entry.name .. " - iris code sent", colors.lightBlue)
@@ -305,8 +310,8 @@ end
 local function updateRotation(t)
     if not gate then return end
     local moving = gate.state == "DIALING" or gate.state == "INCOMING" and not gate.connected
-    if gate.mod == "sgcraft" then
-        -- SGCraft doesn't report the ring position: turn it while the gate dials
+    if gate.mod == "sgcraft" or gate.mod == "lanteacraft17" then
+        -- SGCraft (and LanteaCraft for 1.7.10) don't report the ring position: turn it while the gate dials
         if moving then rotation = (rotation + (t - lastFrame) * 70) % 360 end
         return
     end
@@ -827,7 +832,7 @@ local function drawNative()
         { "Touch the monitor to dial, close or use the iris.", colors.lightGray },
         { "Or type an address here and press Enter:", colors.lightGray },
         { "  26 6 14 31 11 29        Stargate Journey, Lantea", colors.gray },
-        gate and gate.mod == "lanteacraft" and { "  K3-+QPA                 LanteaCraft (as shown)", colors.gray }
+        gate and (gate.mod == "lanteacraft" or gate.mod == "lanteacraft17") and { "  K3-+QPA                 LanteaCraft (as shown)", colors.gray }
             or { "  WLDQ-DQB-MT             SGCraft", colors.gray },
         { "  Crater, Virgo, Bootes.. JSG (names, commas)", colors.gray },
         { "", colors.white },

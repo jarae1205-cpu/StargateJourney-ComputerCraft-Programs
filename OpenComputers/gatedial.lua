@@ -444,6 +444,11 @@ local function sendCode(entry)
         setMessage("Wormhole established to " .. entry.name .. " - send code " .. entry.idc .. " with your GDO", colors.lightBlue)
         return
     end
+    if gate.mod == "lanteacraft17" then
+        -- LanteaCraft for 1.7.10 has no iris codes and sends nothing through the wormhole
+        setMessage("Wormhole established to " .. entry.name .. " - LanteaCraft 1.7.10 can't send iris codes", colors.lightBlue)
+        return
+    end
     local ok, why = gate:sendMessage(IDC.message(entry.idc))
     gdo.outgoing = { code = entry.idc, result = ok and "sent" or "not sent", who = entry.name }
     if ok then setMessage("Wormhole established to " .. entry.name .. " - iris code sent", colors.lightBlue)
