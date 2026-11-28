@@ -45,6 +45,12 @@ public class SGCAddon
 			BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0F, 6.0F).sound(SoundType.METAL)
 					.lightLevel(state -> state.getValue(GateMonitorBlock.OPEN) ? 7 : 0).requiresCorrectToolForDrops()));
 
+	// the SGC's dialing computer on a stand: its screen follows the nearest gate's chevrons
+	public static final RegistryObject<Block> DIALING_COMPUTER = block("dialing_computer", () -> new DialingComputerBlock(
+			BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0F, 6.0F).sound(SoundType.METAL)
+					.noOcclusion().requiresCorrectToolForDrops()
+					.lightLevel(state -> state.getValue(DialingComputerBlock.MODE) == DialingComputerBlock.Mode.NONE ? 0 : 5)));
+
 	// SGC gate room building blocks
 	public static final RegistryObject<Block> GATE_RAMP = block("gate_ramp", () -> new Block(
 			BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0F, 6.0F).sound(SoundType.METAL)
@@ -64,6 +70,8 @@ public class SGCAddon
 			() -> BlockEntityType.Builder.of(AlarmLightBlockEntity::new, ALARM_LIGHT.get()).build(null));
 	public static final RegistryObject<BlockEntityType<GateMonitorBlockEntity>> GATE_MONITOR_ENTITY = BLOCK_ENTITIES.register("gate_monitor",
 			() -> BlockEntityType.Builder.of(GateMonitorBlockEntity::new, GATE_MONITOR.get()).build(null));
+	public static final RegistryObject<BlockEntityType<DialingComputerBlockEntity>> DIALING_COMPUTER_ENTITY = BLOCK_ENTITIES.register("dialing_computer",
+			() -> BlockEntityType.Builder.of(DialingComputerBlockEntity::new, DIALING_COMPUTER.get()).build(null));
 
 	public static final RegistryObject<CreativeModeTab> TAB = TABS.register("stargate_command", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.sgcaddon"))

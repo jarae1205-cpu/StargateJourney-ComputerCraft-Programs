@@ -1,0 +1,6 @@
+{
+  "parent": "sgcaddon:block/dialing_computer",
+  "textures": {
+    "screen": "sgcaddon:block/dialing_computer/screen_incoming_2"
+  }
+}

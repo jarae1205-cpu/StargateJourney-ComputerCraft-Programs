@@ -3,6 +3,7 @@
   "values": [
     "sgcaddon:alarm_light",
     "sgcaddon:gate_monitor",
+    "sgcaddon:dialing_computer",
     "sgcaddon:gate_ramp",
     "sgcaddon:gate_ramp_stairs",
     "sgcaddon:gate_ramp_slab",

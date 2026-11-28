@@ -1,0 +1,634 @@
+{
+  "variants": {
+    "facing=north,mode=none": {
+      "model": "sgcaddon:block/dialing_computer_none"
+    },
+    "facing=north,mode=idle": {
+      "model": "sgcaddon:block/dialing_computer_idle"
+    },
+    "facing=north,mode=dialing,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_dialing_0"
+    },
+    "facing=north,mode=dialing,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_dialing_1"
+    },
+    "facing=north,mode=dialing,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_dialing_2"
+    },
+    "facing=north,mode=dialing,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_dialing_3"
+    },
+    "facing=north,mode=dialing,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_dialing_4"
+    },
+    "facing=north,mode=dialing,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_dialing_5"
+    },
+    "facing=north,mode=dialing,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_dialing_6"
+    },
+    "facing=north,mode=dialing,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_dialing_7"
+    },
+    "facing=north,mode=dialing,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_dialing_8"
+    },
+    "facing=north,mode=dialing,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_dialing_9"
+    },
+    "facing=north,mode=open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_open_0"
+    },
+    "facing=north,mode=open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_open_1"
+    },
+    "facing=north,mode=open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_open_2"
+    },
+    "facing=north,mode=open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_open_3"
+    },
+    "facing=north,mode=open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_open_4"
+    },
+    "facing=north,mode=open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_open_5"
+    },
+    "facing=north,mode=open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_open_6"
+    },
+    "facing=north,mode=open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_open_7"
+    },
+    "facing=north,mode=open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_open_8"
+    },
+    "facing=north,mode=open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_open_9"
+    },
+    "facing=north,mode=incoming,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_0"
+    },
+    "facing=north,mode=incoming,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_1"
+    },
+    "facing=north,mode=incoming,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_2"
+    },
+    "facing=north,mode=incoming,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_3"
+    },
+    "facing=north,mode=incoming,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_4"
+    },
+    "facing=north,mode=incoming,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_5"
+    },
+    "facing=north,mode=incoming,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_6"
+    },
+    "facing=north,mode=incoming,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_7"
+    },
+    "facing=north,mode=incoming,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_8"
+    },
+    "facing=north,mode=incoming,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_9"
+    },
+    "facing=north,mode=incoming_open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_0"
+    },
+    "facing=north,mode=incoming_open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_1"
+    },
+    "facing=north,mode=incoming_open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_2"
+    },
+    "facing=north,mode=incoming_open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_3"
+    },
+    "facing=north,mode=incoming_open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_4"
+    },
+    "facing=north,mode=incoming_open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_5"
+    },
+    "facing=north,mode=incoming_open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_6"
+    },
+    "facing=north,mode=incoming_open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_7"
+    },
+    "facing=north,mode=incoming_open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_8"
+    },
+    "facing=north,mode=incoming_open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_9"
+    },
+    "facing=east,mode=none": {
+      "model": "sgcaddon:block/dialing_computer_none",
+      "y": 90
+    },
+    "facing=east,mode=idle": {
+      "model": "sgcaddon:block/dialing_computer_idle",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_dialing_0",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_dialing_1",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_dialing_2",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_dialing_3",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_dialing_4",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_dialing_5",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_dialing_6",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_dialing_7",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_dialing_8",
+      "y": 90
+    },
+    "facing=east,mode=dialing,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_dialing_9",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_open_0",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_open_1",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_open_2",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_open_3",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_open_4",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_open_5",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_open_6",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_open_7",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_open_8",
+      "y": 90
+    },
+    "facing=east,mode=open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_open_9",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_0",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_1",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_2",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_3",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_4",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_5",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_6",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_7",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_8",
+      "y": 90
+    },
+    "facing=east,mode=incoming,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_9",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_0",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_1",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_2",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_3",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_4",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_5",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_6",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_7",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_8",
+      "y": 90
+    },
+    "facing=east,mode=incoming_open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_9",
+      "y": 90
+    },
+    "facing=south,mode=none": {
+      "model": "sgcaddon:block/dialing_computer_none",
+      "y": 180
+    },
+    "facing=south,mode=idle": {
+      "model": "sgcaddon:block/dialing_computer_idle",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_dialing_0",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_dialing_1",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_dialing_2",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_dialing_3",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_dialing_4",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_dialing_5",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_dialing_6",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_dialing_7",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_dialing_8",
+      "y": 180
+    },
+    "facing=south,mode=dialing,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_dialing_9",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_open_0",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_open_1",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_open_2",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_open_3",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_open_4",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_open_5",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_open_6",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_open_7",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_open_8",
+      "y": 180
+    },
+    "facing=south,mode=open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_open_9",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_0",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_1",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_2",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_3",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_4",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_5",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_6",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_7",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_8",
+      "y": 180
+    },
+    "facing=south,mode=incoming,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_9",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_0",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_1",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_2",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_3",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_4",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_5",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_6",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_7",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_8",
+      "y": 180
+    },
+    "facing=south,mode=incoming_open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_9",
+      "y": 180
+    },
+    "facing=west,mode=none": {
+      "model": "sgcaddon:block/dialing_computer_none",
+      "y": 270
+    },
+    "facing=west,mode=idle": {
+      "model": "sgcaddon:block/dialing_computer_idle",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_dialing_0",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_dialing_1",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_dialing_2",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_dialing_3",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_dialing_4",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_dialing_5",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_dialing_6",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_dialing_7",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_dialing_8",
+      "y": 270
+    },
+    "facing=west,mode=dialing,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_dialing_9",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_open_0",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_open_1",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_open_2",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_open_3",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_open_4",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_open_5",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_open_6",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_open_7",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_open_8",
+      "y": 270
+    },
+    "facing=west,mode=open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_open_9",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_0",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_1",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_2",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_3",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_4",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_5",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_6",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_7",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_8",
+      "y": 270
+    },
+    "facing=west,mode=incoming,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_9",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=0": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_0",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=1": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_1",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=2": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_2",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=3": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_3",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=4": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_4",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=5": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_5",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=6": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_6",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=7": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_7",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=8": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_8",
+      "y": 270
+    },
+    "facing=west,mode=incoming_open,chevrons=9": {
+      "model": "sgcaddon:block/dialing_computer_incoming_open_9",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "sgcaddon:block/dialing_computer/casing",
+    "metal": "sgcaddon:block/dialing_computer/metal",
+    "casing": "sgcaddon:block/dialing_computer/casing",
+    "casing_back": "sgcaddon:block/dialing_computer/casing_back",
+    "plinth": "sgcaddon:block/dialing_computer/plinth",
+    "column": "sgcaddon:block/dialing_computer/column",
+    "desk": "sgcaddon:block/dialing_computer/desk",
+    "keyboard": "sgcaddon:block/dialing_computer/keyboard",
+    "cable": "sgcaddon:block/dialing_computer/cable",
+    "screen": "sgcaddon:block/dialing_computer/screen_idle"
+  },
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        -2.5,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        -2,
+        0
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.45
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    }
+  },
+  "elements": [
+    {
+      "name": "base plate",
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        1,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal"
+        },
+        "east": {
+          "texture": "#metal"
+        },
+        "south": {
+          "texture": "#metal"
+        },
+        "west": {
+          "texture": "#metal"
+        },
+        "up": {
+          "texture": "#plinth"
+        },
+        "down": {
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "base step",
+      "from": [
+        2,
+        1,
+        2
+      ],
+      "to": [
+        14,
+        2,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal"
+        },
+        "east": {
+          "texture": "#metal"
+        },
+        "south": {
+          "texture": "#metal"
+        },
+        "west": {
+          "texture": "#metal"
+        },
+        "up": {
+          "texture": "#metal"
+        },
+        "down": {
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "column",
+      "from": [
+        4,
+        2,
+        4
+      ],
+      "to": [
+        12,
+        10,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#column",
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#column",
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#column",
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#column",
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#metal"
+        },
+        "down": {
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "cable",
+      "from": [
+        5,
+        2,
+        3.4
+      ],
+      "to": [
+        6,
+        10,
+        4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cable"
+        },
+        "east": {
+          "texture": "#cable"
+        },
+        "south": {
+          "texture": "#cable"
+        },
+        "west": {
+          "texture": "#cable"
+        },
+        "up": {
+          "texture": "#cable"
+        },
+        "down": {
+          "texture": "#cable"
+        }
+      }
+    },
+    {
+      "name": "desk",
+      "from": [
+        1,
+        10,
+        2
+      ],
+      "to": [
+        15,
+        13,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#desk",
+          "uv": [
+            1,
+            5,
+            15,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#desk",
+          "uv": [
+            2,
+            5,
+            14,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#desk",
+          "uv": [
+            1,
+            5,
+            15,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#desk",
+          "uv": [
+            2,
+            5,
+            14,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#metal"
+        },
+        "down": {
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "keyboard",
+      "from": [
+        2,
+        13,
+        2.5
+      ],
+      "to": [
+        14,
+        13.75,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal"
+        },
+        "east": {
+          "texture": "#metal"
+        },
+        "south": {
+          "texture": "#metal"
+        },
+        "west": {
+          "texture": "#metal"
+        },
+        "up": {
+          "texture": "#keyboard",
+          "uv": [
+            2,
+            2,
+            14,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "screen",
+      "from": [
+        1,
+        13,
+        7
+      ],
+      "to": [
+        15,
+        24,
+        10
+      ],
+      "rotation": {
+        "origin": [
+          8,
+          13,
+          7
+        ],
+        "axis": "x",
+        "angle": 22.5
+      },
+      "faces": {
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            0,
+            0,
+            14,
+            11
+          ],
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15,
+            "ambient_occlusion": false
+          }
+        },
+        "east": {
+          "texture": "#casing"
+        },
+        "south": {
+          "texture": "#casing_back"
+        },
+        "west": {
+          "texture": "#casing"
+        },
+        "up": {
+          "texture": "#casing"
+        },
+        "down": {
+          "texture": "#casing"
+        }
+      }
+    }
+  ]
+}
