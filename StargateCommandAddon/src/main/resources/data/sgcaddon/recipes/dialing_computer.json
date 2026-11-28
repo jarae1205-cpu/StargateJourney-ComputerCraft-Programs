@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "PPP",
+    "IMI",
+    " I "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:glass_pane"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "M": {
+      "item": "sgcaddon:gate_monitor"
+    }
+  },
+  "result": {
+    "item": "sgcaddon:dialing_computer",
+    "count": 1
+  }
+}
