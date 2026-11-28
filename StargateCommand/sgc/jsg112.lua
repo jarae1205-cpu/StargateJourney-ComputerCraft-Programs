@@ -265,6 +265,24 @@ function M.lengthHint(typeId, count)
     return ""
 end
 
+-- 331776 -> "331.8k"
+local function rf(n)
+    if n >= 1e6 then return string.format("%.1fM", n / 1e6) end
+    if n >= 1e3 then return string.format("%.1fk", n / 1e3) end
+    return tostring(math.floor(n))
+end
+
+-- JSG 1.12.2 reports a gate short of power as address_malformed too (seen on a Universe
+-- gate). getEnergyRequiredToDial tells them apart: "address_malformed" when there is no
+-- gate to reach, or { open = RF, keepAlive = RF, canOpen = false } when power is short.
+function M.powerShortage(g, names)
+    local need = g:call("getEnergyRequiredToDial", table.unpack(names))
+    if type(need) ~= "table" or need.canOpen ~= false or not tonumber(need.open) then return nil end
+    local have = firstNumber(g:call("getEnergyStored"))
+    return "Not enough power to open the wormhole: it takes " .. rf(tonumber(need.open)) .. " RF"
+        .. (have and (" and the gate has " .. rf(have) .. " RF") or "")
+end
+
 function M.dial(g, address, opts)
     local G = require("sgc.gate")
     if status(g) ~= "idle" then G.fail("The gate is busy") end
@@ -293,7 +311,7 @@ function M.dial(g, address, opts)
         -- JSG only says "failed to open"; the reason comes in a stargate_failed just after
         G.waitUntil(opts, function() return g.lastFailure ~= nil end, 2)
         if g.lastFailureCode == "address_malformed" then
-            G.fail(g.lastFailure .. M.lengthHint(g.typeId, #names))
+            G.fail(M.powerShortage(g, names) or (g.lastFailure .. M.lengthHint(g.typeId, #names)))
         end
         if g.lastFailure then G.fail(g.lastFailure) end
         error(err, 0)

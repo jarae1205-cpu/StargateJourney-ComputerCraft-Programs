@@ -20,6 +20,10 @@ On a tier 2 or tier 3 screen, gatedial 2.0 opens on the **console**: a control s
 
 *Screenshots from a Minecraft 1.12.2 game with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Top: gate A with a wormhole open, and its computer's 3x2 tier 3 screen showing the console. Bottom left: that screen opened by the player, with the wormhole open to gate B and code 1234 sent. Bottom right: gate B's tier 2 screen opened during the same call. B's automatic iris closed as the call came in, then the code was accepted and the iris opened.*
 
+![The console on a JSG Universe gate: calling out and receiving a call](../imgs/OpenComputersConsoleUniverse.png)
+
+*The console on a JSG 1.12.2 Universe gate, in the same game. Left: it dialed a Milky Way gate with all 9 chevrons, the wormhole opened, and code 1234 went across. Right: the Milky Way gate dialed it back, and the console showed the incoming call's 9 chevrons.*
+
 The gatedial 1.0 screen is still there: set `screen = "classic"` (see [Settings](#settings)).
 
 ![gatedial's classic screen](../imgs/OpenComputers.png)
@@ -107,6 +111,8 @@ JSG 1.12.2 dials some gates with more than 7 chevrons, and their addresses then 
 
 With too few symbols, JSG finds no gate, and gatedial says so with a reminder of how many symbols are needed.
 
+JSG 1.12.2 also says it finds no gate when the dialing gate is short of power. gatedial then asks JSG how much opening the wormhole takes, and says "Not enough power" with the numbers instead. A call between a Universe gate and another type of gate takes a lot: 330k RF from a Universe gate to a Milky Way gate, and about 34M RF the other way, in the test below.
+
 ## Iris codes
 
 Iris codes work the same as in the [Gate Room](../StargateCommand/README.md#iris-codes-and-the-gate-log):
@@ -176,12 +182,17 @@ At the top of `gatedial.lua`:
   - The console drew in the Universe look: a grey ring, "UNIVERSE STARGATE", and the addresses in glyph names (`Glyph 24, Glyph 22, ...`).
   - JSG took "Glyph 17" as the point of origin. gatedial used to send "G17", the JSG 1.20.1 name, which JSG 1.12.2 doesn't know.
   - Gate B was added with New. D dialed its 6 and then 7 Universe glyphs, and JSG answered `address_malformed` both times. JSG's code wants 9 chevrons from a Universe gate to a Milky Way gate.
-  - With all 8 glyphs, D locked all 9 chevrons, the origin included, and JSG still answered `address_malformed`. Dialing the same symbols by hand from the Lua prompt got the same answer, so this comes from JSG, not gatedial. Why JSG refuses is not known yet.
+  - With all 8 glyphs, D locked all 9 chevrons, the origin included, and JSG still answered `address_malformed`. The same symbols dialed by hand from the Lua prompt got the same answer.
+  - The real reason was power. D's gate had 26.4k RF, and JSG's `getEnergyRequiredToDial` said the wormhole takes 331,776 RF. With the gate filled to 50M RF, D dialed the 9 chevrons and the wormhole to B opened. The console showed `REMOTE Gate B 8 G12-G22-G35-G32-G19-G34-G13-G2`, 9 lit chevron boxes, and code 1234 sent.
+  - Back at 26.4k RF, the same dial failed again, and gatedial now says "Not enough power to open the wormhole: it takes 331.8k RF and the gate has 26.4k RF".
+  - B dialed D with D's eight Milky Way symbols. B locked 9 chevrons and the wormhole opened, using about 34M of B's RF. D's console showed "Unscheduled offworld activation", 9 chevron boxes for the incoming call, and then the wormhole with 9/9 and its time.
+  - When D's gate ran out of power with the wormhole open, the console said "Wormhole closed: Out of power".
 - **What the Universe test found, now fixed.**
   - The REMOTE line showed `Gly-Gly-Gly-Gly-Gly-Gly`, because every Universe glyph name starts with "Gly". It now shows `G12-G22-G35-G32-G19-G34`.
   - A new address wasn't selected after New, so Enter dialed the first address in the book. It is now selected.
   - The reminder after a failed dial only knew about the seventh symbol. It now gives the counts in the list above.
-- **Not tried in the game.** A call into a Universe gate, and the console on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for SGCraft and LanteaCraft is unchanged.
+  - A gate short of power got "No stargate at that address", JSG's answer. gatedial now asks JSG and says "Not enough power".
+- **Not tried in the game.** The console on SGCraft and LanteaCraft gates. gatedial 1.0's gate code for SGCraft and LanteaCraft is unchanged.
 
 **In a Minecraft 1.12.2 world** (Forge 14.23.5.2860) with OpenComputers 1.8.10 and Just Stargate Mod 4.11.2.8. Computers were cabled to the bases of two JSG Milky Way gates:
 

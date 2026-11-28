@@ -58,7 +58,7 @@
  - Iris codes and the gate log, through JSG's own GDO on JSG gates
  - Shares its address book, iris codes and gate log files with the ComputerCraft programs
  - Tested in Minecraft 1.12.2 worlds with OpenComputers 1.8.10 and JSG or SGCraft 2.3.0, and in a 1.7.10 world with SGCraft 1.13.3: dialing, iris codes and the iris
- - The console tested in a 1.12.2 world with JSG 4.11.2.8, on tier 3 and tier 2 screens: dialing both ways, the automatic iris, iris codes accepted and rejected, and the player's keyboard and mouse on the open screen
+ - The console tested in a 1.12.2 world with JSG 4.11.2.8, on tier 3 and tier 2 screens: dialing both ways, the automatic iris, iris codes accepted and rejected, and the player's keyboard and mouse on the open screen. Also on Pegasus and Universe gates, with 8- and 9-chevron calls
 
 ![The gatedial console in a Minecraft 1.12.2 world](./imgs/OpenComputersConsoleInGame.jpg)
 
