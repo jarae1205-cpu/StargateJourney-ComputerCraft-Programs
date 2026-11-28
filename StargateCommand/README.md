@@ -283,7 +283,7 @@ The keys match the gate: 38 for a Milky Way gate, 35 for a Pegasus or Universe g
 
 The panel beside the DHD shows the gate, what it's doing, the address so far one chevron per line, and the address book's name for it ("To Abydos"). An incoming wormhole lights the caller's symbols, names the caller and locks the keys. If someone dials at the gate's own DHD block, or from another computer, the keys light up with it, and you can carry on from the screen.
 
-The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime), **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD), **JSG** (a black DHD with orange light and a deep red dome), **SG Network** (dark stone, pale symbols, an orange dome, after SGCraft 2.x's DHD) and **SG Network Pegasus** (the same with blue light and a blue dome). It starts in the gate's own look (LanteaCraft's for LanteaCraft gates, JSG's for JSG Milky Way gates, SG Network for SGCraft 2.x gates) and remembers your choice.
+The arrows at the top of the panel change the look: **Milky Way** (sand-coloured keys, amber glow, red dome), **Pegasus** (slate, blue), **Universe** (dark, white), **Carter Addon Pack** (orange, blue dome), **Infinity** (pale blue-grey, lime), **LanteaCraft** (charcoal with pale carved symbols, amber light and an orange-red dome, after LanteaCraft's own DHD), **JSG** (a black DHD with orange light and a deep red dome), **SG Network** (dark stone, pale symbols, an orange dome, after SGCraft 2.x's DHD), **SG Network Pegasus** (the same with blue light and a blue dome) and **Replica** (after a 3D-printed DHD: slate keys with gold symbols that light up white, and a copper dome that glows warm white). It starts in the gate's own look (LanteaCraft's for LanteaCraft gates, JSG's for JSG Milky Way gates, SG Network for SGCraft 2.x gates) and remembers your choice.
 
 ![The JSG, SG Network and SG Network Pegasus looks](../imgs/DHDLooksMods.png)
 
@@ -296,6 +296,23 @@ Like the glyph sheet of an address you carry to a DHD: **BOOK** lists the addres
 ![The cartouche](../imgs/DHDCartouche.png)
 
 *Left: the address book, picking a cartouche. Middle: following Abydos, with 26 locked and 6 glowing next. Right: the keypad on the computer's screen with an SGCraft cartouche, W first. Rendered from the test harness.*
+
+### Where am I dialing?
+
+A guessing game, after a fan's 3D-printed DHD that lights up an address and asks where it goes. Touch **BOOK**, then **? Where am I dialing?** at the top of the list, or press **Ctrl+G**.
+
+1. The keys of an address book entry light up one at a time, then the dome.
+2. Pick where it goes from up to four names, by touch or by typing 1 to 4. The right one turns green, a wrong pick red, and its address is shown.
+3. **NEXT** (or Enter) plays another round, never the same answer twice in a row. **SKIP**, before you guess, moves on without counting the round, and tells you the one you skipped.
+4. **DIAL IT** makes the answer the [cartouche](#the-cartouche), so you can dial it with its green keys or PRESS ALL. **END** (CLEAR, or Ctrl+G again) stops the game and shows your score.
+
+![Where am I dialing?](../imgs/DHDQuiz.png)
+
+*Left: the keys of Nether Outpost lighting up, three of six. Middle: the right guess, with DIAL IT. Right: the Replica look, all six keys and the dome lit. On a 4x3 monitor, rendered from the test harness.*
+
+Only the screen lights up, and the gate is left alone. The game needs the gate to be idle, and stops if someone dials in or out. It also plays with no gate at all, on a Milky Way DHD's keys.
+
+The answers come from the address book: the entries whose addresses these keys can spell, one per name, leaving out this gate's own address. That means numbers on Stargate Journey, Chevron Seven and Lantea gates, letters on SGCraft and LanteaCraft gates, and symbol names on JSG gates. It needs at least two of them. On the keypad, the choices take the place of the buttons along the bottom, and END sits in the title bar.
 
 A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors, and the computer's own screen, show the keys as a keypad with a DIAL button for the dome:
 
@@ -310,13 +327,14 @@ A round DHD needs a monitor at least 4 blocks wide and 3 high. Smaller monitors,
 | Backspace | take back a typed character, or the last key on an SGCraft, LanteaCraft or JSG gate |
 | Ctrl+B | the address book, to pick a cartouche |
 | Ctrl+A | press all of the cartouche's keys, and the dome |
+| Ctrl+G | Where am I dialing?: start or stop the game. While it's on, 1 to 4 answer and Enter plays the next round |
 | Delete | CLEAR |
 | Tab | next look |
 | Ctrl+I, Ctrl+Q | iris, quit |
 
 When the wormhole opens to an address book entry with an [iris code](#iris-codes-and-the-gate-log), the DHD sends the code, as the Gate Room does. With a wireless or ender modem it is also a [GDO](#gdo) relay. It leaves checking incoming codes to the Gate Room.
 
-Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"`, `"lanteacraft"`, `"jsg"`, `"sgnet"` or `"sgnet_pegasus"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
+Settings at the top of `dhd.lua`: `interfaceName`, `textScale`, `look` (fix the look: `"milky_way"`, `"pegasus"`, `"universe"`, `"carter"`, `"infinity"`, `"lanteacraft"`, `"jsg"`, `"sgnet"`, `"sgnet_pegasus"` or `"replica"`), `sendCodes`, `gdoRelay`, `clicks` (key clicks on an attached speaker), and how long to wait for the gate.
 
 What it can't do:
 
@@ -324,7 +342,7 @@ What it can't do:
 - Chevron Seven's Stargate Network gate, through its ring: there the gate numbers its letters, so connect it through its SG Computer Interface instead. The DHD then dials it like an SGCraft gate. Chevron Seven's other gates take six symbols and the dome.
 - A locked chevron can't be taken back on its own, as with a real DHD. CLEAR drops them all.
 
-The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice (refused on numbered gates, a repeated letter on SGCraft), taking symbols back from the address lines, a cartouche followed by hand, left and picked up again, PRESS ALL on numbered and letter gates, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81.
+The DHD has only been tried in the headless test harness, not in a game yet. There, it dialed by touch and by keyboard on simulated Stargate Journey gates (advanced crystal, crystal and basic interfaces), Chevron Seven, Lantea, SGCraft and LanteaCraft gates, and JSG's Milky Way, Pegasus and Universe gates. Other things that worked there: invalid and unfinished addresses, a symbol pressed twice (refused on numbered gates, a repeated letter on SGCraft), taking symbols back from the address lines, a cartouche followed by hand, left and picked up again, PRESS ALL on numbered and letter gates, CLEAR in the middle of a key, an incoming wormhole, a gate dialed from its own DHD block, the interface removed and put back, every look, and screens from 26x20 to 165x81. Where am I dialing? was played there by touch and by keyboard on a Stargate Journey gate, on an SGCraft gate on the computer's screen and with no gate, including DIAL IT, SKIP, END, and an incoming wormhole in the middle of a round.
 
 The Stargate Journey calls were checked against Stargate Journey 0.6.54's computer code. `engageSymbol` encodes a symbol as the gate's own DHD would. Every interface tier, basic included, sends the symbol with each chevron, which is how the keys follow the gate's DHD block.
 
