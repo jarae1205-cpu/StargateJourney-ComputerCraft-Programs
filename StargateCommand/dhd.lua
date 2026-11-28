@@ -13,10 +13,15 @@
 --   next key glows green, like reading the glyphs off a sheet; PRESS ALL
 --   presses the rest and the dome for you.
 --
+--   "Where am I dialing?" (in the book, or Ctrl+G) is a guessing game: the
+--   keys of an address book entry light up one by one, then the dome, and you
+--   pick where it goes. The gate is left alone; DIAL IT makes the answer the
+--   cartouche.
+--
 --   The dome closes an open wormhole again. The look (Milky Way, Pegasus,
---   Universe, Carter Addon Pack, Infinity, LanteaCraft, JSG, SG Network and
---   SG Network Pegasus) follows the gate; the arrows at the top of the panel
---   change it.
+--   Universe, Carter Addon Pack, Infinity, LanteaCraft, JSG, SG Network,
+--   SG Network Pegasus and Replica) follows the gate; the arrows at the top of
+--   the panel change it.
 --
 --   Usage:
 --     dhd              first advanced monitor, or this screen if there is none
@@ -24,7 +29,7 @@
 --     dhd term         this screen
 --
 
-local VERSION = "1.1"
+local VERSION = "1.2"
 
 --
 -- CONFIGURATION
@@ -38,8 +43,8 @@ local CONFIG = {
     -- monitor text scale
     textScale = 0.5,
     -- the DHD's look: "milky_way", "pegasus", "universe", "carter", "infinity", "lanteacraft",
-    -- "jsg", "sgnet" or "sgnet_pegasus"; nil follows the gate. The arrows on the screen
-    -- change it and it is remembered
+    -- "jsg", "sgnet", "sgnet_pegasus" or "replica"; nil follows the gate. The arrows on the
+    -- screen change it and it is remembered
     look = nil,
     -- send the address book entry's iris code when the wormhole opens
     sendCodes = true,
@@ -169,6 +174,14 @@ local LOOKS = {
         [colors.orange] = 0x3FB0FF, [colors.yellow] = 0xE6F6FF,
         [colors.magenta] = 0x0E3260, [colors.cyan] = 0x46B4FF,
     }),
+    -- after a 3D-printed replica of the DHD: slate keys with gold symbols that light up
+    -- white, pale ridges between them, and a copper dome that glows warm white
+    look("replica", "Replica", {
+        [colors.gray] = 0x3B4047, [colors.purple] = 0x24272C, [colors.green] = 0x5A5F67,
+        [colors.brown] = 0x1D2024, [colors.pink] = 0xC9A04A,
+        [colors.orange] = 0xF4F1E8, [colors.yellow] = 0x8C6A1C,
+        [colors.magenta] = 0x6B4630, [colors.cyan] = 0xFFE3C2,
+    }),
 }
 local LOOK_BY_ID = {}
 for i, l in ipairs(LOOKS) do
@@ -236,6 +249,9 @@ local input = ""                        -- what is being typed on the keyboard
 -- { name = "Abydos", symbols = { 26, 6, 14, 31, 11, 29 } }
 local guide = nil
 local bookView = nil                    -- { page = 1 } while the address book is on the screen
+-- "Where am I dialing?": { right = 2, asked = 3, last = "Abydos", answer = entry,
+--   symbols = { 26, 6, ... }, shown = 3, choices = { entry, ... }, picked = nil | 1-4 }
+local quiz = nil
 local message = { text = "", color = colors.lightGray }
 local lastState = gate and gate.state or "OFFLINE"
 local codeSent = false                  -- this wormhole's iris code went out
@@ -290,15 +306,10 @@ local function symbolText(symbol)
     return tostring(symbol)
 end
 
--- the keys for an address book entry, in order; or nil and why it can't be dialed from them
-local function cartoucheFor(entry)
-    if not entry or not entry.address then return nil, ((entry and entry.name) or "That entry") .. " has no address yet" end
-    if not gate then return nil, "No stargate interface connected" end
-    if keyset.why then return nil, keyset.why end
-    local ok, why = A.dialableBy(entry.address, gate.mod)
-    if not ok then return nil, why end
+-- the keys that spell an address on this DHD, in order; or nil and why they can't
+local function keyList(address)
     local list = {}
-    for i, s in ipairs(A.symbols(entry.address)) do
+    for i, s in ipairs(A.symbols(address)) do
         local key
         for _, k in ipairs(keyset.symbols) do
             if k == s or (type(k) == "string" and type(s) == "string" and k:lower() == s:lower()) then key = k break end
@@ -308,6 +319,16 @@ local function cartoucheFor(entry)
     end
     if not keyset.lengths[#list] then return nil, "This gate's addresses have " .. D.lengthText(keyset) .. " symbols" end
     return list
+end
+
+-- the keys for an address book entry, in order; or nil and why it can't be dialed from them
+local function cartoucheFor(entry)
+    if not entry or not entry.address then return nil, ((entry and entry.name) or "That entry") .. " has no address yet" end
+    if not gate then return nil, "No stargate interface connected" end
+    if keyset.why then return nil, keyset.why end
+    local ok, why = A.dialableBy(entry.address, gate.mod)
+    if not ok then return nil, why end
+    return keyList(entry.address)
 end
 
 -- the address book entries the keys can dial, listed at this gate
@@ -331,6 +352,139 @@ end
 local function startRelay()
     if relay or not (GDO and CONFIG.gdoRelay) then return end
     relay = GDO.newRelay(function() return gate end)
+end
+
+---------------------------------------------------------------------------
+-- Where am I dialing?
+---------------------------------------------------------------------------
+--
+-- A guessing game: the keys of an address book entry light up one by one,
+-- then the dome, and you pick where the DHD is dialing from up to four names.
+-- Only the screen lights up; the gate is left alone.
+--
+
+-- the entries the keys can spell, one per name, leaving out this gate's own address.
+-- No gate is needed: without one the keys are a Milky Way DHD's
+local function quizPool()
+    local out, seen = {}, {}
+    for _, e in ipairs(book:visible(gate and gate.localAddress)) do
+        if e.address and not seen[e.name] and A.kind(e.address) == keyset.kind and keyList(e.address)
+            and not (gate and gate.localAddress and A.same(e.address, gate.localAddress)) then
+            seen[e.name] = true
+            out[#out + 1] = e
+        end
+    end
+    return out
+end
+
+local function shuffle(list)
+    for i = #list, 2, -1 do
+        local j = math.random(i)
+        list[i], list[j] = list[j], list[i]
+    end
+    return list
+end
+
+-- a new round: an answer that isn't the last one, and up to three others to choose from
+local function quizRound(pool)
+    local answers = {}
+    for _, e in ipairs(pool) do
+        if e.name ~= quiz.last then answers[#answers + 1] = e end
+    end
+    if #answers == 0 then answers = pool end
+    local answer = answers[math.random(#answers)]
+    local others = {}
+    for _, e in ipairs(pool) do
+        if e ~= answer then others[#others + 1] = e end
+    end
+    shuffle(others)
+    local choices = { answer }
+    for i = 1, math.min(3, #others) do choices[#choices + 1] = others[i] end
+    quiz.answer, quiz.symbols, quiz.shown, quiz.picked = answer, keyList(answer.address), 0, nil
+    quiz.choices = shuffle(choices)
+    quiz.last = answer.name
+end
+
+-- true while the gate is dialing, open or busy; the quiz waits for an idle gate
+local function gateInUse()
+    return gate ~= nil and (gate.connected or (gate.state ~= "IDLE" and gate.state ~= "OFFLINE"))
+end
+
+local function quizLit(symbol)
+    for i = 1, math.min(quiz.shown, #quiz.symbols) do
+        if quiz.symbols[i] == symbol then return true end
+    end
+    return false
+end
+
+local function startQuiz()
+    bookView = nil
+    if quiz then return end
+    if gateInUse() or busy() or dome then
+        setMessage("The gate is in use - play when it's idle", colors.orange)
+        click("error")
+        return
+    end
+    if #seq > 0 then
+        setMessage("CLEAR the keys first, then play", colors.orange)
+        click("error")
+        return
+    end
+    local pool = quizPool()
+    if #pool < 2 then
+        setMessage("Where am I dialing? needs two names in the address book that these keys can spell", colors.orange)
+        click("error")
+        return
+    end
+    quiz = { right = 0, asked = 0 }
+    quizRound(pool)
+    setMessage("Watch the keys light up", colors.white)
+end
+
+local function endQuiz()
+    if not quiz then return end
+    local text = "Quiz over" .. (quiz.asked > 0 and (": " .. quiz.right .. " of " .. quiz.asked .. " right") or "")
+    quiz = nil
+    setMessage(text, colors.lightGray)
+end
+
+local function answerQuiz(i)
+    if not quiz or quiz.picked or not quiz.choices[i] then return end
+    quiz.picked = i
+    quiz.asked = quiz.asked + 1
+    quiz.shown = #quiz.symbols + 1
+    local a = quiz.answer
+    if quiz.choices[i] == a then
+        quiz.right = quiz.right + 1
+        setMessage("Right: " .. a.name .. ", " .. A.format(a.address), colors.lime)
+        click("dome")
+    else
+        setMessage("No, it's " .. a.name .. ", " .. A.format(a.address), colors.red)
+        click("error")
+    end
+end
+
+-- NEXT (or SKIP before a guess): another round
+local function nextQuiz()
+    if not quiz then return end
+    local pool = quizPool()
+    if #pool < 2 then endQuiz() return end
+    local skipped = not quiz.picked and quiz.answer
+    quizRound(pool)
+    setMessage((skipped and ("That was " .. skipped.name .. ". ") or "") .. "Watch the keys light up", colors.white)
+end
+
+-- the keys light up one by one, then the dome
+local function quizTick()
+    if not quiz or quiz.picked or quiz.shown > #quiz.symbols then return false end
+    quiz.shown = quiz.shown + 1
+    if quiz.shown > #quiz.symbols then
+        click("dome")
+        setMessage("Pick an answer, 1 to " .. #quiz.choices, colors.white)
+    else
+        click()
+    end
+    return true
 end
 
 ---------------------------------------------------------------------------
@@ -467,6 +621,11 @@ local function resetKeys()
 end
 
 local function pressKey(symbol)
+    if quiz then
+        setMessage(quiz.picked and "NEXT for another, or END to stop" or "Pick where it goes, or END to stop", colors.orange)
+        click("error")
+        return
+    end
     if keyset.why then setMessage(keyset.why, colors.orange) click("error") return end
     if not gate then setMessage("No stargate interface connected", colors.red) click("error") return end
     local st = gate.state
@@ -534,6 +693,10 @@ end
 
 local function pressDome()
     click("dome")
+    if quiz then
+        if quiz.picked then nextQuiz() else setMessage("Pick where it goes first, or SKIP", colors.orange) end
+        return
+    end
     if keyset.why then setMessage(keyset.why, colors.orange) return end
     if not gate then setMessage("No stargate interface connected", colors.red) return end
     gate:poll()
@@ -572,6 +735,7 @@ end
 
 -- CLEAR: stop dialing and let go of the chevrons
 local function clearKeys()
+    if quiz then endQuiz() return end
     local had = #seq > 0 or busy() or dome
     dropJobs()
     work.gen = work.gen + 1
@@ -587,7 +751,7 @@ end
 
 -- PRESS ALL: the cartouche's remaining symbols, then the dome
 local function pressAll()
-    if not guide then return end
+    if not guide or quiz then return end
     local _, off = guideNext()
     if off then setMessage("The keys have left the cartouche - CLEAR, then PRESS ALL", colors.orange) return end
     for i = #seq + 1, #guide.symbols do
@@ -600,6 +764,7 @@ end
 
 local function pickCartouche(entry)
     bookView = nil
+    quiz = nil
     if not entry then
         guide = nil
         setMessage("No cartouche", colors.lightGray)
@@ -611,6 +776,17 @@ local function pickCartouche(entry)
     local _, off = guideNext()
     setMessage(off and ("Cartouche: " .. entry.name .. " - CLEAR the keys to follow it")
         or ("Cartouche: " .. entry.name .. " - press the green keys, or " .. (L.mode == "round" and "PRESS ALL" or "ALL")), colors.lime)
+end
+
+-- true when the quiz's answer can be dialed from these keys
+local function canDialAnswer()
+    return quiz ~= nil and quiz.picked ~= nil and cartoucheFor(quiz.answer) ~= nil
+end
+
+-- DIAL IT: the quiz's answer becomes the cartouche
+local function dialQuizAnswer()
+    if not canDialAnswer() then return end
+    pickCartouche(quiz.answer)
 end
 
 local function toggleBook()
@@ -661,6 +837,8 @@ end
 -- the keys follow the gate when someone else dials it (the DHD block, another computer)
 local function followGate()
     if not gate then return end
+    -- someone dials in or dials out: the keys are the gate's again
+    if quiz and gateInUse() then quiz = nil end
     local st = gate.state
     if st ~= lastState then
         if st == "IDLE" and lastState ~= "OFFLINE" and not busy() then
@@ -715,6 +893,7 @@ end
 
 -- the status badge: text, background, text colour
 local function status()
+    if quiz then return "WHERE AM I DIALING?", colors.orange, colors.black end
     if not gate then return "NO GATE", colors.red, colors.white end
     local st = gate.state
     if st == "INCOMING" then
@@ -741,6 +920,10 @@ end
 
 -- the second line of the status badge: what to do next
 local function hint()
+    if quiz then
+        if quiz.picked then return quiz.choices[quiz.picked] == quiz.answer and "right!" or "not this time" end
+        return quiz.shown > #quiz.symbols and "pick where it goes" or "watch the keys"
+    end
     if not gate or keyset.why then return "" end
     if gate.connected then return "the dome closes it" end
     if gate.state == "INCOMING" then return "keys are locked" end
@@ -755,7 +938,7 @@ local function drawRound()
     local canvas, map, px = L.canvas, L.map, L.canvas.px
     local IDX = Pixels.index
     local lit = gate and gate.connected
-    local domeLit = lit or (dome and blink)
+    local domeLit = lit or (dome and blink) or (quiz and quiz.shown > #quiz.symbols)
     local colorOf = {
         [C_BG] = IDX[colors.black], [C_BODY] = IDX[colors.gray], [C_RIM] = IDX[colors.purple],
         [C_GAP] = IDX[colors.green],
@@ -766,12 +949,17 @@ local function drawRound()
     }
     local n = #keyset.symbols
     local keyFace, keyInk = {}, {}
-    local nextKey = not dome and guideNext() or nil
+    local nextKey = not dome and not quiz and guideNext() or nil
     for i, s in ipairs(keyset.symbols) do
-        local st = keyState(s)
-        -- keys waiting for the gate blink; keys still to be dialed by the dome stay lit
-        local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
-        local on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
+        local on
+        if quiz then
+            on = quizLit(s)
+        else
+            local st = keyState(s)
+            -- keys waiting for the gate blink; keys still to be dialed by the dome stay lit
+            local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
+            on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
+        end
         keyFace[i] = on and colors.orange or colors.brown
         keyInk[i] = on and colors.yellow or colors.pink
         if s == nextKey and not on then keyFace[i], keyInk[i] = colors.lime, colors.purple end
@@ -801,10 +989,14 @@ local function drawBook(x, y, w, h)
     local list = cartouches()
     ui:fill(x, y, w, h, colors.black)
     ui:write(x, y, fit("PICK A CARTOUCHE", w), colors.white, colors.black)
-    local per = math.max(1, h - 2 - (guide and 1 or 0))
+    local per = math.max(1, h - 3 - (guide and 1 or 0))
     local pages = math.max(1, ceil(#list / per))
     bookView.page = math.max(1, math.min(bookView.page, pages))
     local yy = y + 1
+    -- or play: the keys of an entry light up and you guess which
+    ui:write(x, yy, pad(quiz and "? Back to the quiz" or "? Where am I dialing?", w), colors.orange, colors.black)
+    ui:hit(x, yy, x + w - 1, yy, function() if quiz then bookView = nil else startQuiz() end end)
+    yy = yy + 1
     if guide then
         ui:write(x, yy, pad("(no cartouche)", w), colors.lightGray, colors.black)
         ui:hit(x, yy, x + w - 1, yy, function() pickCartouche(nil) end)
@@ -837,11 +1029,49 @@ end
 local function drawSmallButtons(x, y, w)
     local bw = floor((w - 2) / 3)
     local function label(long, short, width) return #long <= width and long or short end
-    ui:bigButton(x, y, bw, label("CLEAR", "CLR", bw), colors.white, colors.gray, clearKeys)
+    ui:bigButton(x, y, bw, quiz and "END" or label("CLEAR", "CLR", bw), colors.white, colors.gray, clearKeys)
     ui:bigButton(x + bw + 1, y, bw, label("BOOK", "BK", bw), bookView and colors.black or colors.white,
         bookView and colors.lime or colors.gray, toggleBook)
     ui:bigButton(x + 2 * bw + 2, y, w - 2 * bw - 2, label("IRIS", "IR", w - 2 * bw - 2), colors.white,
         (gate and gate.hasIris) and colors.gray or colors.black, toggleIris)
+end
+
+-- the quiz beside the round DHD: what is lit, the score, the choices, and DIAL IT once
+-- you have guessed; returns the next free line
+local function drawQuiz(x, y, w, bottom)
+    local total = #quiz.symbols
+    if quiz.picked then
+        ui:write(x, y, pad(fit(A.format(quiz.answer.address), w), w), colors.orange, colors.black)
+    else
+        ui:write(x, y, pad("Keys lit: " .. math.min(quiz.shown, total) .. " of " .. total, w), colors.lightGray, colors.black)
+    end
+    y = y + 1
+    ui:write(x, y, pad(quiz.asked > 0 and ("Score: " .. quiz.right .. " of " .. quiz.asked) or "", w), colors.lightGray, colors.black)
+    y = y + 2
+    local n = #quiz.choices
+    local gap = (bottom - y + 1 >= n * 2 + 3) and 1 or 0
+    for i, e in ipairs(quiz.choices) do
+        if y > bottom then break end
+        local fg, bg = colors.white, colors.gray
+        if quiz.picked then
+            if e == quiz.answer then fg, bg = colors.black, colors.lime
+            elseif i == quiz.picked then fg, bg = colors.white, colors.red
+            else fg, bg = colors.lightGray, colors.black end
+        end
+        ui:write(x, y, pad(" " .. i .. "  " .. e.name, w), fg, bg)
+        if not quiz.picked then
+            local k = i
+            ui:hit(x, y, x + w - 1, y, function() answerQuiz(k) end)
+        end
+        y = y + 1 + gap
+    end
+    if canDialAnswer() and y + 1 - gap <= bottom then
+        y = y + 1 - gap
+        ui:write(x, y, pad(" DIAL IT", w), colors.black, colors.lime)
+        ui:hit(x, y, x + w - 1, y, dialQuizAnswer)
+        y = y + 1
+    end
+    return y
 end
 
 local function drawPanel()
@@ -877,6 +1107,8 @@ local function drawPanel()
     if bookView then
         drawBook(x, y, w, by - 1 - y)
         y = by - 1
+    elseif quiz then
+        y = drawQuiz(x, y, w, by - 3)
     else
         -- the address, a line per chevron
         local rows = keyset.max + (keyset.origin ~= nil and 1 or 0)
@@ -953,10 +1185,14 @@ local function drawPanel()
     end
 
     -- buttons
-    local domeLabel = "DIAL"
-    if gate and gate.connected then domeLabel = "CLOSE"
-    elseif dome then domeLabel = "DIALING" end
-    ui:bigButton(x, by, w, domeLabel, colors.black, gate and gate.connected and colors.red or colors.orange, pressDome)
+    if quiz then
+        ui:bigButton(x, by, w, quiz.picked and "NEXT" or "SKIP", colors.black, colors.orange, nextQuiz)
+    else
+        local domeLabel = "DIAL"
+        if gate and gate.connected then domeLabel = "CLOSE"
+        elseif dome then domeLabel = "DIALING" end
+        ui:bigButton(x, by, w, domeLabel, colors.black, gate and gate.connected and colors.red or colors.orange, pressDome)
+    end
     drawSmallButtons(x, by + 3, w)
 end
 
@@ -968,7 +1204,10 @@ local function drawKeypad()
     ui:write(2, 1, fit("DHD", W), colors.black, colors.orange)
     local tabText = "< " .. style.name .. " >"
     local tx = W - #tabText
-    if tx > 6 then
+    if quiz then
+        ui:write(W - 4, 1, " END ", colors.white, colors.red)
+        ui:hit(W - 4, 1, W, 1, endQuiz)
+    elseif tx > 6 then
         ui:write(tx, 1, tabText, colors.black, colors.orange)
         ui:hit(tx, 1, tx + 1, 1, function() cycleLook(-1) end)
         ui:hit(tx + 2, 1, W, 1, function() cycleLook(1) end)
@@ -981,6 +1220,14 @@ local function drawKeypad()
     ui:center(1, 2, W, text, fg, bg)
 
     -- the address so far; tap it to take back the last symbol
+    if quiz then
+        local total = #quiz.symbols
+        local head = quiz.picked and (" " .. A.format(quiz.answer.address))
+            or (" Keys lit: " .. math.min(quiz.shown, total) .. " of " .. total)
+        local score = quiz.asked > 0 and (" " .. quiz.right .. "/" .. quiz.asked .. " ") or ""
+        ui:write(1, 3, pad(head, W - #score), quiz.picked and colors.orange or colors.lightGray, colors.black)
+        ui:write(W - #score + 1, 3, score, colors.lightGray, colors.black)
+    end
     local parts = {}
     for i, e in ipairs(seq) do parts[i] = D.label(e.symbol) end
     local addr = #parts > 0 and table.concat(parts, keyset.kind == "letters" and "" or "-") or "_"
@@ -989,8 +1236,12 @@ local function drawKeypad()
     local canAll = guide and not off and nextKey ~= nil and not dome and gate and gate.state ~= "INCOMING" and not gate.connected
     local tail = entry and ("  " .. entry.name) or (guide and ((off and "  off " or "  ") .. guide.name) or "")
     local aw = canAll and 4 or 0
-    ui:write(1, 3, pad(fit(" " .. addr .. tail, W - aw), W - aw), (entry or (guide and not off)) and colors.lime or colors.white, colors.black)
-    if #seq > 0 then ui:hit(1, 3, W - aw, 3, function() takeBack(#seq) end) end
+    if quiz then
+        canAll = false
+    else
+        ui:write(1, 3, pad(fit(" " .. addr .. tail, W - aw), W - aw), (entry or (guide and not off)) and colors.lime or colors.white, colors.black)
+    end
+    if #seq > 0 and not quiz then ui:hit(1, 3, W - aw, 3, function() takeBack(#seq) end) end
     if canAll then
         ui:write(W - 3, 3, " ALL", colors.black, colors.lime)
         ui:hit(W - 3, 3, W, 3, pressAll)
@@ -1016,12 +1267,17 @@ local function drawKeypad()
             local c = (i - 1) % perRow
             local x = 1 + c * (kw + 1)
             local y = y0 + r * (kh + gap)
-            local st = keyState(s)
-            local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
-            local on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
+            local on
+            if quiz then
+                on = quizLit(s)
+            else
+                local st = keyState(s)
+                local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
+                on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
+            end
             local kbg = on and colors.orange or colors.brown
             local kfg = on and colors.purple or colors.pink
-            if s == nextKey and not on and not dome then kbg, kfg = colors.lime, colors.purple end
+            if s == nextKey and not on and not dome and not quiz then kbg, kfg = colors.lime, colors.purple end
             ui:fill(x, y, kw, kh, kbg)
             ui:center(x, y + floor((kh - 1) / 2), kw, D.label(s), kfg, kbg)
             ui:hit(x, y, x + kw - 1, y + kh - 1, function() pressKey(s) end)
@@ -1031,10 +1287,34 @@ local function drawKeypad()
     -- dome, clear, iris
     local by = H - 1
     local domeW = math.max(8, floor(W / 2))
-    local domeLabel = (gate and gate.connected) and "CLOSE" or (dome and "DIALING" or "DIAL")
-    local domeLit = (gate and gate.connected) or (dome and blink)
-    ui:bigButton(1, by, domeW, domeLabel, domeLit and colors.purple or colors.white, domeLit and colors.cyan or colors.magenta, pressDome)
-    drawSmallButtons(domeW + 2, by, W - domeW - 1)
+    if quiz and not quiz.picked then
+        -- the choices, two to a row
+        local cw = floor((W - 1) / 2)
+        for i, e in ipairs(quiz.choices) do
+            local col, row = (i - 1) % 2, floor((i - 1) / 2)
+            local cx = 1 + col * (cw + 1)
+            local width = col == 0 and cw or W - cw - 1
+            ui:write(cx, by + row, pad(i .. " " .. e.name, width), colors.white, colors.gray)
+            local k = i
+            ui:hit(cx, by + row, cx + width - 1, by + row, function() answerQuiz(k) end)
+        end
+    elseif quiz then
+        local lit = quiz.shown > #quiz.symbols
+        ui:bigButton(1, by, domeW, "NEXT", lit and colors.purple or colors.white, lit and colors.cyan or colors.magenta, nextQuiz)
+        local rest = W - domeW - 1
+        if canDialAnswer() then
+            local bw = floor((rest - 1) / 2)
+            ui:bigButton(domeW + 2, by, bw, bw >= 7 and "DIAL IT" or "DIAL", colors.black, colors.lime, dialQuizAnswer)
+            ui:bigButton(domeW + 3 + bw, by, rest - bw - 1, "END", colors.white, colors.gray, endQuiz)
+        else
+            ui:bigButton(domeW + 2, by, rest, "END", colors.white, colors.gray, endQuiz)
+        end
+    else
+        local domeLabel = (gate and gate.connected) and "CLOSE" or (dome and "DIALING" or "DIAL")
+        local domeLit = (gate and gate.connected) or (dome and blink)
+        ui:bigButton(1, by, domeW, domeLabel, domeLit and colors.purple or colors.white, domeLit and colors.cyan or colors.magenta, pressDome)
+        drawSmallButtons(domeW + 2, by, W - domeW - 1)
+    end
     local msg = input ~= "" and ("Typed: " .. input .. "_") or message.text
     ui:write(1, H - 2, pad(msg, W), input ~= "" and colors.yellow or message.color, colors.black)
 end
@@ -1082,6 +1362,7 @@ local function drawNative()
     print("Tab        next look")
     print("Ctrl+B     the address book: pick a cartouche")
     print("Ctrl+A     press all of the cartouche's keys")
+    print("Ctrl+G     Where am I dialing? A guessing game")
     print("Ctrl+I     iris     Ctrl+Q  quit")
 end
 
@@ -1104,6 +1385,11 @@ local function commitInput()
 end
 
 local function typed(ch)
+    if quiz then
+        local n = tonumber(ch)
+        if n then answerQuiz(n) end
+        return
+    end
     if keyset.kind == "letters" then
         local s = D.match(keyset, ch:upper())
         if s then pressKey(s) else setMessage("No key for \"" .. ch .. "\"", colors.orange) end
@@ -1340,6 +1626,7 @@ local function uiTask()
         elseif name == "dhd_tick" then
             blink = not blink
             redraw = polled or needsBlink() or (gate and gate.state == "OPEN")
+            if quizTick() then redraw = true end
         elseif name == "timer" or name == "dhd_gate_event" or name == "dhd_radio" or name == "dhd_input" then
             redraw = polled
         elseif name == "peripheral" then
@@ -1348,6 +1635,7 @@ local function uiTask()
                 gate = Gate.find(CONFIG.interfaceName)
                 if gate and (gate.mod == "lanteacraft" or gate.mod == "lanteacraft17") then A.plainLetters = true end
                 keyset = D.keys(gate)
+                quiz = nil
                 if not CONFIG.look and not settings.get("dhd.look") then style = lookFor(gate) end
                 Styles.apply(target, style)
                 resetKeys()
@@ -1363,6 +1651,7 @@ local function uiTask()
                 dropJobs()
                 gate = nil
                 keyset = D.keys(nil)
+                quiz = nil
                 resetKeys()
                 layout()
                 setMessage("Stargate interface disconnected", colors.red)
@@ -1380,6 +1669,7 @@ local function uiTask()
             elseif ctrl and k == keys.i then toggleIris()
             elseif ctrl and k == keys.b then toggleBook()
             elseif ctrl and k == keys.a then pressAll()
+            elseif ctrl and k == keys.g then if quiz then endQuiz() else startQuiz() end
             elseif ctrl then -- other shortcuts are not ours
             elseif k == keys.enter or k == keys.numPadEnter then
                 if not commitInput() then pressDome() end
