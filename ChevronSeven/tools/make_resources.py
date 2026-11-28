@@ -162,6 +162,16 @@ LOOKS = {
     # the Stargate Network gate's own look: dark steel-blue, blue chevrons (GateLook.NETWORK).
     # Last, so the looks above keep their seeds and textures.
     "network": dict(stone=(74, 84, 102), track=(46, 52, 64), horizon=((20, 60, 160), (80, 150, 240), (215, 235, 255))),
+    # the stargate mods of Minecraft, for /chevron7 history (GateLook.SGCRAFT and on), after the
+    # way each one's gate looks in a video of their history. Drawn here like every other look.
+    # Greg's SGCraft: cool grey stone, red-orange chevrons, deep blue water in big square pixels
+    "sgcraft": dict(stone=(118, 126, 130), track=(90, 98, 102), horizon=((14, 34, 140), (36, 76, 205), (130, 175, 255)), pixel=True),
+    # Just Stargate Mod on 1.12.2, in the evening light of the video: copper-brown stone, gold chevrons
+    "jsg112": dict(stone=(148, 102, 74), track=(116, 80, 58), horizon=((24, 60, 160), (90, 150, 240), (225, 240, 255))),
+    # Stargate Journey: slate blue-grey stone, orange chevrons
+    "journey": dict(stone=(100, 112, 136), track=(78, 88, 108), horizon=((20, 64, 170), (80, 150, 245), (220, 238, 255))),
+    # Just Stargate Mod on 1.20: pale grey stone, amber chevrons, a dark blue wormhole with a white glow in the middle
+    "jsg120": dict(stone=(164, 166, 170), track=(136, 138, 144), horizon=((8, 18, 64), (34, 72, 168), (235, 245, 255)), glow=True),
 }
 
 
@@ -226,8 +236,24 @@ def look_horizon(spec, seed):
             for f, ph, ang in waves:
                 v += math.sin((x * math.cos(ang) + y * math.sin(ang)) * f + ph)
             light = 1 - abs(v / len(waves)) ** 0.5
+            if spec.get("glow"):
+                # the middle of the texture is the middle of the horizon: light it up
+                r = math.hypot(x - s / 2, y - s / 2) / (s / 2)
+                light = min(1.0, light * 0.55 + max(0.0, 1 - r / 0.62) ** 1.6 * 0.85)
             col = [dark[i] + (mid[i] - dark[i]) * light + (bright[i] - mid[i]) * light ** 4 for i in range(3)]
             px[x, y] = tuple(clamp(c) for c in col) + (228,)
+    if spec.get("glow"):
+        # white sparks, thicker towards the bright middle
+        rnd = random.Random(29)
+        for _ in range(420):
+            r = (rnd.random() ** 1.7) * 0.7 * (s / 2)
+            a = rnd.uniform(0, math.tau)
+            x, y = int(s / 2 + r * math.cos(a)), int(s / 2 + r * math.sin(a))
+            if 0 <= x < s and 0 <= y < s:
+                px[x, y] = (250, 252, 255, 240)
+    if spec.get("pixel"):
+        # big square pixels, like older stargate mods drew their water
+        return img.resize((16, 16), Image.BOX).resize((s, s), Image.NEAREST)
     return img.filter(ImageFilter.GaussianBlur(0.6))
 
 
@@ -770,6 +796,11 @@ LANG = {
     "look.chevron7.goauld": "Goa'uld",
     "look.chevron7.wraith": "Wraith",
     "look.chevron7.crimson": "Crimson",
+    "look.chevron7.sgcraft": "SGCraft",
+    "look.chevron7.jsg112": "JSG (1.12.2)",
+    "look.chevron7.journey": "Stargate Journey",
+    "look.chevron7.jsg120": "JSG (1.20)",
+    "message.chevron7.history_built": "Built the stargate mods of Minecraft, oldest on the left: %s",
     "block.chevron7.stargate_base": "Stargate Base Block",
     "block.chevron7.stargate_ring_block": "Stargate Ring Block",
     "block.chevron7.stargate_chevron_block": "Stargate Chevron Block",

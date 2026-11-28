@@ -105,8 +105,14 @@ Every gate can have its own look: its ring and symbol track, the colour of its c
 | `wraith` | purple-grey, violet chevrons, a violet wormhole |
 | `crimson` | dark red, red chevrons, a red wormhole |
 | `network` | the Stargate Network gate's look: dark steel-blue, blue chevrons, pale symbols or letters |
+| `sgcraft` | after Greg's SGCraft (1.7.0): cool grey stone, red-orange chevrons, deep blue water in big square pixels |
+| `jsg112` | after Just Stargate Mod on 1.12.2 in evening light (1.7.0): copper-brown stone, gold chevrons |
+| `journey` | after Stargate Journey (1.7.0): slate blue-grey stone, orange chevrons |
+| `jsg120` | after Just Stargate Mod on 1.20 (1.7.0): pale grey stone, amber chevrons, a dark blue wormhole with a white glow in the middle |
 
-`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room and Personal Dialer](../StargateCommand/) pick their matching style by themselves. Looks are only colours and textures: the gate works the same in every one.
+`/chevron7 looks` lists them. Computers see the look as the gate's variant (`chevron7:infinity`, for example), so the [Gate Room, DHD and Personal Dialer](../StargateCommand/) pick their matching style by themselves. For the looks after other mods, the Gate Room uses its SGCraft style for `sgcraft`, JSG for `jsg120`, Aunis for `jsg112` and Milky Way for `journey`; the DHD program uses its JSG look for both JSG looks and SG Network for `sgcraft`; the Personal Dialer uses SGCraft for `sgcraft` and Milky Way for the rest. Looks are only colours and textures: the gate works the same in every one.
+
+The dark DHD's dome glows red by most gates; by a gate in the `sgcraft` look it is orange, and by one in the `network` look blue, like those mods' DHDs (1.7.0).
 
 ## Gate platforms and the gate room
 
@@ -145,6 +151,32 @@ After the dial sequence of the Carter Addon Pack for Garry's Mod: `/chevron7 pla
 `/chevron7 supergate <pos> [direction]` builds an Ori supergate, four times the size of a gate: a ring of 40 separate dark segments about 27 blocks across, with no symbols or chevrons. Its segments light one after another as it dials out, and they all glow while the wormhole is open. It dials and is dialed like any other gate (the DHD, the commands and computers all work), and you can travel through it both ways. Only its base, at the bottom middle of the ring, is solid. The bottom of its horizon is four blocks up, so it comes with a landing and stairs up the front. A supergate can't have an iris. Computers see it as the variant `chevron7:supergate`, so the Gate Room draws it as the Ori Supergate.
 
 `/chevron7 gaterow <pos> [direction]` builds one gate in every look side by side, each on its step, with a DHD in front of the middle gate and a supergate behind the row.
+
+## The stargate mods of Minecraft
+
+![The history row](../imgs/HistoryRow.jpg)
+
+![The gates of the history row](../imgs/HistoryGates.jpg)
+
+*`/chevron7 history` (1.7.0) in a Minecraft 1.20.1 client. Top: the whole row. Middle: SGCraft, the Stargate Network and JSG on 1.12.2. Bottom: JSG on 1.12.2, Stargate Journey and JSG on 1.20. Two wormholes are open: SGCraft to JSG 1.20, and JSG 1.12.2 to the Stargate Network.*
+
+`/chevron7 history <pos> [direction]` builds the stargate mods of Minecraft side by side, oldest on the left as you face them, after the way each one's gate looks in a video of their history:
+
+| | Gate | Look | Ground |
+|---|---|---|---|
+| **SGCraft** (Greg's original, Minecraft 1.7.10 to 1.12.2) | a ring of letters, like a [Stargate Network gate](#the-stargate-network-gate) | `sgcraft` | stone bricks gone mossy at the edges |
+| **Stargate Network** (SGCraft 2.x, 1.12.2) | a ring of letters | `network` | grass, with a stone pad under the gate |
+| **Just Stargate Mod** (1.12.2) | the classic gate | `jsg112` | dark stone bricks, with a pillar on each side of the step |
+| **Stargate Journey** (1.20.1) | the classic gate | `journey` | sand and grass, with a birch tree |
+| **Just Stargate Mod** (1.20.1) | the classic gate | `jsg120` | a beach, with a pool and sugar cane |
+
+Each gate stands on its step with a DHD of its own and a plaque in front: a post with a lantern on top and a sign saying which mod it is and for which Minecraft. A path runs along the front, with a plaque at its start. The signs are waxed, so nobody edits them by accident.
+
+![The SGCraft gate, its plaque and DHD](../imgs/HistorySGCraft.jpg)
+
+*The SGCraft gate dialing out, with its orange-domed DHD, and the plaques at the start of the row.*
+
+The gates are real gates: each has its own address and dials the others, the two letter gates by letters or symbols. The looks and the ground are drawn and built by Chevron Seven itself, after those mods; nothing is taken from them, and none of them need to be installed.
 
 ## Gate fields
 
@@ -238,6 +270,7 @@ For operators:
 /chevron7 pedestal <pos> [direction] [small|large]   build a CAP pedestal for any mod's gate
 /chevron7 supergate <pos> [direction]   build an Ori supergate
 /chevron7 gaterow <pos> [direction]     build a gate in every look, and a supergate
+/chevron7 history <pos> [direction]     build the stargate mods of Minecraft in a row
 ```
 
 `<pos>` can be any block of the ring.
@@ -256,10 +289,15 @@ For operators:
 
 ## Install
 
-Put [`dist/chevron7-1.6.0.jar`](dist/chevron7-1.6.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
+Put [`dist/chevron7-1.7.0.jar`](dist/chevron7-1.7.0.jar) in the `mods` folder (client and server) of a Forge 47 / Minecraft 1.20.1 game. CC: Tweaked is optional.
 
 ## Tested
 
+- **1.7.0 (`/chevron7 history` and the four new looks)**, on a dedicated Forge 1.20.1 server (47.4.29) and in a Minecraft 1.20.1 client on the same Forge, in a flat world.
+  - The command, run from a data pack, built the five gates where they belong, oldest on the left, with their looks, steps, DHDs and plaques. The signs read as above, glowing and waxed; the pool, sugar cane, birch tree and pillars were in place.
+  - **The SGCraft gate dialed the JSG 1.20 gate by its letters**, and **the JSG 1.12.2 gate dialed the Stargate Network gate by its symbols**: both wormholes opened.
+  - In the client every look showed as in the pictures above, with the pixelated water on the SGCraft gate and the white glow on the JSG 1.20 one. The SGCraft gate's DHD had an orange dome and the Stargate Network gate's a blue one; the others stayed red.
+  - The Gate Room's style for each new look was checked by running its look-up in Lua 5.2: SGCraft for `sgcraft`, Aunis for `jsg112`, JSG for `jsg120` and Milky Way for `journey`. The DHD program's and Personal Dialer's were only syntax-checked. None of the three was run on a computer in the game.
 - **1.6.0 (the Stargate Network gate, letter addresses and the SG Computer Interface)**, on a dedicated Forge 1.20.1 server (47.4.29) with CC: Tweaked 1.120.2. There was a classic gate, a classic gate in the `infinity` look and a Stargate Network gate, with computers on the rings and on two SG Computer Interfaces.
   - `/chevron7 list` and `/chevron7 address` showed each gate's symbols and letters. `/chevron7 dial` dialed by letters, and refused a letter address with one character wrong.
   - **The SG Computer Interface** on the Stargate Network gate read its state, letter address, look (`chevron7:network`) and iris. It gave SGCraft's errors for a malformed address, a mistyped one (`unknownAddress`), its own address and a missing iris, and `selfBusy` while dialing.
@@ -358,7 +396,7 @@ python3 tools/make_resources.py   # only after changing it: textures, symbols, m
 ./gradlew build
 ```
 
-The jar is `build/libs/chevron7-1.6.0.jar`.
+The jar is `build/libs/chevron7-1.7.0.jar`.
 
 ## License
 

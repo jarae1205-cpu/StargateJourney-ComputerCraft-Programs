@@ -183,6 +183,9 @@ local function lookFor(g)
     if (g.mod == "jsg" or g.mod == "jsg112") and g.typeId == "milky_way" and not g.variant then return LOOK_BY_ID.jsg end
     if g.mod == "sgcraft" and g.hasZpm and not g.variant then return LOOK_BY_ID.sgnet end
     local v = (g.variant or ""):lower()
+    -- Chevron Seven's looks after other mods ("chevron7:jsg120", "chevron7:sgcraft")
+    if v:find("jsg") then return LOOK_BY_ID.jsg end
+    if v:find("sgcraft") then return LOOK_BY_ID.sgnet end
     if v:find("infinity") then return LOOK_BY_ID.infinity end
     if v:find("carter") or v:find("%f[%a]cap%f[%A]") then return LOOK_BY_ID.carter end
     if v:find("atlantis") or v:find("lantea") then return LOOK_BY_ID.pegasus end

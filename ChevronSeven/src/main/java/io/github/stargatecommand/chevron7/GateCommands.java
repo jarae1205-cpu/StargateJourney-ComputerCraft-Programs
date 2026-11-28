@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.RegisterCommandsEvent;
 
 /**
- * /chevron7 list | address | dial | close | iris | field | look | platform | pedestal | gateroom | supergate | gaterow, for operators.
+ * /chevron7 list | address | dial | close | iris | field | look | platform | pedestal | gateroom | supergate | gaterow | history, for operators.
  */
 public final class GateCommands
 {
@@ -117,6 +117,10 @@ public final class GateCommands
 						.executes(context -> build(context, null, "gaterow"))
 						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
 								.executes(context -> build(context, StringArgumentType.getString(context, "direction"), "gaterow")))))
+				.then(Commands.literal("history").then(Commands.argument("pos", BlockPosArgument.blockPos())
+						.executes(context -> build(context, null, "history"))
+						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
+								.executes(context -> build(context, StringArgumentType.getString(context, "direction"), "history")))))
 				.then(Commands.literal("gateroom").then(Commands.argument("pos", BlockPosArgument.blockPos())
 						.executes(context -> gateRoom(context, null))
 						.then(Commands.argument("direction", StringArgumentType.word()).suggests(GateCommands::suggestDirections)
@@ -210,7 +214,7 @@ public final class GateCommands
 		return 1;
 	}
 
-	/** /chevron7 supergate and /chevron7 gaterow. */
+	/** /chevron7 supergate, /chevron7 gaterow and /chevron7 history. */
 	private static int build(CommandContext<CommandSourceStack> context, @javax.annotation.Nullable String direction, String what)
 			throws CommandSyntaxException
 	{
@@ -218,6 +222,12 @@ public final class GateCommands
 		net.minecraft.core.Direction facing = facing(context, direction);
 		if(facing == null)
 			return 0;
+		if(what.equals("history"))
+		{
+			GateBuildings.history(context.getSource().getLevel(), pos, facing);
+			context.getSource().sendSuccess(() -> Component.translatable("message.chevron7.history_built", GateBuildings.historyNames()), true);
+			return 1;
+		}
 		if(what.equals("supergate"))
 			GateBuildings.supergate(context.getSource().getLevel(), pos, facing);
 		else
