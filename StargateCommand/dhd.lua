@@ -9,6 +9,10 @@
 --   engages the point of origin. On SGCraft, LanteaCraft and Just Stargate Mod
 --   gates the keys build up the address and the dome dials it.
 --
+--   BOOK opens the address book: pick an address as the cartouche, and its
+--   next key glows green, like reading the glyphs off a sheet; PRESS ALL
+--   presses the rest and the dome for you.
+--
 --   The dome closes an open wormhole again. The look (Milky Way, Pegasus,
 --   Universe, Carter Addon Pack, Infinity, LanteaCraft, JSG, SG Network and
 --   SG Network Pegasus) follows the gate; the arrows at the top of the panel
@@ -20,7 +24,7 @@
 --     dhd term         this screen
 --
 
-local VERSION = "1.0"
+local VERSION = "1.1"
 
 --
 -- CONFIGURATION
@@ -231,6 +235,10 @@ local dome = nil
 -- jobs for the gate, run one after another by the worker: { kind = "key", entry } | { kind = "origin" } | { kind = "dial" }
 local work = { queue = {}, busy = false, abort = false, gen = 0, current = nil }
 local input = ""                        -- what is being typed on the keyboard
+-- the cartouche: an address book entry whose symbols the keys show, in order
+-- { name = "Abydos", symbols = { 26, 6, 14, 31, 11, 29 } }
+local guide = nil
+local bookView = nil                    -- { page = 1 } while the address book is on the screen
 local message = { text = "", color = colors.lightGray }
 local lastState = gate and gate.state or "OFFLINE"
 local codeSent = false                  -- this wormhole's iris code went out
@@ -278,6 +286,49 @@ end
 local function matchEntry()
     if #seq == 0 or not keyset.lengths[#seq] then return nil end
     return book:find(D.address(keyset, symbols()))
+end
+
+local function symbolText(symbol)
+    if symbol == keyset.origin then return "Point of Origin" end
+    return tostring(symbol)
+end
+
+-- the keys for an address book entry, in order; or nil and why it can't be dialed from them
+local function cartoucheFor(entry)
+    if not entry or not entry.address then return nil, ((entry and entry.name) or "That entry") .. " has no address yet" end
+    if not gate then return nil, "No stargate interface connected" end
+    if keyset.why then return nil, keyset.why end
+    local ok, why = A.dialableBy(entry.address, gate.mod)
+    if not ok then return nil, why end
+    local list = {}
+    for i, s in ipairs(A.symbols(entry.address)) do
+        local key
+        for _, k in ipairs(keyset.symbols) do
+            if k == s or (type(k) == "string" and type(s) == "string" and k:lower() == s:lower()) then key = k break end
+        end
+        if key == nil then return nil, tostring(s) .. " isn't one of this gate's keys" end
+        list[i] = key
+    end
+    if not keyset.lengths[#list] then return nil, "This gate's addresses have " .. D.lengthText(keyset) .. " symbols" end
+    return list
+end
+
+-- the address book entries the keys can dial, listed at this gate
+local function cartouches()
+    local out = {}
+    for _, e in ipairs(book:visible(gate and gate.localAddress)) do
+        if cartoucheFor(e) then out[#out + 1] = e end
+    end
+    return out
+end
+
+-- the cartouche's next symbol; nil, true when the keys have left the cartouche
+local function guideNext()
+    if not guide then return nil end
+    for i, e in ipairs(seq) do
+        if e.symbol ~= guide.symbols[i] then return nil, true end
+    end
+    return guide.symbols[#seq + 1]
 end
 
 local function startRelay()
@@ -428,7 +479,8 @@ local function pressKey(symbol)
     if st == "OFFLINE" then setMessage("The gate is offline", colors.red) click("error") return end
     if dome then setMessage("Dialing - CLEAR stops it", colors.orange) click("error") return end
     if st == "DIALING" and not keyset.direct then setMessage("The gate is dialing", colors.orange) click("error") return end
-    local at = inSeq(symbol)
+    -- letters may repeat in SGCraft and LanteaCraft addresses ("WLDQDQBMT")
+    local at = keyset.kind ~= "letters" and inSeq(symbol)
     if at then
         if not keyset.direct and at == #seq then
             -- a key that has not gone to the gate yet can be taken back
@@ -446,6 +498,7 @@ local function pressKey(symbol)
         click("error")
         return
     end
+    local wanted = guideNext()
     local entry = { symbol = symbol, state = "queued" }
     seq[#seq + 1] = entry
     click()
@@ -457,6 +510,19 @@ local function pressKey(symbol)
     else
         setMessage("")
     end
+    if wanted ~= nil and symbol ~= wanted then
+        setMessage("The cartouche for " .. guide.name .. " has " .. symbolText(wanted) .. " here", colors.orange)
+    end
+end
+
+-- takes back the symbols from line n of the address on, if they haven't gone to the gate
+local function takeBack(n)
+    if keyset.direct or dome or not seq[n] then return end
+    if gate and gate.state ~= "IDLE" then return end
+    local gone = {}
+    for i = #seq, n, -1 do table.insert(gone, 1, D.label(table.remove(seq, i).symbol)) end
+    click()
+    setMessage("Took back " .. table.concat(gone, keyset.kind == "letters" and "" or " "), colors.lightGray)
 end
 
 local function closeGate()
@@ -522,6 +588,43 @@ local function clearKeys()
     setMessage(had and "Cleared" or "", colors.lightGray)
 end
 
+-- PRESS ALL: the cartouche's remaining symbols, then the dome
+local function pressAll()
+    if not guide then return end
+    local _, off = guideNext()
+    if off then setMessage("The keys have left the cartouche - CLEAR, then PRESS ALL", colors.orange) return end
+    for i = #seq + 1, #guide.symbols do
+        local before = #seq
+        pressKey(guide.symbols[i])
+        if #seq == before then return end -- refused, and pressKey said why
+    end
+    pressDome()
+end
+
+local function pickCartouche(entry)
+    bookView = nil
+    if not entry then
+        guide = nil
+        setMessage("No cartouche", colors.lightGray)
+        return
+    end
+    local list, why = cartoucheFor(entry)
+    if not list then setMessage(why, colors.orange) return end
+    guide = { name = entry.name, symbols = list }
+    local _, off = guideNext()
+    setMessage(off and ("Cartouche: " .. entry.name .. " - CLEAR the keys to follow it")
+        or ("Cartouche: " .. entry.name .. " - press the green keys, or " .. (L.mode == "round" and "PRESS ALL" or "ALL")), colors.lime)
+end
+
+local function toggleBook()
+    if bookView then
+        bookView = nil
+    else
+        book:reload()
+        bookView = { page = 1 }
+    end
+end
+
 local function toggleIris()
     if not gate then return end
     local ok, err = gate:toggleIris()
@@ -565,6 +668,8 @@ local function followGate()
     if st ~= lastState then
         if st == "IDLE" and lastState ~= "OFFLINE" and not busy() then
             resetKeys()
+            -- the trip is over: the cartouche goes back in the book
+            if lastState == "OPEN" or lastState == "CLOSING" then guide = nil end
         end
         if st ~= "OPEN" then codeSent = false end
         lastState = st
@@ -649,11 +754,6 @@ local function hint()
     return keyset.direct and "keys lock as pressed" or "the dome dials"
 end
 
-local function symbolText(symbol)
-    if symbol == keyset.origin then return "Point of Origin" end
-    return tostring(symbol)
-end
-
 local function drawRound()
     local canvas, map, px = L.canvas, L.map, L.canvas.px
     local IDX = Pixels.index
@@ -669,6 +769,7 @@ local function drawRound()
     }
     local n = #keyset.symbols
     local keyFace, keyInk = {}, {}
+    local nextKey = not dome and guideNext() or nil
     for i, s in ipairs(keyset.symbols) do
         local st = keyState(s)
         -- keys waiting for the gate blink; keys still to be dialed by the dome stay lit
@@ -676,6 +777,7 @@ local function drawRound()
         local on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
         keyFace[i] = on and colors.orange or colors.brown
         keyInk[i] = on and colors.yellow or colors.pink
+        if s == nextKey and not on then keyFace[i], keyInk[i] = colors.lime, colors.purple end
         colorOf[C_KEY + i] = IDX[keyFace[i]]
     end
     for i = 1, canvas.w * canvas.h do
@@ -693,8 +795,56 @@ local function drawRound()
         local text = D.label(s)
         if #text > k.width then text = text:sub(1, math.max(1, k.width)) end
         local x = k.lx - floor((#text - 1) / 2)
-        ui:write(x, k.ly, text, keyFace[i] == colors.orange and colors.purple or colors.pink, keyFace[i])
+        ui:write(x, k.ly, text, (keyFace[i] == colors.orange or keyFace[i] == colors.lime) and colors.purple or colors.pink, keyFace[i])
     end
+end
+
+-- the address book on the screen: tap an entry to make it the cartouche
+local function drawBook(x, y, w, h)
+    local list = cartouches()
+    ui:fill(x, y, w, h, colors.black)
+    ui:write(x, y, fit("PICK A CARTOUCHE", w), colors.white, colors.black)
+    local per = math.max(1, h - 2 - (guide and 1 or 0))
+    local pages = math.max(1, ceil(#list / per))
+    bookView.page = math.max(1, math.min(bookView.page, pages))
+    local yy = y + 1
+    if guide then
+        ui:write(x, yy, pad("(no cartouche)", w), colors.lightGray, colors.black)
+        ui:hit(x, yy, x + w - 1, yy, function() pickCartouche(nil) end)
+        yy = yy + 1
+    end
+    if #list == 0 then
+        ui:write(x, yy, fit("No address this gate can dial", w), colors.lightGray, colors.black)
+    end
+    for i = 1, per do
+        local e = list[(bookView.page - 1) * per + i]
+        if not e then break end
+        local on = guide and guide.name == e.name
+        ui:write(x, yy, pad(e.name, w), on and colors.lime or colors.white, colors.black)
+        ui:hit(x, yy, x + w - 1, yy, function() pickCartouche(e) end)
+        yy = yy + 1
+    end
+    local ly = y + h - 1
+    ui:fill(x, ly, w, 1, colors.gray)
+    if pages > 1 then
+        local nav = "< " .. bookView.page .. "/" .. pages .. " >"
+        ui:write(x, ly, nav, colors.white, colors.gray)
+        ui:hit(x, ly, x + 1, ly, function() bookView.page = bookView.page - 1 end)
+        ui:hit(x + #nav - 2, ly, x + #nav - 1, ly, function() bookView.page = bookView.page + 1 end)
+    end
+    ui:write(x + w - 5, ly, "CLOSE", colors.white, colors.gray)
+    ui:hit(x + w - 5, ly, x + w - 1, ly, toggleBook)
+end
+
+-- CLEAR, BOOK and IRIS side by side
+local function drawSmallButtons(x, y, w)
+    local bw = floor((w - 2) / 3)
+    local function label(long, short, width) return #long <= width and long or short end
+    ui:bigButton(x, y, bw, label("CLEAR", "CLR", bw), colors.white, colors.gray, clearKeys)
+    ui:bigButton(x + bw + 1, y, bw, label("BOOK", "BK", bw), bookView and colors.black or colors.white,
+        bookView and colors.lime or colors.gray, toggleBook)
+    ui:bigButton(x + 2 * bw + 2, y, w - 2 * bw - 2, label("IRIS", "IR", w - 2 * bw - 2), colors.white,
+        (gate and gate.hasIris) and colors.gray or colors.black, toggleIris)
 end
 
 local function drawPanel()
@@ -726,46 +876,76 @@ local function drawPanel()
     ui:center(x, y + 1, w, hint(), fg, bg)
     y = y + 3
 
-    -- the address, a line per chevron
-    local rows = keyset.max + (keyset.origin ~= nil and 1 or 0)
-    local remote = gate and gate.state == "INCOMING" and gate.remote
-    if remote then
-        ui:write(x, y, fit("From " .. book:describe(remote), w), colors.red, colors.black)
+    local by = H - 4
+    if bookView then
+        drawBook(x, y, w, by - 1 - y)
+        y = by - 1
     else
-        local entry = matchEntry()
-        if entry then
-            ui:write(x, y, fit("To " .. entry.name, w), colors.lime, colors.black)
-        elseif #seq > 0 and keyset.lengths[#seq] then
-            ui:write(x, y, fit("Not in the address book", w), colors.lightGray, colors.black)
+        -- the address, a line per chevron
+        local rows = keyset.max + (keyset.origin ~= nil and 1 or 0)
+        local remote = gate and gate.state == "INCOMING" and gate.remote
+        local nextKey, off = guideNext()
+        local following = guide and not off and not remote
+        if following then
+            local canAll = nextKey ~= nil and not dome and gate and gate.state ~= "INCOMING" and not gate.connected
+            local bw = canAll and 9 or 0
+            ui:write(x, y, pad(fit(guide.name, w - bw - 1), w - bw), colors.lime, colors.black)
+            if canAll then
+                ui:write(x + w - bw, y, "PRESS ALL", colors.black, colors.lime)
+                ui:hit(x + w - bw, y, x + w - 1, y, pressAll)
+            end
+            rows = #guide.symbols + (keyset.origin ~= nil and 1 or 0)
+        elseif guide and off and not remote then
+            ui:write(x, y, fit("Off the cartouche: " .. guide.name, w), colors.orange, colors.black)
+        elseif remote then
+            ui:write(x, y, fit("From " .. book:describe(remote), w), colors.red, colors.black)
         else
-            ui:write(x, y, "ADDRESS", colors.lightGray, colors.black)
+            local entry = matchEntry()
+            if entry then
+                ui:write(x, y, fit("To " .. entry.name, w), colors.lime, colors.black)
+            elseif #seq > 0 and keyset.lengths[#seq] then
+                ui:write(x, y, fit("Not in the address book", w), colors.lightGray, colors.black)
+            else
+                ui:write(x, y, "ADDRESS", colors.lightGray, colors.black)
+            end
         end
-    end
-    y = y + 1
-    local originRow = keyset.origin ~= nil and (#seq + 1) or nil
-    for i = 1, rows do
-        if y > H - 5 then break end
-        local e = seq[i]
-        local label, fg = "", colors.gray
-        if e then
-            label = symbolText(e.symbol)
-            if e.state == "locked" then fg = colors.orange
-            elseif e.state == "engaging" then fg = blink and colors.white or colors.orange
-            else fg = keyset.direct and colors.lightGray or colors.white end
-        elseif i == originRow and (dome or (gate and gate.connected and gate.outgoing)) then
-            label = symbolText(keyset.origin)
-            fg = (gate and gate.connected) and colors.orange or (blink and colors.white or colors.orange)
-        elseif i == #seq + 1 then
-            label = "_"
-            fg = colors.lightGray
-        end
-        ui:write(x, y, string.format("%d ", i), colors.lightGray, colors.black)
-        ui:write(x + 2, y, pad(label, w - 2), fg, colors.black)
         y = y + 1
+        local originRow = keyset.origin ~= nil and (following and #guide.symbols + 1 or #seq + 1) or nil
+        for i = 1, rows do
+            if y > H - 5 then break end
+            local e = seq[i]
+            local label, fg = "", colors.gray
+            if e then
+                label = symbolText(e.symbol)
+                if e.state == "locked" then fg = colors.orange
+                elseif e.state == "engaging" then fg = blink and colors.white or colors.orange
+                else fg = keyset.direct and colors.lightGray or colors.white end
+                -- a symbol that hasn't gone to the gate can be taken back from its line
+                if not keyset.direct and not dome then
+                    local n = i
+                    ui:hit(x, y, x + w - 1, y, function() takeBack(n) end)
+                end
+            elseif i == originRow and (dome or (gate and gate.connected and gate.outgoing)) then
+                label = symbolText(keyset.origin)
+                fg = (gate and gate.connected) and colors.orange or (blink and colors.white or colors.orange)
+            elseif following and guide.symbols[i] then
+                -- the cartouche's symbols still to press, the next one in green
+                label = symbolText(guide.symbols[i]) .. (i == #seq + 1 and "  <" or "")
+                fg = i == #seq + 1 and colors.lime or colors.gray
+            elseif following and i == originRow then
+                label = symbolText(keyset.origin) .. (#seq == #guide.symbols and "  < the dome" or "")
+                fg = #seq == #guide.symbols and colors.lime or colors.gray
+            elseif i == #seq + 1 then
+                label = "_"
+                fg = colors.lightGray
+            end
+            ui:write(x, y, string.format("%d ", i), colors.lightGray, colors.black)
+            ui:write(x + 2, y, pad(label, w - 2), fg, colors.black)
+            y = y + 1
+        end
     end
 
     -- the message, at most four lines above the buttons
-    local by = H - 4
     local my = math.max(y + 1, by - 5)
     if input ~= "" and my - 1 > y then
         ui:write(x, my - 1, fit("Typed: " .. input .. "_", w), colors.yellow, colors.black)
@@ -776,14 +956,11 @@ local function drawPanel()
     end
 
     -- buttons
-    local half = floor((w - 1) / 2)
     local domeLabel = "DIAL"
     if gate and gate.connected then domeLabel = "CLOSE"
     elseif dome then domeLabel = "DIALING" end
     ui:bigButton(x, by, w, domeLabel, colors.black, gate and gate.connected and colors.red or colors.orange, pressDome)
-    ui:bigButton(x, by + 3, half, "CLEAR", colors.white, colors.gray, clearKeys)
-    ui:bigButton(x + half + 1, by + 3, w - half - 1, "IRIS", colors.white,
-        (gate and gate.hasIris) and colors.gray or colors.black, toggleIris)
+    drawSmallButtons(x, by + 3, w)
 end
 
 -- small screens: the keys as a keypad
@@ -806,38 +983,52 @@ local function drawKeypad()
     ui:fill(1, 2, W, 1, bg)
     ui:center(1, 2, W, text, fg, bg)
 
-    -- the address so far
+    -- the address so far; tap it to take back the last symbol
     local parts = {}
     for i, e in ipairs(seq) do parts[i] = D.label(e.symbol) end
     local addr = #parts > 0 and table.concat(parts, keyset.kind == "letters" and "" or "-") or "_"
     local entry = matchEntry()
-    ui:write(1, 3, fit(" " .. addr .. (entry and ("  " .. entry.name) or ""), W), entry and colors.lime or colors.white, colors.black)
+    local nextKey, off = guideNext()
+    local canAll = guide and not off and nextKey ~= nil and not dome and gate and gate.state ~= "INCOMING" and not gate.connected
+    local tail = entry and ("  " .. entry.name) or (guide and ((off and "  off " or "  ") .. guide.name) or "")
+    local aw = canAll and 4 or 0
+    ui:write(1, 3, pad(fit(" " .. addr .. tail, W - aw), W - aw), (entry or (guide and not off)) and colors.lime or colors.white, colors.black)
+    if #seq > 0 then ui:hit(1, 3, W - aw, 3, function() takeBack(#seq) end) end
+    if canAll then
+        ui:write(W - 3, 3, " ALL", colors.black, colors.lime)
+        ui:hit(W - 3, 3, W, 3, pressAll)
+    end
 
-    -- the keys
-    local n = #keyset.symbols
-    local labelW = 1
-    for _, s in ipairs(keyset.symbols) do labelW = math.max(labelW, #D.label(s)) end
-    local kw = labelW + 2
-    local perRow = math.max(1, floor((W + 1) / (kw + 1)))
-    local nRows = ceil(n / perRow)
-    local room = H - 7 -- title, status, address and a gap above; message and buttons below
-    local kh = (nRows * 2 + (nRows - 1) <= room) and 2 or 1
-    local gap = (kh == 2 and nRows * 3 - 1 <= room) and 1 or 0
-    local y0 = 5
-    if nRows * (kh + gap) > room + 1 then y0 = 4 end
-    for i, s in ipairs(keyset.symbols) do
-        local r = floor((i - 1) / perRow)
-        local c = (i - 1) % perRow
-        local x = 1 + c * (kw + 1)
-        local y = y0 + r * (kh + gap)
-        local st = keyState(s)
-        local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
-        local on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
-        local kbg = on and colors.orange or colors.brown
-        local kfg = on and colors.purple or colors.pink
-        ui:fill(x, y, kw, kh, kbg)
-        ui:center(x, y + floor((kh - 1) / 2), kw, D.label(s), kfg, kbg)
-        ui:hit(x, y, x + kw - 1, y + kh - 1, function() pressKey(s) end)
+    if bookView then
+        drawBook(1, 4, W, H - 6)
+    else
+        -- the keys
+        local n = #keyset.symbols
+        local labelW = 1
+        for _, s in ipairs(keyset.symbols) do labelW = math.max(labelW, #D.label(s)) end
+        local kw = labelW + 2
+        local perRow = math.max(1, floor((W + 1) / (kw + 1)))
+        local nRows = ceil(n / perRow)
+        local room = H - 7 -- title, status, address and a gap above; message and buttons below
+        local kh = (nRows * 2 + (nRows - 1) <= room) and 2 or 1
+        local gap = (kh == 2 and nRows * 3 - 1 <= room) and 1 or 0
+        local y0 = 5
+        if nRows * (kh + gap) > room + 1 then y0 = 4 end
+        for i, s in ipairs(keyset.symbols) do
+            local r = floor((i - 1) / perRow)
+            local c = (i - 1) % perRow
+            local x = 1 + c * (kw + 1)
+            local y = y0 + r * (kh + gap)
+            local st = keyState(s)
+            local waiting = st == "engaging" or (st == "queued" and (keyset.direct or dome ~= nil))
+            local on = st == "locked" or (st == "queued" and not waiting) or (waiting and blink)
+            local kbg = on and colors.orange or colors.brown
+            local kfg = on and colors.purple or colors.pink
+            if s == nextKey and not on and not dome then kbg, kfg = colors.lime, colors.purple end
+            ui:fill(x, y, kw, kh, kbg)
+            ui:center(x, y + floor((kh - 1) / 2), kw, D.label(s), kfg, kbg)
+            ui:hit(x, y, x + kw - 1, y + kh - 1, function() pressKey(s) end)
+        end
     end
 
     -- dome, clear, iris
@@ -846,10 +1037,7 @@ local function drawKeypad()
     local domeLabel = (gate and gate.connected) and "CLOSE" or (dome and "DIALING" or "DIAL")
     local domeLit = (gate and gate.connected) or (dome and blink)
     ui:bigButton(1, by, domeW, domeLabel, domeLit and colors.purple or colors.white, domeLit and colors.cyan or colors.magenta, pressDome)
-    local rest = W - domeW - 1
-    local half = floor((rest - 1) / 2)
-    ui:bigButton(domeW + 2, by, half, "CLEAR", colors.white, colors.gray, clearKeys)
-    ui:bigButton(domeW + 3 + half, by, rest - half - 1, "IRIS", colors.white, colors.gray, toggleIris)
+    drawSmallButtons(domeW + 2, by, W - domeW - 1)
     local msg = input ~= "" and ("Typed: " .. input .. "_") or message.text
     ui:write(1, H - 2, pad(msg, W), input ~= "" and colors.yellow or message.color, colors.black)
 end
@@ -895,6 +1083,8 @@ local function drawNative()
     print("Backspace  take back a typed character")
     print("Delete     clear the address")
     print("Tab        next look")
+    print("Ctrl+B     the address book: pick a cartouche")
+    print("Ctrl+A     press all of the cartouche's keys")
     print("Ctrl+I     iris     Ctrl+Q  quit")
 end
 
@@ -1191,6 +1381,8 @@ local function uiTask()
             local k = e[2]
             if ctrl and k == keys.q then running = false
             elseif ctrl and k == keys.i then toggleIris()
+            elseif ctrl and k == keys.b then toggleBook()
+            elseif ctrl and k == keys.a then pressAll()
             elseif ctrl then -- other shortcuts are not ours
             elseif k == keys.enter or k == keys.numPadEnter then
                 if not commitInput() then pressDome() end
